@@ -1,4 +1,4 @@
-export type Mahlzeit = 'mittag' | 'abend'
+export type Mahlzeit = 'frühstück' | 'mittag' | 'abend'
 
 export type Kategorie =
   | 'fleisch'
@@ -10,6 +10,7 @@ export type Kategorie =
   | 'sonstiges'
   | 'kinder'
   | 'trainingstage'
+  | 'frühstück'
 
 export interface Zutat {
   name: string

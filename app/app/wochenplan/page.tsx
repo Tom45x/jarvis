@@ -37,8 +37,14 @@ export default function WochenplanPage() {
   async function tauschen(tag: string, mahlzeit: string) {
     if (!plan) return
     const aktuell = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
-    // Gesperrte Gerichte aus der Zufallsauswahl ausschließen
-    const andere = gerichte.filter(g => g.id !== aktuell?.gericht_id && !g.gesperrt)
+    // Gesperrte Gerichte ausschließen; kategorie-spezifisch filtern
+    const andere = gerichte.filter(g =>
+      g.id !== aktuell?.gericht_id &&
+      !g.gesperrt &&
+      (mahlzeit === 'frühstück'
+        ? g.kategorie === 'frühstück'
+        : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage')
+    )
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return
 

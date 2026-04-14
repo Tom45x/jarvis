@@ -17,7 +17,8 @@ export async function generiereWochenplan(
   ).join('\n')
 
   const trainingsGerichte = gerichte.filter(g => g.kategorie === 'trainingstage')
-  const normaleGerichte = gerichte.filter(g => g.kategorie !== 'trainingstage')
+  const fruehstueckGerichte = gerichte.filter(g => g.kategorie === 'frühstück')
+  const normaleGerichte = gerichte.filter(g => g.kategorie !== 'trainingstage' && g.kategorie !== 'frühstück')
 
   const gerichteText = normaleGerichte.map(g =>
     `- ${g.name} (${g.gesund ? 'gesund' : 'nicht gesund'}, Kategorie: ${g.kategorie}${g.bewertung === 5 ? ', ⭐⭐⭐⭐⭐ FAVORIT' : g.bewertung === 1 || g.bewertung === 2 ? ', weniger beliebt' : ''})`
@@ -26,6 +27,11 @@ export async function generiereWochenplan(
   const trainingsGerichteText = trainingsGerichte.map(g =>
     `- ${g.name} (Aufwand: ${g.aufwand ?? '15 Min'})`
   ).join('\n')
+
+  const fruehstueckGerichteText = fruehstueckGerichte
+    .filter(g => g.name !== 'Toast mit Aufschnitt')
+    .map(g => `- ${g.name}`)
+    .join('\n')
 
   const obstListe = profile
     .flatMap(p => p.lieblingsobst)
@@ -46,9 +52,13 @@ ${gerichteText}
 Gerichte für Trainingstage (Montag-, Dienstag- und Donnerstagabend):
 ${trainingsGerichteText}
 
+Gerichte für Wochenend-Frühstück (nur Samstag + Sonntag):
+${fruehstueckGerichteText}
+
 Regeln:
 - Wähle NUR Gerichte aus der obigen Listen
 - PFLICHT: Montagabend, Dienstagabend und Donnerstagabend MÜSSEN ein Gericht aus der Trainingstage-Liste sein (Bens Trainingstage — schnelle Mahlzeiten notwendig)
+- PFLICHT: Samstagsfrühstück und Sonntagsfrühstück MÜSSEN aus der Wochenend-Frühstücks-Liste kommen
 - Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 3 VERSCHIEDENE davon pro Woche einplanen (jedes nur 1x)
 - Gerichte mit "weniger beliebt" maximal 1x pro Woche
 - Ca. 70% bekannte Lieblingsgerichte, 30% gesündere Optionen
@@ -70,8 +80,10 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     {"tag": "donnerstag", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "freitag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "freitag", "mahlzeit": "abend", "gericht_name": "..."},
+    {"tag": "samstag", "mahlzeit": "frühstück", "gericht_name": "..."},
     {"tag": "samstag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "samstag", "mahlzeit": "abend", "gericht_name": "..."},
+    {"tag": "sonntag", "mahlzeit": "frühstück", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "abend", "gericht_name": "..."}
   ],
