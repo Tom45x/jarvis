@@ -108,4 +108,22 @@ describe('generiereEinkaufslisten', () => {
     expect(einkauf1).toHaveLength(0)
     expect(einkauf2).toHaveLength(0)
   })
+
+  it('aggregiert gleiche Zutat NICHT über Listen-Grenzen hinweg', () => {
+    // Bolognese am Mittwoch → Hackfleisch in Einkauf 1 (Mi=3 < Do=4)
+    // Ein zweites Gericht mit Hackfleisch am Freitag → Hackfleisch in Einkauf 2 (Fr=5 >= Do=4)
+    const zweitesGericht: Gericht = {
+      id: 'g3', name: 'Chili con Carne', gesund: false, kategorie: 'suppe',
+      beliebtheit: {}, quelle: 'manuell',
+      zutaten: [{ name: 'Hackfleisch', menge: 400, einheit: 'g', haltbarkeit_tage: 2 }]
+    }
+    const eintraege: WochenplanEintrag[] = [
+      { tag: 'mittwoch', mahlzeit: 'abend', gericht_id: 'g1', gericht_name: 'Spaghetti Bolognese' },
+      { tag: 'freitag', mahlzeit: 'abend', gericht_id: 'g3', gericht_name: 'Chili con Carne' }
+    ]
+    const { einkauf1, einkauf2 } = generiereEinkaufslisten(eintraege, [bolognese, zweitesGericht], einkaufstag2)
+    // Hackfleisch erscheint SEPARAT in beiden Listen — nicht zusammengeführt
+    expect(einkauf1.find(i => i.name === 'Hackfleisch')?.menge).toBe(500) // Bolognese
+    expect(einkauf2.find(i => i.name === 'Hackfleisch')?.menge).toBe(400) // Chili
+  })
 })
