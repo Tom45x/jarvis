@@ -16,11 +16,12 @@ export default function GerichtePage() {
     kategorie: string
     aufwand: string
     beschreibung: string
-    rezept_url: string | null
+    rezept: { zutaten: string[]; zubereitung: string[] }
   }>>([])
   const [vorschlagHinweis, setVorschlagHinweis] = useState('')
   const [ladeVorschlaege, setLadeVorschlaege] = useState(false)
   const [fuegeHinzu, setFuegeHinzu] = useState<string | null>(null)
+  const [rezeptOffen, setRezeptOffen] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -244,24 +245,41 @@ export default function GerichtePage() {
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{v.name}</p>
                     <p className="text-sm text-gray-500 mt-1">{v.beschreibung}</p>
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex gap-2 mt-2 flex-wrap">
                       <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
                         {v.kategorie}
                       </span>
                       <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
                         {v.aufwand}
                       </span>
-                      {v.rezept_url && (
-                        <a
-                          href={v.rezept_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          Rezept ansehen →
-                        </a>
-                      )}
+                      <button
+                        onClick={() => setRezeptOffen(rezeptOffen === v.name ? null : v.name)}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        {rezeptOffen === v.name ? 'Rezept ausblenden ▲' : 'Rezept anzeigen ▼'}
+                      </button>
                     </div>
+
+                    {rezeptOffen === v.name && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Zutaten (4 Personen)</p>
+                          <ul className="space-y-0.5">
+                            {v.rezept.zutaten.map((z, i) => (
+                              <li key={i} className="text-xs text-gray-600">• {z}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Zubereitung</p>
+                          <ol className="space-y-1">
+                            {v.rezept.zubereitung.map((s, i) => (
+                              <li key={i} className="text-xs text-gray-600">{i + 1}. {s.replace(/^Schritt \d+:\s*/i, '')}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
@@ -290,7 +308,12 @@ export default function GerichtePage() {
           <div key={gericht.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="font-medium text-gray-900">{gericht.name}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-medium text-gray-900">{gericht.name}</h2>
+                  {gericht.aufwand && (
+                    <span className="text-xs text-gray-400">⏱ {gericht.aufwand}</span>
+                  )}
+                </div>
                 {bearbeiteId !== gericht.id && (
                   <p className="text-sm text-gray-500 mt-1">
                     {gericht.zutaten.length === 0

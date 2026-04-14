@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { sucheRezeptUrl } from '@/lib/themealdb'
 import Anthropic from '@anthropic-ai/sdk'
 import type { FamilieMitglied } from '@/types'
 
-interface GerichtVorschlag {
+export interface GerichtVorschlag {
   name: string
   kategorie: string
   aufwand: string
   beschreibung: string
-  rezept_url: string | null
-}
-
-interface ClaudeVorschlag {
-  name: string
-  kategorie: string
-  aufwand: string
-  beschreibung: string
+  rezept: {
+    zutaten: string[]
+    zubereitung: string[]
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -37,9 +32,9 @@ export async function POST(request: NextRequest) {
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const prompt = `Du bist Jarvis, ein Haushaltsassistent für eine deutsche Familie mit 2 Kindern (Ben 11, Marie 8).
+  const prompt = `Du bist Jarvis, Chefkoch und Haushaltsassistent für eine deutsche Familie mit 2 Kindern (Ben 11, Marie 8).
 
-Schlage 3 neue Gerichte vor, die gut zur Familie passen.
+Schlage 3 neue Gerichte vor und liefere für jedes ein vollständiges Rezept.
 
 Familienprofile:
 ${profilText}
@@ -54,33 +49,32 @@ REGELN:
 - Kinder-freundlich (keine sehr scharfen oder exotischen Gerichte)
 - Abwechslungsreich in den Kategorien
 - Deutsche/europäische oder bekannte internationale Küche
+- Mengenangaben für 4 Personen
+- Zubereitung in 3-5 klaren Schritten
 
 Antworte NUR mit diesem JSON-Array, kein weiterer Text:
 [
   {
     "name": "...",
     "kategorie": "fleisch|nudeln|suppe|auflauf|fisch|salat|sonstiges|kinder",
-    "aufwand": "schnell|mittel|aufwendig",
-    "beschreibung": "1-2 Sätze Beschreibung des Gerichts"
+    "aufwand": "15 Min|30 Min|45 Min|60+ Min",
+    "beschreibung": "1-2 Sätze Beschreibung",
+    "rezept": {
+      "zutaten": ["200g Nudeln", "2 Eier", "..."],
+      "zubereitung": ["Schritt 1: ...", "Schritt 2: ...", "..."]
+    }
   }
 ]`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 512,
+    max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '[]'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-  const vorschlaege = JSON.parse(text) as ClaudeVorschlag[]
+  const vorschlaege = JSON.parse(text) as GerichtVorschlag[]
 
-  const angereichert: GerichtVorschlag[] = await Promise.all(
-    vorschlaege.map(async (v) => ({
-      ...v,
-      rezept_url: await sucheRezeptUrl(v.name),
-    }))
-  )
-
-  return NextResponse.json(angereichert)
+  return NextResponse.json(vorschlaege)
 }
