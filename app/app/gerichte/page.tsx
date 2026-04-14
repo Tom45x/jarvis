@@ -160,7 +160,7 @@ export default function GerichtePage() {
       const updated = await fetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setVorschlaege(prev => prev.filter(v => v.name !== vorschlag.name))
-      setMeldung(`✅ ${vorschlag.name} hinzugefügt und Zutaten generiert`)
+      setMeldung(`✅ ${vorschlag.name} hinzugefügt`)
     } catch (e: unknown) {
       setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
     } finally {
@@ -201,112 +201,121 @@ export default function GerichtePage() {
     : aktiveGerichte.filter(g => g.kategorie === filterKategorie)
 
   return (
-    <main className="p-4 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">🥘 Gerichte & Zutaten</h1>
-          {ohneZutaten > 0 && (
-            <p className="text-sm text-amber-600 mt-1">
-              ⚠️ {ohneZutaten} Gerichte haben noch keine Zutaten
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <a
-            href="/wochenplan"
-            className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            ← Wochenplan
-          </a>
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="px-4 pt-12 pb-4">
+        <div className="flex justify-between items-start mb-1">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
+            Gerichte
+          </h1>
           <button
             onClick={alleZutatenGenerieren}
             disabled={generiere}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+            className="text-sm font-medium px-4 py-2 rounded-xl disabled:opacity-50"
+            style={{ background: 'var(--surface)', color: 'var(--near-black)' }}
           >
-            {generiere ? 'Generiere...' : '✨ Alle Zutaten generieren'}
+            {generiere ? '...' : '✨ Zutaten'}
           </button>
         </div>
+        {ohneZutaten > 0 && (
+          <p className="text-xs mt-1" style={{ color: '#c13515' }}>
+            ⚠️ {ohneZutaten} Gerichte ohne Zutaten
+          </p>
+        )}
       </div>
 
       {meldung && (
-        <p className="text-sm mb-4 p-3 bg-gray-50 rounded-lg">{meldung}</p>
+        <div className="mx-4 mb-3 px-4 py-3 rounded-2xl text-sm" style={{ background: 'var(--surface)', color: 'var(--near-black)' }}>
+          {meldung}
+        </div>
       )}
 
       {/* Neue Gerichte entdecken */}
-      <div className="mb-8 p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Neue Gerichte entdecken</h2>
-        <div className="flex gap-2 mb-4">
+      <div className="mx-4 mb-5 rounded-2xl p-4" style={{ background: 'var(--surface)', boxShadow: 'var(--card-shadow)' }}>
+        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--near-black)' }}>
+          Neue Gerichte entdecken
+        </h2>
+        <div className="flex gap-2 mb-3">
           <input
             type="text"
             value={vorschlagHinweis}
             onChange={e => setVorschlagHinweis(e.target.value)}
-            placeholder="Worauf habt ihr Lust? (optional, z.B. mehr Fisch)"
-            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2"
+            placeholder="z.B. mehr Fisch, Wochenend-Frühstück …"
+            className="flex-1 text-sm px-3 py-2.5 rounded-xl outline-none"
+            style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)' }}
           />
           <button
             onClick={vorschlaegeGenerieren}
             disabled={ladeVorschlaege}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shrink-0"
+            className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-xl disabled:opacity-50"
+            style={{ background: 'var(--rausch)', color: '#ffffff' }}
           >
-            {ladeVorschlaege ? 'Generiere...' : '3 Vorschläge generieren'}
+            {ladeVorschlaege ? '...' : '3 Ideen'}
           </button>
         </div>
 
         {vorschlaege.length > 0 && (
           <div className="space-y-3">
             {vorschlaege.map(v => (
-              <div key={v.name} className="bg-white border border-gray-200 rounded-lg p-4">
+              <div key={v.name} className="bg-white rounded-xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
                 <div className="flex justify-between items-start gap-3">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{v.name}</p>
-                    <p className="text-sm text-gray-500 mt-1">{v.beschreibung}</p>
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{v.name}</p>
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--gray-secondary)' }}>{v.beschreibung}</p>
+                    <div className="flex gap-1.5 mt-2 flex-wrap items-center">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ background: '#f0f0f0', color: 'var(--near-black)' }}>
                         {v.kategorie}
                       </span>
-                      <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
-                        {v.aufwand}
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ background: '#f0f0f0', color: 'var(--near-black)' }}>
+                        ⏱ {v.aufwand}
                       </span>
                       <button
                         onClick={() => setRezeptOffen(rezeptOffen === v.name ? null : v.name)}
-                        className="text-xs text-indigo-600 hover:underline"
+                        className="text-xs font-medium"
+                        style={{ color: 'var(--rausch)' }}
                       >
-                        {rezeptOffen === v.name ? 'Rezept ausblenden ▲' : 'Rezept anzeigen ▼'}
+                        {rezeptOffen === v.name ? 'Rezept ▲' : 'Rezept ▼'}
                       </button>
                     </div>
 
                     {rezeptOffen === v.name && (
-                      <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-4">
+                      <div className="mt-3 pt-3 space-y-3" style={{ borderTop: '1px solid var(--border)' }}>
                         <div>
-                          <p className="text-xs font-semibold text-gray-600 mb-1">Zutaten (4 Personen)</p>
+                          <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--near-black)' }}>Zutaten (4 Personen)</p>
                           <ul className="space-y-0.5">
                             {v.rezept.zutaten.map((z, i) => (
-                              <li key={i} className="text-xs text-gray-600">• {z}</li>
+                              <li key={i} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>· {z}</li>
                             ))}
                           </ul>
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-gray-600 mb-1">Zubereitung</p>
+                          <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--near-black)' }}>Zubereitung</p>
                           <ol className="space-y-1">
                             {v.rezept.zubereitung.map((s, i) => (
-                              <li key={i} className="text-xs text-gray-600">{i + 1}. {s.replace(/^Schritt \d+:\s*/i, '')}</li>
+                              <li key={i} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>
+                                {i + 1}. {s.replace(/^Schritt \d+:\s*/i, '')}
+                              </li>
                             ))}
                           </ol>
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex flex-col gap-2 shrink-0">
                     <button
                       onClick={() => vorschlagHinzufuegen(v)}
                       disabled={fuegeHinzu === v.name}
-                      className="text-sm bg-green-600 text-white rounded px-3 py-1.5 hover:bg-green-700 disabled:opacity-50"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-xl disabled:opacity-50"
+                      style={{ background: 'var(--near-black)', color: '#ffffff' }}
                     >
-                      {fuegeHinzu === v.name ? 'Füge hinzu...' : 'Hinzufügen'}
+                      {fuegeHinzu === v.name ? '...' : '+ Hinzufügen'}
                     </button>
                     <button
                       onClick={() => setVorschlaege(prev => prev.filter(x => x.name !== v.name))}
-                      className="text-sm text-gray-400 hover:text-gray-600 rounded px-3 py-1.5"
+                      className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                      style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}
                     >
                       Überspringen
                     </button>
@@ -319,94 +328,117 @@ export default function GerichtePage() {
       </div>
 
       {/* Kategorie-Filter */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {alleKategorien.map(kat => (
-          <button
-            key={kat}
-            onClick={() => setFilterKategorie(kat)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              filterKategorie === kat
-                ? 'bg-gray-800 text-white border-gray-800'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
-            }`}
-          >
-            {kat === 'alle' ? `Alle (${aktiveGerichte.length})` : kat}
-          </button>
-        ))}
+      <div className="px-4 mb-4">
+        <div className="flex gap-2 overflow-x-auto scroll-hide pb-1">
+          {alleKategorien.map(kat => (
+            <button
+              key={kat}
+              onClick={() => setFilterKategorie(kat)}
+              className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
+              style={{
+                background: filterKategorie === kat ? 'var(--near-black)' : 'var(--surface)',
+                color: filterKategorie === kat ? '#ffffff' : 'var(--near-black)',
+              }}
+            >
+              {kat === 'alle' ? `Alle (${aktiveGerichte.length})` : kat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Gerichtsliste */}
+      <div className="px-4 space-y-3 pb-4">
         {gefilterteGerichte.map(gericht => (
-          <div key={gericht.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-start">
-              <div>
+          <div
+            key={gericht.id}
+            className="bg-white rounded-2xl p-4"
+            style={{ boxShadow: 'var(--card-shadow)' }}
+          >
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="font-medium text-gray-900">{gericht.name}</h2>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                  <h2 className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>
+                    {gericht.name}
+                  </h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}>
                     {gericht.kategorie}
                   </span>
                   {gericht.aufwand && (
-                    <span className="text-xs text-gray-400">⏱ {gericht.aufwand}</span>
+                    <span className="text-xs" style={{ color: 'var(--gray-secondary)' }}>
+                      ⏱ {gericht.aufwand}
+                    </span>
                   )}
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <button
-                        key={s}
-                        onClick={() => bewerten(gericht.id, s)}
-                        className={`text-base leading-none transition-colors ${s <= (gericht.bewertung ?? 3) ? 'text-yellow-400' : 'text-gray-200'} hover:text-yellow-300`}
-                        title={`${s} Stern${s > 1 ? 'e' : ''}`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
                 </div>
+
+                {/* Sterne */}
+                <div className="flex gap-0.5 mt-1.5">
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => bewerten(gericht.id, s)}
+                      className="text-base leading-none transition-colors"
+                      style={{ color: s <= (gericht.bewertung ?? 3) ? '#f59e0b' : '#e5e5e5' }}
+                      title={`${s} Stern${s > 1 ? 'e' : ''}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+
                 {bearbeiteId !== gericht.id && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs mt-1.5 line-clamp-1" style={{ color: 'var(--gray-secondary)' }}>
                     {gericht.zutaten.length === 0
-                      ? 'Keine Zutaten'
+                      ? 'Keine Zutaten hinterlegt'
                       : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
                   </p>
                 )}
               </div>
+
               {bearbeiteId !== gericht.id && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => einzelnGenerieren(gericht)}
-                    className="text-xs text-purple-600 hover:underline"
+                    className="text-xs font-medium"
+                    style={{ color: 'var(--gray-secondary)' }}
                   >
-                    neu generieren
+                    ↺
                   </button>
                   <button
                     onClick={() => bearbeiteStart(gericht)}
-                    className="text-xs text-blue-600 hover:underline"
+                    className="text-xs font-medium"
+                    style={{ color: 'var(--rausch)' }}
                   >
-                    ✏️ bearbeiten
+                    ✏️
                   </button>
                 </div>
               )}
             </div>
 
+            {/* Zutaten bearbeiten */}
             {bearbeiteId === gericht.id && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2" style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                 {bearbeiteZutaten.map((zutat, i) => (
                   <div key={i} className="flex gap-2 items-center">
                     <input
                       value={zutat.name}
                       onChange={e => zutatAendern(i, 'name', e.target.value)}
                       placeholder="Name"
-                      className="flex-1 text-sm border border-gray-300 rounded px-2 py-1"
+                      className="flex-1 text-xs px-2 py-1.5 rounded-lg"
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
                     />
                     <input
                       type="number"
                       value={zutat.menge}
                       onChange={e => zutatAendern(i, 'menge', parseFloat(e.target.value))}
-                      className="w-20 text-sm border border-gray-300 rounded px-2 py-1"
+                      className="w-16 text-xs px-2 py-1.5 rounded-lg"
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
                     />
                     <select
                       value={zutat.einheit}
                       onChange={e => zutatAendern(i, 'einheit', e.target.value)}
-                      className="text-sm border border-gray-300 rounded px-2 py-1"
+                      className="text-xs px-2 py-1.5 rounded-lg"
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
                     >
                       {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
                         <option key={e} value={e}>{e}</option>
@@ -416,35 +448,35 @@ export default function GerichtePage() {
                       type="number"
                       value={zutat.haltbarkeit_tage}
                       onChange={e => zutatAendern(i, 'haltbarkeit_tage', parseInt(e.target.value))}
-                      title="Haltbarkeit in Tagen"
-                      className="w-16 text-sm border border-gray-300 rounded px-2 py-1"
+                      title="Haltbarkeit (Tage)"
+                      className="w-12 text-xs px-2 py-1.5 rounded-lg"
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
                     />
-                    <span className="text-xs text-gray-400">Tage</span>
-                    <button
-                      onClick={() => zutatEntfernen(i)}
-                      className="text-red-400 hover:text-red-600 text-sm"
-                    >
+                    <button onClick={() => zutatEntfernen(i)} className="text-sm" style={{ color: 'var(--rausch)' }}>
                       ✕
                     </button>
                   </div>
                 ))}
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={zutatHinzufuegen}
-                    className="text-sm text-gray-600 hover:text-gray-900 border border-dashed border-gray-300 rounded px-3 py-1"
+                    className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                    style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
                   >
-                    + Zutat hinzufügen
+                    + Zutat
                   </button>
                   <button
                     onClick={() => speichern(gericht.id)}
                     disabled={speichere}
-                    className="text-sm bg-blue-600 text-white rounded px-3 py-1 hover:bg-blue-700 disabled:opacity-50"
+                    className="text-xs font-semibold px-3 py-1.5 rounded-xl disabled:opacity-50"
+                    style={{ background: 'var(--near-black)', color: '#ffffff' }}
                   >
-                    {speichere ? 'Speichere...' : 'Speichern'}
+                    {speichere ? '...' : 'Speichern'}
                   </button>
                   <button
                     onClick={() => setBearbeiteId(null)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                    style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}
                   >
                     Abbrechen
                   </button>
@@ -455,39 +487,43 @@ export default function GerichtePage() {
         ))}
       </div>
 
+      {/* Gesperrte Gerichte */}
       {gesperrteGerichte.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">
+        <div className="px-4 mt-4 mb-4">
+          <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--near-black)' }}>
             Gesperrt ({gesperrteGerichte.length})
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Diese Gerichte wurden zu oft getauscht und werden nicht mehr vorgeschlagen.
+          <p className="text-xs mb-3" style={{ color: 'var(--gray-secondary)' }}>
+            Zu oft getauscht — werden nicht mehr vorgeschlagen.
           </p>
           <div className="space-y-2">
             {gesperrteGerichte.map(gericht => (
               <div
                 key={gericht.id}
-                className="border border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center"
+                className="rounded-2xl p-4 flex justify-between items-center"
+                style={{ background: '#fff5f5', boxShadow: 'var(--card-shadow)' }}
               >
                 <div>
-                  <p className="font-medium text-gray-800">{gericht.name}</p>
-                  <p className="text-xs text-red-500 mt-1">
-                    {gericht.tausch_count}x getauscht
+                  <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{gericht.name}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--rausch)' }}>
+                    {gericht.tausch_count}× getauscht
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => reaktivieren(gericht.id)}
-                    className="text-sm text-green-600 hover:text-green-800 border border-green-300 rounded px-3 py-1"
+                    className="text-xs font-semibold px-3 py-1.5 rounded-xl"
+                    style={{ background: 'var(--near-black)', color: '#ffffff' }}
                   >
                     Reaktivieren
                   </button>
                   <button
                     onClick={() => loeschen(gericht.id)}
                     disabled={loescht === gericht.id}
-                    className="text-sm text-red-600 hover:text-red-800 border border-red-300 rounded px-3 py-1 disabled:opacity-50"
+                    className="text-xs font-medium px-3 py-1.5 rounded-xl disabled:opacity-50"
+                    style={{ background: 'var(--surface)', color: 'var(--rausch)' }}
                   >
-                    {loescht === gericht.id ? 'Löscht...' : 'Löschen'}
+                    {loescht === gericht.id ? '...' : 'Löschen'}
                   </button>
                 </div>
               </div>

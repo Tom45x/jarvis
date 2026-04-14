@@ -74,134 +74,172 @@ export default function EinstellungenPage() {
     setBringKeywords(prev => prev.filter(k => k !== kw))
   }
 
+  const inputStyle = {
+    border: '1.5px solid var(--border)',
+    color: 'var(--near-black)',
+    background: '#ffffff',
+    borderRadius: '12px',
+    padding: '10px 14px',
+    fontSize: '14px',
+    outline: 'none',
+    width: '100%',
+  }
+
   return (
-    <main className="p-4 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Einstellungen</h1>
-        <a
-          href="/wochenplan"
-          className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          ← Wochenplan
-        </a>
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="px-4 pt-12 pb-6">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
+          Einstellungen
+        </h1>
       </div>
 
       {meldung && (
-        <p className="text-sm mb-4 p-3 bg-gray-50 rounded-lg">{meldung}</p>
+        <div className="mx-4 mb-4 px-4 py-3 rounded-2xl text-sm" style={{ background: 'var(--surface)', color: 'var(--near-black)' }}>
+          {meldung}
+        </div>
       )}
 
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Regelbedarf (Picnic)</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Diese Artikel werden bei jeder Einkaufsliste automatisch zu Picnic hinzugefügt.
-        </p>
-        <div className="space-y-2 mb-4">
-          {regelbedarf.map(r => (
-            <div key={r.id} className="flex justify-between items-center border border-gray-200 rounded-lg p-3">
-              <span className="text-sm text-gray-800">
-                {r.menge} {r.einheit} {r.name}
-              </span>
-              <button
-                onClick={() => regelbedarfLoeschen(r.id)}
-                className="text-sm text-red-500 hover:text-red-700"
+      <div className="px-4 space-y-6 pb-6">
+
+        {/* Regelbedarf */}
+        <section className="rounded-2xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
+          <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--near-black)' }}>
+            Regelbedarf (Picnic)
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--gray-secondary)' }}>
+            Wird bei jeder Einkaufsliste automatisch zu Picnic hinzugefügt.
+          </p>
+
+          <div className="space-y-2 mb-4">
+            {regelbedarf.map(r => (
+              <div
+                key={r.id}
+                className="flex justify-between items-center rounded-xl px-3 py-2.5"
+                style={{ background: 'var(--surface)' }}
               >
-                Entfernen
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={neuerName}
-            onChange={e => setNeuerName(e.target.value)}
-            placeholder="Artikel (z.B. Toast)"
-            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <input
-            value={neueMenge}
-            onChange={e => setNeueMenge(e.target.value)}
-            placeholder="Menge"
-            type="number"
-            className="w-20 text-sm border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <select
-            value={neueEinheit}
-            onChange={e => setNeueEinheit(e.target.value)}
-            className="text-sm border border-gray-300 rounded-lg px-3 py-2"
-          >
-            {['Packung', 'Stück', 'l', 'g', 'kg'].map(e => (
-              <option key={e} value={e}>{e}</option>
+                <span className="text-sm" style={{ color: 'var(--near-black)' }}>
+                  {r.menge} {r.einheit} {r.name}
+                </span>
+                <button
+                  onClick={() => regelbedarfLoeschen(r.id)}
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--rausch)' }}
+                >
+                  Entfernen
+                </button>
+              </div>
             ))}
-          </select>
-          <button
-            onClick={regelbedarfHinzufuegen}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
-          >
-            + Hinzufügen
-          </button>
-        </div>
-      </section>
+          </div>
 
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Picnic Mindestbestellwert</h2>
-        <div className="flex gap-3 items-center">
-          <input
-            type="number"
-            value={mindestbestellwert}
-            onChange={e => setMindestbestellwert(e.target.value)}
-            className="w-24 text-sm border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <span className="text-sm text-gray-600">€</span>
-        </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">
-          Bring-Kategorien (immer persönlich einkaufen)
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Zutaten deren Name eines dieser Stichworte enthält gehen immer nach Bring.
-        </p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {bringKeywords.map(kw => (
-            <span
-              key={kw}
-              className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 text-sm rounded-full px-3 py-1"
+          <div className="flex gap-2">
+            <input
+              value={neuerName}
+              onChange={e => setNeuerName(e.target.value)}
+              placeholder="Artikel"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+            <input
+              value={neueMenge}
+              onChange={e => setNeueMenge(e.target.value)}
+              placeholder="Menge"
+              type="number"
+              style={{ ...inputStyle, width: '72px' }}
+            />
+            <select
+              value={neueEinheit}
+              onChange={e => setNeueEinheit(e.target.value)}
+              style={{ ...inputStyle, width: 'auto' }}
             >
-              {kw}
-              <button
-                onClick={() => keywordEntfernen(kw)}
-                className="text-orange-500 hover:text-orange-800 ml-1"
-              >
-                ✕
-              </button>
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={neuesKeyword}
-            onChange={e => setNeuesKeyword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && keywordHinzufuegen()}
-            placeholder="Neues Stichwort (z.B. Lachs)"
-            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <button
-            onClick={keywordHinzufuegen}
-            className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700"
-          >
-            + Hinzufügen
-          </button>
-        </div>
-      </section>
+              {['Packung', 'Stück', 'l', 'g', 'kg'].map(e => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </select>
+            <button
+              onClick={regelbedarfHinzufuegen}
+              className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{ background: 'var(--near-black)', color: '#ffffff' }}
+            >
+              +
+            </button>
+          </div>
+        </section>
 
-      <button
-        onClick={picnicEinstellungenSpeichern}
-        disabled={speichere}
-        className="w-full bg-gray-900 text-white px-4 py-3 rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50"
-      >
-        {speichere ? 'Speichere...' : 'Alle Einstellungen speichern'}
-      </button>
+        {/* Picnic Mindestbestellwert */}
+        <section className="rounded-2xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
+          <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--near-black)' }}>
+            Picnic Mindestbestellwert
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--gray-secondary)' }}>
+            Unter diesem Betrag gehen Artikel zu Bring statt Picnic.
+          </p>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              value={mindestbestellwert}
+              onChange={e => setMindestbestellwert(e.target.value)}
+              style={{ ...inputStyle, width: '96px' }}
+            />
+            <span className="text-sm font-medium" style={{ color: 'var(--near-black)' }}>€</span>
+          </div>
+        </section>
+
+        {/* Bring Keywords */}
+        <section className="rounded-2xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
+          <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--near-black)' }}>
+            Bring-Kategorien
+          </h2>
+          <p className="text-xs mb-4" style={{ color: 'var(--gray-secondary)' }}>
+            Zutaten mit diesen Stichworten gehen immer zu Bring (z.B. frische Waren).
+          </p>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {bringKeywords.map(kw => (
+              <span
+                key={kw}
+                className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-full"
+                style={{ background: '#fff0f3', color: 'var(--rausch)' }}
+              >
+                {kw}
+                <button
+                  onClick={() => keywordEntfernen(kw)}
+                  className="text-xs leading-none"
+                  style={{ color: 'var(--rausch)' }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              value={neuesKeyword}
+              onChange={e => setNeuesKeyword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && keywordHinzufuegen()}
+              placeholder="Neues Stichwort"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+            <button
+              onClick={keywordHinzufuegen}
+              className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-xl"
+              style={{ background: 'var(--near-black)', color: '#ffffff' }}
+            >
+              +
+            </button>
+          </div>
+        </section>
+
+        {/* Speichern */}
+        <button
+          onClick={picnicEinstellungenSpeichern}
+          disabled={speichere}
+          className="w-full py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+          style={{ background: 'var(--rausch)', color: '#ffffff' }}
+        >
+          {speichere ? 'Speichere...' : 'Einstellungen speichern'}
+        </button>
+      </div>
     </main>
   )
 }

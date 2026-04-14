@@ -37,7 +37,6 @@ export default function WochenplanPage() {
   async function tauschen(tag: string, mahlzeit: string) {
     if (!plan) return
     const aktuell = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
-    // Gesperrte Gerichte ausschließen; kategorie-spezifisch filtern
     const andere = gerichte.filter(g =>
       g.id !== aktuell?.gericht_id &&
       !g.gesperrt &&
@@ -60,7 +59,6 @@ export default function WochenplanPage() {
     })
     setPlan(await res.json())
 
-    // Fire-and-forget: Tausch im alten Gericht protokollieren
     if (aktuell?.gericht_id) {
       fetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' }).catch(() => {})
     }
@@ -84,12 +82,9 @@ export default function WochenplanPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
       const picnicArtikel = data.picnic1Count ?? 0
-      const picnicInfo = picnicArtikel > 0 ? ` | Picnic: ${picnicArtikel} Artikel` : ''
-      const fallbackInfo = data.picnic1Fallback
-        ? ' (Mindestbestellwert nicht erreicht → alles zu Bring)'
-        : ''
+      const picnicInfo = picnicArtikel > 0 ? ` · Picnic: ${picnicArtikel}` : ''
       setEinkaufMeldung(
-        `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}${fallbackInfo}`
+        `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}`
       )
     } catch (e: unknown) {
       setEinkaufMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
@@ -99,34 +94,36 @@ export default function WochenplanPage() {
   }
 
   return (
-    <main className="p-4 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">🍽️ Wochenplan</h1>
-        <div className="flex gap-2">
-          <a
-            href="/gerichte"
-            className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            🥘 Gerichte
-          </a>
-          <a
-            href="/einstellungen"
-            className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Einstellungen
-          </a>
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="px-4 pt-12 pb-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
+              Diese Woche
+            </h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--gray-secondary)' }}>
+              {plan?.status === 'genehmigt' ? '✓ Genehmigt' : 'Entwurf'}
+            </p>
+          </div>
           <button
             onClick={generieren}
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity"
+            style={{ background: 'var(--rausch)', color: '#ffffff' }}
           >
-            {loading ? 'Generiere...' : '✨ Neuer Plan'}
+            {loading ? '...' : '✨ Neuer Plan'}
           </button>
         </div>
+
+        {error && (
+          <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
+            {error}
+          </p>
+        )}
       </div>
 
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
+      {/* Plan or empty state */}
       {plan ? (
         <>
           <WochenplanGrid
@@ -135,26 +132,49 @@ export default function WochenplanPage() {
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
           />
-          <div className="mt-6 border-t border-gray-100 pt-6">
+
+          {/* Einkaufsliste */}
+          <div className="px-4 mt-6">
             <button
               onClick={einkaufslisteSenden}
               disabled={einkaufLoading}
-              className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+              style={{ background: 'var(--near-black)', color: '#ffffff' }}
             >
-              {einkaufLoading ? 'Sende...' : '🛒 Einkaufslisten senden (Bring + Picnic)'}
+              {einkaufLoading ? 'Sende...' : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                  </svg>
+                  Einkaufslisten senden
+                </>
+              )}
             </button>
             {einkaufMeldung && (
-              <p className="text-sm mt-2 text-gray-600">{einkaufMeldung}</p>
+              <p className="text-sm text-center mt-2" style={{ color: 'var(--gray-secondary)' }}>
+                {einkaufMeldung}
+              </p>
             )}
           </div>
+
+          {/* Drinks */}
           {drinks.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-700 mb-3">🥤 Saft-Vorschläge</h2>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="px-4 mt-8 mb-4">
+              <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--near-black)' }}>
+                🥤 Saft-Vorschläge
+              </h2>
+              <div className="flex gap-3 overflow-x-auto scroll-hide pb-1">
                 {drinks.map((drink, i) => (
-                  <div key={i} className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                    <p className="font-medium text-orange-800 text-sm">{drink.name}</p>
-                    <p className="text-xs text-orange-600 mt-1">{drink.zutaten.join(', ')}</p>
+                  <div
+                    key={i}
+                    className="shrink-0 rounded-2xl p-4"
+                    style={{ width: '180px', background: '#fff8f0', boxShadow: 'var(--card-shadow)' }}
+                  >
+                    <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{drink.name}</p>
+                    <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--gray-secondary)' }}>
+                      {drink.zutaten.join(', ')}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -162,10 +182,21 @@ export default function WochenplanPage() {
           )}
         </>
       ) : (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg mb-4">Noch kein Plan für diese Woche</p>
-          <button onClick={generieren} className="text-blue-500 hover:underline">
-            Jetzt generieren →
+        <div className="flex flex-col items-center justify-center px-8 py-20 text-center">
+          <div className="text-5xl mb-4">🍽️</div>
+          <p className="text-lg font-semibold mb-2" style={{ color: 'var(--near-black)' }}>
+            Noch kein Plan
+          </p>
+          <p className="text-sm mb-6" style={{ color: 'var(--gray-secondary)' }}>
+            Lass Jarvis einen Wochenplan für euch erstellen
+          </p>
+          <button
+            onClick={generieren}
+            disabled={loading}
+            className="px-6 py-3 rounded-xl text-sm font-semibold disabled:opacity-50"
+            style={{ background: 'var(--rausch)', color: '#ffffff' }}
+          >
+            {loading ? 'Generiere...' : '✨ Plan erstellen'}
           </button>
         </div>
       )}

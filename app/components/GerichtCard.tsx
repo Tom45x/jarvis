@@ -2,10 +2,10 @@
 
 import type { Mahlzeit } from '@/types'
 
-const MAHLZEIT_LABEL: Record<Mahlzeit, string> = {
-  'frühstück': '🍞 Frühstück',
-  'mittag': '☀️ Mittag',
-  'abend': '🌙 Abend',
+const MAHLZEIT_CONFIG: Record<Mahlzeit, { label: string; emoji: string }> = {
+  'frühstück': { label: 'Frühstück', emoji: '🍞' },
+  'mittag': { label: 'Mittag', emoji: '☀️' },
+  'abend': { label: 'Abend', emoji: '🌙' },
 }
 
 interface GerichtCardProps {
@@ -16,23 +16,40 @@ interface GerichtCardProps {
 }
 
 export function GerichtCard({ gerichtName, mahlzeit, gesund, onTauschen }: GerichtCardProps) {
+  const { label, emoji } = MAHLZEIT_CONFIG[mahlzeit]
+
   return (
-    <div className={`rounded-lg p-3 border ${gesund ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'}`}>
-      <div className="flex justify-between items-start gap-2">
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-            {MAHLZEIT_LABEL[mahlzeit]}
+    <div
+      className="bg-white rounded-2xl p-4"
+      style={{ boxShadow: 'var(--card-shadow)' }}
+    >
+      <div className="flex justify-between items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>
+            {emoji} {label}
           </p>
-          <p className="font-medium text-gray-800 text-sm leading-tight">{gerichtName}</p>
-          {gesund && <span className="text-xs text-green-600 mt-1 block">✓ gesund</span>}
+          <p className="font-semibold text-sm leading-snug truncate" style={{ color: 'var(--near-black)' }}>
+            {gerichtName}
+          </p>
+          {gesund && (
+            <span className="text-xs mt-1 inline-block" style={{ color: '#3d9970' }}>
+              ✓ gesund
+            </span>
+          )}
         </div>
         {onTauschen && (
           <button
             onClick={onTauschen}
-            className="text-xs text-blue-500 hover:text-blue-700 shrink-0 mt-1"
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: 'var(--surface)' }}
             aria-label={`${gerichtName} tauschen`}
           >
-            Tauschen
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--near-black)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="17 1 21 5 17 9" />
+              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+              <polyline points="7 23 3 19 7 15" />
+              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
           </button>
         )}
       </div>
