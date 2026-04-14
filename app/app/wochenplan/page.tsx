@@ -77,11 +77,10 @@ export default function WochenplanPage() {
       const res = await fetch('/api/einkaufsliste/senden', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
-      const picnicInfo = (data.picnic1Count ?? 0) > 0 || (data.picnic2Count ?? 0) > 0
-        ? ` | Picnic: ${(data.picnic1Count ?? 0) + (data.picnic2Count ?? 0)} Artikel`
-        : ''
-      const fallbackInfo = data.picnic1Fallback || data.picnic2Fallback
-        ? ' (Mindestbestellwert nicht erreicht → Bring)'
+      const picnicArtikel = data.picnic1Count ?? 0
+      const picnicInfo = picnicArtikel > 0 ? ` | Picnic: ${picnicArtikel} Artikel` : ''
+      const fallbackInfo = data.picnic1Fallback
+        ? ' (Mindestbestellwert nicht erreicht → alles zu Bring)'
         : ''
       setEinkaufMeldung(
         `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}${fallbackInfo}`
@@ -136,7 +135,7 @@ export default function WochenplanPage() {
               disabled={einkaufLoading}
               className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
             >
-              {einkaufLoading ? 'Sende...' : '🛒 Einkaufslisten in Bring übertragen'}
+              {einkaufLoading ? 'Sende...' : '🛒 Einkaufslisten senden (Bring + Picnic)'}
             </button>
             {einkaufMeldung && (
               <p className="text-sm mt-2 text-gray-600">{einkaufMeldung}</p>

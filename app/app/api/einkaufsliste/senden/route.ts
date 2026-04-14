@@ -97,24 +97,20 @@ export async function POST() {
       einkaufstag2
     )
 
+    // Einkauf 1: Bring-Keywords → Bring, Rest → Picnic-Suche
     const routing1 = splitNachRouting(einkauf1, einstellungen.bringKeywords)
-    const routing2 = splitNachRouting(einkauf2, einstellungen.bringKeywords)
-
-    const [picnic1Ergebnis, picnic2Ergebnis] = await Promise.all([
-      verarbeitePicnicListe(routing1.picnic, einstellungen.mindestbestellwert),
-      verarbeitePicnicListe(routing2.picnic, einstellungen.mindestbestellwert),
-    ])
-
+    const picnic1Ergebnis = await verarbeitePicnicListe(routing1.picnic, einstellungen.mindestbestellwert)
     const bring1Gesamt = [...routing1.bring, ...picnic1Ergebnis.zuBring]
-    const bring2Gesamt = [...routing2.bring, ...picnic2Ergebnis.zuBring]
 
+    // Einkauf 2: komplett zu Bring (zu wenige Artikel für Picnic-Mindestbestellwert)
+    const bring2Gesamt = [...einkauf2]
+
+    // Regelbedarf: nur für Einkauf 1 → Picnic
     const regelbedarfItems: EinkaufsItem[] = regelbedarf.map(r => ({
       name: r.name,
       menge: r.menge,
       einheit: r.einheit,
     }))
-
-    // Regelbedarf Picnic-Suche
     const regelbedarfPicnicItems: Array<{ item: EinkaufsItem; artikelId: string }> = []
     for (const r of regelbedarfItems) {
       const artikel = await sucheArtikel(r.name)
@@ -125,7 +121,6 @@ export async function POST() {
     await fuellePicnicWarenkorb([
       ...picnic1Ergebnis.zuPicnic,
       ...regelbedarfPicnicItems,
-      ...picnic2Ergebnis.zuPicnic,
     ])
 
     const listName1 = process.env.BRING_LIST_NAME_1 ?? 'Jarvis — Einkauf 1'
@@ -139,10 +134,8 @@ export async function POST() {
     return NextResponse.json({
       einkauf1Count: bring1Gesamt.length,
       einkauf2Count: bring2Gesamt.length,
-      picnic1Count: picnic1Ergebnis.zuPicnic.length + regelbedarfItems.length,
-      picnic2Count: picnic2Ergebnis.zuPicnic.length,
+      picnic1Count: picnic1Ergebnis.zuPicnic.length + regelbedarfPicnicItems.length,
       picnic1Fallback: picnic1Ergebnis.zuPicnic.length === 0 && routing1.picnic.length > 0,
-      picnic2Fallback: picnic2Ergebnis.zuPicnic.length === 0 && routing2.picnic.length > 0,
     })
   } catch (e) {
     return NextResponse.json(
