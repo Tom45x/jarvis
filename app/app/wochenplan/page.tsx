@@ -104,6 +104,12 @@ export default function WochenplanPage() {
           >
             🥘 Gerichte
           </a>
+          <a
+            href="/einstellungen"
+            className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Einstellungen
+          </a>
           <button
             onClick={generieren}
             disabled={loading}
