@@ -10,6 +10,7 @@ export default function GerichtePage() {
   const [generiere, setGeneriere] = useState(false)
   const [speichere, setSpeichere] = useState(false)
   const [meldung, setMeldung] = useState<string | null>(null)
+  const [loescht, setLoescht] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -92,7 +93,28 @@ export default function GerichtePage() {
     }
   }
 
-  const ohneZutaten = gerichte.filter(g => g.zutaten.length === 0).length
+  async function reaktivieren(id: string) {
+    await fetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
+    const updated = await fetch('/api/gerichte').then(r => r.json())
+    setGerichte(updated)
+    setMeldung('✅ Gericht reaktiviert')
+  }
+
+  async function loeschen(id: string) {
+    setLoescht(id)
+    try {
+      await fetch(`/api/gerichte/${id}`, { method: 'DELETE' })
+      const updated = await fetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+      setMeldung('✅ Gericht gelöscht')
+    } finally {
+      setLoescht(null)
+    }
+  }
+
+  const aktiveGerichte = gerichte.filter(g => !g.gesperrt)
+  const gesperrteGerichte = gerichte.filter(g => g.gesperrt)
+  const ohneZutaten = aktiveGerichte.filter(g => g.zutaten.length === 0).length
 
   return (
     <main className="p-4 max-w-5xl mx-auto">
@@ -127,7 +149,7 @@ export default function GerichtePage() {
       )}
 
       <div className="space-y-3">
-        {gerichte.map(gericht => (
+        {aktiveGerichte.map(gericht => (
           <div key={gericht.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
@@ -225,6 +247,47 @@ export default function GerichtePage() {
           </div>
         ))}
       </div>
+
+      {gesperrteGerichte.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-gray-700 mb-3">
+            Gesperrt ({gesperrteGerichte.length})
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Diese Gerichte wurden zu oft getauscht und werden nicht mehr vorgeschlagen.
+          </p>
+          <div className="space-y-2">
+            {gesperrteGerichte.map(gericht => (
+              <div
+                key={gericht.id}
+                className="border border-red-200 bg-red-50 rounded-lg p-4 flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-medium text-gray-800">{gericht.name}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {gericht.tausch_count}x getauscht
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => reaktivieren(gericht.id)}
+                    className="text-sm text-green-600 hover:text-green-800 border border-green-300 rounded px-3 py-1"
+                  >
+                    Reaktivieren
+                  </button>
+                  <button
+                    onClick={() => loeschen(gericht.id)}
+                    disabled={loescht === gericht.id}
+                    className="text-sm text-red-600 hover:text-red-800 border border-red-300 rounded px-3 py-1 disabled:opacity-50"
+                  >
+                    {loescht === gericht.id ? 'Löscht...' : 'Löschen'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
