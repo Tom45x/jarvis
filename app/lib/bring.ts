@@ -24,10 +24,12 @@ let client: BringInstance | null = null
 async function getClient(): Promise<BringInstance> {
   if (client) return client
   const bring: BringInstance = new BringLib()
-  await bring.login(
-    process.env.BRING_EMAIL!,
-    process.env.BRING_PASSWORD!
-  )
+  const email = process.env.BRING_EMAIL
+  const password = process.env.BRING_PASSWORD
+  if (!email || !password) {
+    throw new Error('BRING_EMAIL und BRING_PASSWORD müssen in .env.local gesetzt sein.')
+  }
+  await bring.login(email, password)
   client = bring
   return client
 }
@@ -50,9 +52,9 @@ export async function aktualisiereEinkaufsliste(
   const bring = await getClient()
   const listUuid = await findeListeUuid(bring, listenName)
 
-  // Bestehende Items entfernen
-  const { purchase } = await bring.getItems(listUuid)
-  for (const item of purchase) {
+  // Bestehende Items entfernen (purchase + recently)
+  const { purchase, recently } = await bring.getItems(listUuid)
+  for (const item of [...purchase, ...recently]) {
     await bring.removeItem(listUuid, item.name)
   }
 
