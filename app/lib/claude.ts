@@ -38,7 +38,7 @@ ${gerichteText}
 
 Regeln:
 - Wähle NUR Gerichte aus der obigen Liste
-- Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 4 davon pro Woche einplanen
+- Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 3 VERSCHIEDENE davon pro Woche einplanen (jedes nur 1x)
 - Gerichte mit "weniger beliebt" maximal 1x pro Woche
 - Ca. 70% bekannte Lieblingsgerichte, 30% gesündere Optionen
 - Keine Wiederholungen innerhalb einer Woche
