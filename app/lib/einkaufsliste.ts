@@ -55,7 +55,9 @@ export function generiereEinkaufslisten(
     if (!gericht || gericht.zutaten.length === 0) continue
 
     const tagIndex = tagZuWochenindex(eintrag.tag)
+    if (tagIndex === 0) continue // unbekannter Tag-String — überspringen
     const hatReste = gerichteNamenMitResten.has(eintrag.gericht_name)
+    // Wenn das Gericht Reste hat, wird es für 2 Mahlzeiten gekocht → Menge verdoppeln
     const faktor = hatReste ? 2 : 1
 
     for (const zutat of gericht.zutaten) {
