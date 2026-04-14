@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export async function GET() {
@@ -8,4 +8,33 @@ export async function GET() {
     .order('name')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json() as {
+    name: string
+    kategorie: string
+    aufwand: string
+    gesund?: boolean
+    quelle?: string
+  }
+
+  const { data, error } = await supabase
+    .from('gerichte')
+    .insert({
+      name: body.name,
+      kategorie: body.kategorie,
+      aufwand: body.aufwand,
+      gesund: body.gesund ?? false,
+      quelle: body.quelle ?? 'themealdb',
+      zutaten: [],
+      beliebtheit: {},
+      tausch_count: 0,
+      gesperrt: false,
+    })
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data, { status: 201 })
 }
