@@ -11,6 +11,16 @@ export default function GerichtePage() {
   const [speichere, setSpeichere] = useState(false)
   const [meldung, setMeldung] = useState<string | null>(null)
   const [loescht, setLoescht] = useState<string | null>(null)
+  const [vorschlaege, setVorschlaege] = useState<Array<{
+    name: string
+    kategorie: string
+    aufwand: string
+    beschreibung: string
+    rezept_url: string | null
+  }>>([])
+  const [vorschlagHinweis, setVorschlagHinweis] = useState('')
+  const [ladeVorschlaege, setLadeVorschlaege] = useState(false)
+  const [fuegeHinzu, setFuegeHinzu] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -100,6 +110,58 @@ export default function GerichtePage() {
     setMeldung('✅ Gericht reaktiviert')
   }
 
+  async function vorschlaegeGenerieren() {
+    setLadeVorschlaege(true)
+    setMeldung(null)
+    try {
+      const res = await fetch('/api/gerichte/vorschlaege', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hinweis: vorschlagHinweis }),
+      })
+      if (!res.ok) throw new Error('Fehler beim Generieren')
+      setVorschlaege(await res.json())
+    } catch (e: unknown) {
+      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    } finally {
+      setLadeVorschlaege(false)
+    }
+  }
+
+  async function vorschlagHinzufuegen(vorschlag: typeof vorschlaege[0]) {
+    setFuegeHinzu(vorschlag.name)
+    try {
+      const res = await fetch('/api/gerichte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: vorschlag.name,
+          kategorie: vorschlag.kategorie,
+          aufwand: vorschlag.aufwand,
+          gesund: false,
+          quelle: 'themealdb',
+        }),
+      })
+      if (!res.ok) throw new Error('Anlegen fehlgeschlagen')
+      const neuesGericht = await res.json()
+
+      await fetch('/api/zutaten/generieren', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gerichtId: neuesGericht.id }),
+      })
+
+      const updated = await fetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+      setVorschlaege(prev => prev.filter(v => v.name !== vorschlag.name))
+      setMeldung(`✅ ${vorschlag.name} hinzugefügt und Zutaten generiert`)
+    } catch (e: unknown) {
+      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    } finally {
+      setFuegeHinzu(null)
+    }
+  }
+
   async function loeschen(id: string) {
     setLoescht(id)
     try {
@@ -147,6 +209,75 @@ export default function GerichtePage() {
       {meldung && (
         <p className="text-sm mb-4 p-3 bg-gray-50 rounded-lg">{meldung}</p>
       )}
+
+      {/* Neue Gerichte entdecken */}
+      <div className="mb-8 p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <h2 className="text-base font-semibold text-gray-700 mb-3">Neue Gerichte entdecken</h2>
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={vorschlagHinweis}
+            onChange={e => setVorschlagHinweis(e.target.value)}
+            placeholder="Worauf habt ihr Lust? (optional, z.B. mehr Fisch)"
+            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2"
+          />
+          <button
+            onClick={vorschlaegeGenerieren}
+            disabled={ladeVorschlaege}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shrink-0"
+          >
+            {ladeVorschlaege ? 'Generiere...' : '3 Vorschläge generieren'}
+          </button>
+        </div>
+
+        {vorschlaege.length > 0 && (
+          <div className="space-y-3">
+            {vorschlaege.map(v => (
+              <div key={v.name} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{v.name}</p>
+                    <p className="text-sm text-gray-500 mt-1">{v.beschreibung}</p>
+                    <div className="flex gap-2 mt-2">
+                      <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
+                        {v.kategorie}
+                      </span>
+                      <span className="text-xs bg-gray-100 text-gray-600 rounded px-2 py-0.5">
+                        {v.aufwand}
+                      </span>
+                      {v.rezept_url && (
+                        <a
+                          href={v.rezept_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Rezept ansehen →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => vorschlagHinzufuegen(v)}
+                      disabled={fuegeHinzu === v.name}
+                      className="text-sm bg-green-600 text-white rounded px-3 py-1.5 hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {fuegeHinzu === v.name ? 'Füge hinzu...' : 'Hinzufügen'}
+                    </button>
+                    <button
+                      onClick={() => setVorschlaege(prev => prev.filter(x => x.name !== v.name))}
+                      className="text-sm text-gray-400 hover:text-gray-600 rounded px-3 py-1.5"
+                    >
+                      Überspringen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-3">
         {aktiveGerichte.map(gericht => (
