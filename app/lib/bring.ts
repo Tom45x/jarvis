@@ -12,8 +12,8 @@ interface BringItem {
 }
 
 interface BringInstance {
-  login(email: string, password: string): Promise<void>
-  getLists(): Promise<{ lists: BringListEntry[] }>
+  login(): Promise<void>
+  loadLists(): Promise<{ lists: BringListEntry[] }>
   getItems(listUuid: string): Promise<{ purchase: BringItem[]; recently: BringItem[] }>
   saveItem(listUuid: string, itemName: string, specification: string): Promise<void>
   removeItem(listUuid: string, itemName: string): Promise<void>
@@ -23,19 +23,19 @@ let client: BringInstance | null = null
 
 async function getClient(): Promise<BringInstance> {
   if (client) return client
-  const bring: BringInstance = new BringLib()
   const email = process.env.BRING_EMAIL
   const password = process.env.BRING_PASSWORD
   if (!email || !password) {
     throw new Error('BRING_EMAIL und BRING_PASSWORD müssen in .env.local gesetzt sein.')
   }
-  await bring.login(email, password)
+  const bring: BringInstance = new BringLib({ mail: email, password })
+  await bring.login()
   client = bring
   return client
 }
 
 async function findeListeUuid(bring: BringInstance, listenName: string): Promise<string> {
-  const { lists } = await bring.getLists()
+  const { lists } = await bring.loadLists()
   const liste = lists.find(l => l.name === listenName)
   if (!liste) {
     throw new Error(

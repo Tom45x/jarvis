@@ -35,11 +35,19 @@ let client: PicnicInstance | null = null
 async function getClient(): Promise<PicnicInstance> {
   if (client) return client
 
+  const authKey = process.env.PICNIC_AUTH_KEY
   const email = process.env.PICNIC_EMAIL
   const password = process.env.PICNIC_PASSWORD
 
+  if (authKey) {
+    // Auth-Key aus .env.local verwenden (kein Login nötig, 2FA bereits abgeschlossen)
+    const instance: PicnicInstance = new PicnicClient({ countryCode: 'DE', authKey })
+    client = instance
+    return client
+  }
+
   if (!email || !password) {
-    throw new Error('PICNIC_EMAIL und PICNIC_PASSWORD müssen in .env.local gesetzt sein.')
+    throw new Error('PICNIC_AUTH_KEY oder PICNIC_EMAIL + PICNIC_PASSWORD müssen in .env.local gesetzt sein. Für 2FA-Konten: node scripts/picnic-auth.mjs ausführen.')
   }
 
   const instance: PicnicInstance = new PicnicClient({ countryCode: 'DE' })
