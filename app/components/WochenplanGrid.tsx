@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
 import type { Wochenplan, Gericht } from '@/types'
 
@@ -19,6 +20,10 @@ function heutigerTag(): string {
   return tage[new Date().getDay()]
 }
 
+function heutigesDatum(): string {
+  return new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
+}
+
 interface WochenplanGridProps {
   plan: Wochenplan
   gerichte: Gericht[]
@@ -29,13 +34,37 @@ interface WochenplanGridProps {
 export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: WochenplanGridProps) {
   const gerichtMap = Object.fromEntries(gerichte.map(g => [g.id, g]))
   const heute = heutigerTag()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const heuteRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to today on mount
+  useEffect(() => {
+    if (heuteRef.current && scrollRef.current) {
+      const container = scrollRef.current
+      const card = heuteRef.current
+      const cardLeft = card.offsetLeft
+      const containerWidth = container.offsetWidth
+      const cardWidth = card.offsetWidth
+      container.scrollTo({
+        left: cardLeft - (containerWidth - cardWidth) / 2,
+        behavior: 'smooth',
+      })
+    }
+  }, [plan])
 
   return (
     <div className="space-y-4">
       {/* Horizontal scroll — one card per day */}
       <div
-        className="flex gap-3 overflow-x-auto scroll-hide snap-x-mandatory pb-2"
-        style={{ paddingLeft: '16px', paddingRight: '16px' }}
+        ref={scrollRef}
+        className="flex gap-3 overflow-x-auto scroll-hide pb-2"
+        style={{
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          willChange: 'scroll-position',
+        }}
       >
         {TAGE.map(tag => {
           const fruehstueck = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === 'frühstück')
@@ -47,13 +76,18 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
           return (
             <div
               key={tag}
-              className="snap-start shrink-0 flex flex-col gap-2"
-              style={{ width: 'calc(85vw - 32px)', maxWidth: '320px' }}
+              ref={istHeute ? heuteRef : null}
+              className="shrink-0 flex flex-col gap-2"
+              style={{
+                width: 'calc(85vw - 32px)',
+                maxWidth: '320px',
+                scrollSnapAlign: 'start',
+              }}
             >
               {/* Day header */}
               <div className="flex items-center gap-2 px-1">
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                   style={{
                     background: istHeute ? 'var(--rausch)' : 'var(--surface)',
                     color: istHeute ? '#ffffff' : 'var(--near-black)',
@@ -61,15 +95,16 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                 >
                   {TAG_SHORT[tag]}
                 </div>
-                <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  {TAG_LABEL[tag]}
-                </span>
-                {istHeute && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
-                    Heute
-                  </span>
-                )}
+                <div>
+                  <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--near-black)' }}>
+                    {TAG_LABEL[tag]}
+                  </p>
+                  {istHeute && (
+                    <p className="text-xs leading-tight" style={{ color: 'var(--rausch)' }}>
+                      {heutigesDatum()}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Frühstück */}
@@ -130,8 +165,8 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
         <div className="px-4">
           <button
             onClick={onGenehmigen}
-            className="w-full py-3.5 rounded-xl text-sm font-semibold transition-colors"
-            style={{ background: 'var(--near-black)', color: '#ffffff' }}
+            className="w-full py-3.5 rounded-xl text-sm font-semibold transition-opacity active:opacity-70"
+            style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
           >
             Plan genehmigen ✓
           </button>

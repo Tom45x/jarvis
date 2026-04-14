@@ -241,8 +241,8 @@ export default function GerichtePage() {
             value={vorschlagHinweis}
             onChange={e => setVorschlagHinweis(e.target.value)}
             placeholder="z.B. mehr Fisch, Wochenend-Frühstück …"
-            className="flex-1 text-sm px-3 py-2.5 rounded-xl outline-none"
-            style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)' }}
+            className="flex-1 rounded-xl outline-none"
+            style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', padding: '12px 14px', minHeight: '48px' }}
           />
           <button
             onClick={vorschlaegeGenerieren}
@@ -425,20 +425,20 @@ export default function GerichtePage() {
                       onChange={e => zutatAendern(i, 'name', e.target.value)}
                       placeholder="Name"
                       className="flex-1 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
                     />
                     <input
                       type="number"
                       value={zutat.menge}
                       onChange={e => zutatAendern(i, 'menge', parseFloat(e.target.value))}
                       className="w-16 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
                     />
                     <select
                       value={zutat.einheit}
                       onChange={e => zutatAendern(i, 'einheit', e.target.value)}
                       className="text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
                     >
                       {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
                         <option key={e} value={e}>{e}</option>
@@ -450,7 +450,7 @@ export default function GerichtePage() {
                       onChange={e => zutatAendern(i, 'haltbarkeit_tage', parseInt(e.target.value))}
                       title="Haltbarkeit (Tage)"
                       className="w-12 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)' }}
+                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
                     />
                     <button onClick={() => zutatEntfernen(i)} className="text-sm" style={{ color: 'var(--rausch)' }}>
                       ✕

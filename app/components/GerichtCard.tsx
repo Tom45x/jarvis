@@ -40,7 +40,7 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, onTauschen }: Geric
         {onTauschen && (
           <button
             onClick={onTauschen}
-            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center active:opacity-70 transition-opacity"
             style={{ background: 'var(--surface)' }}
             aria-label={`${gerichtName} tauschen`}
           >

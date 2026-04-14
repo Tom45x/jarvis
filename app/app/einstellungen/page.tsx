@@ -79,10 +79,11 @@ export default function EinstellungenPage() {
     color: 'var(--near-black)',
     background: '#ffffff',
     borderRadius: '12px',
-    padding: '10px 14px',
-    fontSize: '14px',
+    padding: '12px 14px',
+    fontSize: '16px', // prevents iOS zoom on focus
     outline: 'none',
     width: '100%',
+    minHeight: '48px',
   }
 
   return (
