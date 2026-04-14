@@ -7,7 +7,7 @@ import type { FamilieMitglied, Gericht } from '@/types'
 export async function POST() {
   const [{ data: profile }, { data: gerichte }] = await Promise.all([
     supabase.from('familie_profile').select('*'),
-    supabase.from('gerichte').select('*'),
+    supabase.from('gerichte').select('*').eq('gesperrt', false),
   ])
 
   if (!profile || !gerichte) {
