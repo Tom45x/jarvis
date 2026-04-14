@@ -84,3 +84,21 @@ export interface DrinkVorschlag {
   name: string
   zutaten: string[]
 }
+
+export interface Regelbedarf {
+  id: string
+  name: string
+  menge: number
+  einheit: string
+}
+
+export interface PicnicArtikel {
+  artikelId: string
+  name: string
+  preis: number   // in Cent
+}
+
+export interface EinkaufsRouting {
+  picnic: EinkaufsItem[]
+  bring: EinkaufsItem[]
+}
