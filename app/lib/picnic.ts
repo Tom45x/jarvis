@@ -13,6 +13,9 @@ interface SellingUnit {
   display_price: number
 }
 
+// Bewusst eingeschränktes Interface: Nur Warenkorb-Befüllung erlaubt.
+// checkout() / submitOrder() sind absichtlich NICHT exponiert —
+// Bestellungen müssen manuell in der Picnic-App ausgelöst werden.
 interface PicnicInstance {
   auth: {
     login(username: string, password: string): Promise<unknown>
@@ -23,6 +26,7 @@ interface PicnicInstance {
   cart: {
     addProductToCart(productId: string, count?: number): Promise<unknown>
     clearCart(): Promise<unknown>
+    // checkout intentionally omitted
   }
 }
 
