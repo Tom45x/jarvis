@@ -20,7 +20,7 @@ async function ladePicnicEinstellungen(): Promise<{
 
   return {
     mindestbestellwert: parseInt(map['picnic_mindestbestellwert'] ?? '35', 10),
-    bringKeywords: JSON.parse(map['picnic_bring_keywords'] ?? '[]') as string[],
+    bringKeywords: (() => { try { return JSON.parse(map['picnic_bring_keywords'] ?? '[]') as string[] } catch { return [] } })(),
   }
 }
 
@@ -32,15 +32,15 @@ async function ladeRegelbedarf(): Promise<Regelbedarf[]> {
 async function verarbeitePicnicListe(
   picnicKandidaten: EinkaufsItem[],
   mindestbestellwert: number
-): Promise<{ zuPicnic: EinkaufsItem[]; zuBring: EinkaufsItem[]; gesamtpreisEuro: number }> {
-  const gefunden: Array<{ item: EinkaufsItem; preisCent: number }> = []
+): Promise<{ zuPicnic: Array<{ item: EinkaufsItem; artikelId: string }>; zuBring: EinkaufsItem[]; gesamtpreisEuro: number }> {
+  const gefunden: Array<{ item: EinkaufsItem; artikelId: string; preisCent: number }> = []
   const nichtGefunden: EinkaufsItem[] = []
 
   await Promise.all(
     picnicKandidaten.map(async (item) => {
       const artikel = await sucheArtikel(item.name)
       if (artikel) {
-        gefunden.push({ item, preisCent: artikel.preis })
+        gefunden.push({ item, artikelId: artikel.artikelId, preisCent: artikel.preis })
       } else {
         nichtGefunden.push(item)
       }
@@ -58,18 +58,15 @@ async function verarbeitePicnicListe(
   }
 
   return {
-    zuPicnic: gefunden.map(g => g.item),
+    zuPicnic: gefunden.map(g => ({ item: g.item, artikelId: g.artikelId })),
     zuBring: nichtGefunden,
     gesamtpreisEuro,
   }
 }
 
-async function fuellePicnicWarenkorb(items: EinkaufsItem[]): Promise<void> {
-  for (const item of items) {
-    const artikel = await sucheArtikel(item.name)
-    if (artikel) {
-      await zumWarenkorb(artikel.artikelId, 1)
-    }
+async function fuellePicnicWarenkorb(items: Array<{ item: EinkaufsItem; artikelId: string }>): Promise<void> {
+  for (const { artikelId } of items) {
+    await zumWarenkorb(artikelId, 1)
   }
 }
 
@@ -117,10 +114,17 @@ export async function POST() {
       einheit: r.einheit,
     }))
 
+    // Regelbedarf Picnic-Suche
+    const regelbedarfPicnicItems: Array<{ item: EinkaufsItem; artikelId: string }> = []
+    for (const r of regelbedarfItems) {
+      const artikel = await sucheArtikel(r.name)
+      if (artikel) regelbedarfPicnicItems.push({ item: r, artikelId: artikel.artikelId })
+    }
+
     await warenkorbLeeren()
     await fuellePicnicWarenkorb([
       ...picnic1Ergebnis.zuPicnic,
-      ...regelbedarfItems,
+      ...regelbedarfPicnicItems,
       ...picnic2Ergebnis.zuPicnic,
     ])
 

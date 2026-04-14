@@ -104,10 +104,14 @@ export default function GerichtePage() {
   }
 
   async function reaktivieren(id: string) {
-    await fetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
-    const updated = await fetch('/api/gerichte').then(r => r.json())
-    setGerichte(updated)
-    setMeldung('✅ Gericht reaktiviert')
+    try {
+      await fetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
+      const updated = await fetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+      setMeldung('✅ Gericht reaktiviert')
+    } catch {
+      setMeldung('❌ Reaktivieren fehlgeschlagen')
+    }
   }
 
   async function vorschlaegeGenerieren() {
@@ -169,6 +173,8 @@ export default function GerichtePage() {
       const updated = await fetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung('✅ Gericht gelöscht')
+    } catch {
+      setMeldung('❌ Löschen fehlgeschlagen')
     } finally {
       setLoescht(null)
     }

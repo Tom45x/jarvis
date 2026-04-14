@@ -4,7 +4,7 @@ import { sucheRezeptUrl } from '@/lib/themealdb'
 import Anthropic from '@anthropic-ai/sdk'
 import type { FamilieMitglied } from '@/types'
 
-interface GericherVorschlag {
+interface GerichtVorschlag {
   name: string
   kategorie: string
   aufwand: string
@@ -75,7 +75,7 @@ Antworte NUR mit diesem JSON-Array, kein weiterer Text:
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
   const vorschlaege = JSON.parse(text) as ClaudeVorschlag[]
 
-  const angereichert: GericherVorschlag[] = await Promise.all(
+  const angereichert: GerichtVorschlag[] = await Promise.all(
     vorschlaege.map(async (v) => ({
       ...v,
       rezept_url: await sucheRezeptUrl(v.name),
