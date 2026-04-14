@@ -25,6 +25,8 @@ export interface Gericht {
   kategorie: Kategorie
   beliebtheit: Record<string, number>
   quelle: 'manuell' | 'themealdb'
+  tausch_count?: number   // wie oft das Gericht im Wochenplan getauscht wurde
+  gesperrt?: boolean      // bei 4+ Tauschvorgängen automatisch gesperrt
 }
 
 export interface FamilieMitglied {
