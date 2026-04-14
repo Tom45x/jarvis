@@ -36,19 +36,31 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
   const heute = heutigerTag()
   const scrollRef = useRef<HTMLDivElement>(null)
   const heuteRef = useRef<HTMLDivElement>(null)
+  const isFirstRender = useRef(true)
+  const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Auto-scroll to today on mount
   useEffect(() => {
-    if (heuteRef.current && scrollRef.current) {
+    const doScroll = () => {
+      if (!heuteRef.current || !scrollRef.current) return
       const container = scrollRef.current
       const card = heuteRef.current
-      const cardLeft = card.offsetLeft
-      const containerWidth = container.offsetWidth
-      const cardWidth = card.offsetWidth
       container.scrollTo({
-        left: cardLeft - (containerWidth - cardWidth) / 2,
+        left: card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2,
         behavior: 'smooth',
       })
+    }
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      doScroll()
+      return
+    }
+
+    // Nach Tausch: nach 3 Sekunden sanft zum heutigen Tag zurückscrollen
+    if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+    autoScrollTimer.current = setTimeout(doScroll, 3000)
+    return () => {
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
     }
   }, [plan])
 
@@ -118,7 +130,7 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
               ) : (
                 <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
                   <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>
-                    🍞 Frühstück
+                    Frühstück
                   </p>
                   <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>
                     Toast mit Aufschnitt
@@ -135,8 +147,8 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                   onTauschen={() => onTauschen(tag, 'mittag')}
                 />
               ) : (
-                <div className="rounded-2xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>☀️ Mittag</p>
+                <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
+                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Mittag</p>
                   <p className="text-sm" style={{ color: 'var(--gray-disabled)' }}>—</p>
                 </div>
               )}
@@ -150,8 +162,8 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                   onTauschen={() => onTauschen(tag, 'abend')}
                 />
               ) : (
-                <div className="rounded-2xl p-4" style={{ boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>🌙 Abend</p>
+                <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
+                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Abend</p>
                   <p className="text-sm" style={{ color: 'var(--gray-disabled)' }}>—</p>
                 </div>
               )}

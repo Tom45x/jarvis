@@ -2,10 +2,10 @@
 
 import type { Mahlzeit } from '@/types'
 
-const MAHLZEIT_CONFIG: Record<Mahlzeit, { label: string; emoji: string }> = {
-  'frühstück': { label: 'Frühstück', emoji: '🍞' },
-  'mittag': { label: 'Mittag', emoji: '☀️' },
-  'abend': { label: 'Abend', emoji: '🌙' },
+const MAHLZEIT_CONFIG: Record<Mahlzeit, { label: string }> = {
+  'frühstück': { label: 'Frühstück' },
+  'mittag': { label: 'Mittag' },
+  'abend': { label: 'Abend' },
 }
 
 interface GerichtCardProps {
@@ -16,17 +16,17 @@ interface GerichtCardProps {
 }
 
 export function GerichtCard({ gerichtName, mahlzeit, gesund, onTauschen }: GerichtCardProps) {
-  const { label, emoji } = MAHLZEIT_CONFIG[mahlzeit]
+  const { label } = MAHLZEIT_CONFIG[mahlzeit]
 
   return (
     <div
-      className="bg-white rounded-2xl p-4"
-      style={{ boxShadow: 'var(--card-shadow)' }}
+      className="rounded-2xl p-4"
+      style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
     >
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>
-            {emoji} {label}
+            {label}
           </p>
           <p className="font-semibold text-sm leading-snug truncate" style={{ color: 'var(--near-black)' }}>
             {gerichtName}

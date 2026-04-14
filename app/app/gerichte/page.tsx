@@ -23,6 +23,7 @@ export default function GerichtePage() {
   const [fuegeHinzu, setFuegeHinzu] = useState<string | null>(null)
   const [rezeptOffen, setRezeptOffen] = useState<string | null>(null)
   const [filterKategorie, setFilterKategorie] = useState<string>('alle')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -348,143 +349,150 @@ export default function GerichtePage() {
 
       {/* Gerichtsliste */}
       <div className="px-4 space-y-3 pb-4">
-        {gefilterteGerichte.map(gericht => (
-          <div
-            key={gericht.id}
-            className="bg-white rounded-2xl p-4"
-            style={{ boxShadow: 'var(--card-shadow)' }}
-          >
-            <div className="flex justify-between items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+        {gefilterteGerichte.map(gericht => {
+          const isExpanded = expandedId === gericht.id
+          const isEditing = bearbeiteId === gericht.id
+          return (
+            <div
+              key={gericht.id}
+              className="rounded-2xl p-4"
+              style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
+            >
+              {/* Kopfzeile: Name + Badges */}
+              <button
+                className="w-full text-left"
+                onClick={() => !isEditing && setExpandedId(isExpanded ? null : gericht.id)}
+              >
+                <div className="flex items-start gap-2 flex-wrap">
                   <h2 className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>
                     {gericht.name}
                   </h2>
                   <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}>
+                    style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--gray-secondary)' }}>
                     {gericht.kategorie}
                   </span>
-                  {gericht.aufwand && (
-                    <span className="text-xs" style={{ color: 'var(--gray-secondary)' }}>
-                      ⏱ {gericht.aufwand}
-                    </span>
-                  )}
                 </div>
 
                 {/* Sterne */}
-                <div className="flex gap-0.5 mt-1.5">
+                <div className="flex gap-0.5 mt-1.5" onClick={e => e.stopPropagation()}>
                   {[1, 2, 3, 4, 5].map(s => (
                     <button
                       key={s}
                       onClick={() => bewerten(gericht.id, s)}
-                      className="text-base leading-none transition-colors"
+                      className="text-base leading-none"
                       style={{ color: s <= (gericht.bewertung ?? 3) ? '#f59e0b' : '#e5e5e5' }}
-                      title={`${s} Stern${s > 1 ? 'e' : ''}`}
                     >
                       ★
                     </button>
                   ))}
                 </div>
 
-                {bearbeiteId !== gericht.id && (
-                  <p className="text-xs mt-1.5 line-clamp-1" style={{ color: 'var(--gray-secondary)' }}>
+                {/* Zutaten-Vorschau */}
+                {!isEditing && (
+                  <p
+                    className="text-xs mt-1.5"
+                    style={{
+                      color: 'var(--gray-secondary)',
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: isExpanded ? 'unset' : 1,
+                      WebkitBoxOrient: 'vertical',
+                    } as React.CSSProperties}
+                  >
                     {gericht.zutaten.length === 0
                       ? 'Keine Zutaten hinterlegt'
                       : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
                   </p>
                 )}
-              </div>
+              </button>
 
-              {bearbeiteId !== gericht.id && (
-                <div className="flex gap-2 shrink-0">
+              {/* Action-Buttons (nur wenn nicht im Bearbeitungsmodus) */}
+              {!isEditing && (
+                <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
                   <button
                     onClick={() => einzelnGenerieren(gericht)}
-                    className="text-xs font-medium"
-                    style={{ color: 'var(--gray-secondary)' }}
+                    className="flex-1 text-xs font-medium py-2 rounded-xl active:opacity-70"
+                    style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--near-black)' }}
                   >
-                    ↺
+                    Neu generieren
                   </button>
                   <button
-                    onClick={() => bearbeiteStart(gericht)}
-                    className="text-xs font-medium"
-                    style={{ color: 'var(--rausch)' }}
+                    onClick={() => { bearbeiteStart(gericht); setExpandedId(null) }}
+                    className="flex-1 text-xs font-semibold py-2 rounded-xl active:opacity-70"
+                    style={{ background: 'var(--near-black)', color: '#ffffff' }}
                   >
-                    ✏️
+                    Bearbeiten
                   </button>
                 </div>
               )}
-            </div>
 
-            {/* Zutaten bearbeiten */}
-            {bearbeiteId === gericht.id && (
-              <div className="mt-4 space-y-2" style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                {bearbeiteZutaten.map((zutat, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <input
-                      value={zutat.name}
-                      onChange={e => zutatAendern(i, 'name', e.target.value)}
-                      placeholder="Name"
-                      className="flex-1 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
-                    />
-                    <input
-                      type="number"
-                      value={zutat.menge}
-                      onChange={e => zutatAendern(i, 'menge', parseFloat(e.target.value))}
-                      className="w-16 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
-                    />
-                    <select
-                      value={zutat.einheit}
-                      onChange={e => zutatAendern(i, 'einheit', e.target.value)}
-                      className="text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+              {/* Zutaten bearbeiten */}
+              {isEditing && (
+                <div className="mt-3 space-y-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '12px' }}>
+                  {bearbeiteZutaten.map((zutat, i) => (
+                    <div key={i} className="flex gap-1.5 items-center">
+                      <input
+                        value={zutat.name}
+                        onChange={e => zutatAendern(i, 'name', e.target.value)}
+                        placeholder="Name"
+                        className="flex-1 min-w-0 px-2 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                      />
+                      <input
+                        type="number"
+                        value={zutat.menge}
+                        onChange={e => zutatAendern(i, 'menge', parseFloat(e.target.value))}
+                        className="px-2 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', width: '56px' }}
+                      />
+                      <select
+                        value={zutat.einheit}
+                        onChange={e => zutatAendern(i, 'einheit', e.target.value)}
+                        className="px-1 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                      >
+                        {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
+                          <option key={e} value={e}>{e}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => zutatEntfernen(i)}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg active:opacity-70"
+                        style={{ background: '#fff0f3', color: 'var(--rausch)' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={zutatHinzufuegen}
+                      className="text-xs font-medium px-3 py-2 rounded-xl"
+                      style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
                     >
-                      {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
-                        <option key={e} value={e}>{e}</option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      value={zutat.haltbarkeit_tage}
-                      onChange={e => zutatAendern(i, 'haltbarkeit_tage', parseInt(e.target.value))}
-                      title="Haltbarkeit (Tage)"
-                      className="w-12 text-xs px-2 py-1.5 rounded-lg"
-                      style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
-                    />
-                    <button onClick={() => zutatEntfernen(i)} className="text-sm" style={{ color: 'var(--rausch)' }}>
-                      ✕
+                      + Zutat
+                    </button>
+                    <button
+                      onClick={() => speichern(gericht.id)}
+                      disabled={speichere}
+                      className="text-xs font-semibold px-4 py-2 rounded-xl disabled:opacity-50"
+                      style={{ background: 'var(--near-black)', color: '#ffffff' }}
+                    >
+                      {speichere ? '...' : 'Speichern'}
+                    </button>
+                    <button
+                      onClick={() => setBearbeiteId(null)}
+                      className="text-xs font-medium px-3 py-2 rounded-xl"
+                      style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}
+                    >
+                      Abbrechen
                     </button>
                   </div>
-                ))}
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={zutatHinzufuegen}
-                    className="text-xs font-medium px-3 py-1.5 rounded-xl"
-                    style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
-                  >
-                    + Zutat
-                  </button>
-                  <button
-                    onClick={() => speichern(gericht.id)}
-                    disabled={speichere}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-xl disabled:opacity-50"
-                    style={{ background: 'var(--near-black)', color: '#ffffff' }}
-                  >
-                    {speichere ? '...' : 'Speichern'}
-                  </button>
-                  <button
-                    onClick={() => setBearbeiteId(null)}
-                    className="text-xs font-medium px-3 py-1.5 rounded-xl"
-                    style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}
-                  >
-                    Abbrechen
-                  </button>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* Gesperrte Gerichte */}
