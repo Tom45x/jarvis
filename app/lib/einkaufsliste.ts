@@ -1,4 +1,27 @@
-import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis } from '@/types'
+import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, EinkaufsRouting } from '@/types'
+
+export function istBringPflicht(zutatName: string, bringKeywords: string[]): boolean {
+  const nameLower = zutatName.toLowerCase()
+  return bringKeywords.some(kw => nameLower.includes(kw.toLowerCase()))
+}
+
+export function splitNachRouting(
+  items: EinkaufsItem[],
+  bringKeywords: string[]
+): EinkaufsRouting {
+  const picnic: EinkaufsItem[] = []
+  const bring: EinkaufsItem[] = []
+
+  for (const item of items) {
+    if (istBringPflicht(item.name, bringKeywords)) {
+      bring.push(item)
+    } else {
+      picnic.push(item)
+    }
+  }
+
+  return { picnic, bring }
+}
 
 // Wochenindex: 1=Montag, 2=Dienstag, ..., 6=Samstag, 7=Sonntag
 const TAG_INDEX: Record<string, number> = {
