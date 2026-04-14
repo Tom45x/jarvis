@@ -16,8 +16,15 @@ export async function generiereWochenplan(
     `- ${p.name} (${p.alter ? p.alter + ' Jahre' : 'Erwachsen'}): mag ${p.lieblingsgerichte.slice(0, 5).join(', ')}; mag nicht: ${p.abneigungen.join(', ')}`
   ).join('\n')
 
-  const gerichteText = gerichte.map(g =>
+  const trainingsGerichte = gerichte.filter(g => g.kategorie === 'trainingstage')
+  const normaleGerichte = gerichte.filter(g => g.kategorie !== 'trainingstage')
+
+  const gerichteText = normaleGerichte.map(g =>
     `- ${g.name} (${g.gesund ? 'gesund' : 'nicht gesund'}, Kategorie: ${g.kategorie}${g.bewertung === 5 ? ', ⭐⭐⭐⭐⭐ FAVORIT' : g.bewertung === 1 || g.bewertung === 2 ? ', weniger beliebt' : ''})`
+  ).join('\n')
+
+  const trainingsGerichteText = trainingsGerichte.map(g =>
+    `- ${g.name} (Aufwand: ${g.aufwand ?? '15 Min'})`
   ).join('\n')
 
   const obstListe = profile
@@ -33,15 +40,19 @@ Erstelle einen Wochenplan für Montag bis Sonntag mit je Mittag und Abend (14 Ei
 Familienprofile:
 ${profilText}
 
-Verfügbare Gerichte:
+Verfügbare Gerichte (normaler Wochenplan):
 ${gerichteText}
 
+Gerichte für Trainingstage (Montag-, Dienstag- und Donnerstagabend):
+${trainingsGerichteText}
+
 Regeln:
-- Wähle NUR Gerichte aus der obigen Liste
+- Wähle NUR Gerichte aus der obigen Listen
+- PFLICHT: Montagabend, Dienstagabend und Donnerstagabend MÜSSEN ein Gericht aus der Trainingstage-Liste sein (Bens Trainingstage — schnelle Mahlzeiten notwendig)
 - Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 3 VERSCHIEDENE davon pro Woche einplanen (jedes nur 1x)
 - Gerichte mit "weniger beliebt" maximal 1x pro Woche
 - Ca. 70% bekannte Lieblingsgerichte, 30% gesündere Optionen
-- Keine Wiederholungen innerhalb einer Woche
+- Keine Wiederholungen innerhalb einer Woche (außer Trainingstage-Gerichte dürfen mehrfach erscheinen)
 - Abwechslungsreiche Kategorien (nicht jeden Tag Nudeln)
 - Berücksichtige die Abneigungen aller Familienmitglieder
 - Füge am Ende 3 Saft-/Drink-Vorschläge für den Entsafter hinzu (basierend auf Lieblingsobst: ${obstListe})

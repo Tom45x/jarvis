@@ -9,6 +9,7 @@ export type Kategorie =
   | 'salat'
   | 'sonstiges'
   | 'kinder'
+  | 'trainingstage'
 
 export interface Zutat {
   name: string

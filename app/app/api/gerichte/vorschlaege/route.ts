@@ -56,7 +56,7 @@ Antworte NUR mit diesem JSON-Array, kein weiterer Text:
 [
   {
     "name": "...",
-    "kategorie": "fleisch|nudeln|suppe|auflauf|fisch|salat|sonstiges|kinder",
+    "kategorie": "fleisch|nudeln|suppe|auflauf|fisch|salat|sonstiges|kinder|trainingstage",
     "aufwand": "15 Min|30 Min|45 Min|60+ Min",
     "beschreibung": "1-2 Sätze Beschreibung",
     "rezept": {
