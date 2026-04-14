@@ -42,7 +42,7 @@ async function getClient(): Promise<PicnicInstance> {
     throw new Error('PICNIC_EMAIL und PICNIC_PASSWORD müssen in .env.local gesetzt sein.')
   }
 
-  const instance: PicnicInstance = new PicnicClient()
+  const instance: PicnicInstance = new PicnicClient({ countryCode: 'DE' })
   await instance.auth.login(email, password)
   client = instance
   return client
