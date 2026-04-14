@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
       beliebtheit: {},
       tausch_count: 0,
       gesperrt: false,
+      bewertung: 3,
     })
     .select()
     .single()

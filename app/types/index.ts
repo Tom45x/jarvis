@@ -28,6 +28,7 @@ export interface Gericht {
   aufwand?: string        // '15 Min' | '30 Min' | '45 Min' | '60+ Min'
   tausch_count?: number   // wie oft das Gericht im Wochenplan getauscht wurde
   gesperrt?: boolean      // bei 4+ Tauschvorgängen automatisch gesperrt
+  bewertung?: number      // 1-5 Sterne, default 3; 5-Sterne werden öfter vorgeschlagen
 }
 
 export interface FamilieMitglied {

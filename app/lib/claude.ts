@@ -17,7 +17,7 @@ export async function generiereWochenplan(
   ).join('\n')
 
   const gerichteText = gerichte.map(g =>
-    `- ${g.name} (${g.gesund ? 'gesund' : 'nicht gesund'}, Kategorie: ${g.kategorie})`
+    `- ${g.name} (${g.gesund ? 'gesund' : 'nicht gesund'}, Kategorie: ${g.kategorie}${g.bewertung === 5 ? ', ⭐⭐⭐⭐⭐ FAVORIT' : g.bewertung === 1 || g.bewertung === 2 ? ', weniger beliebt' : ''})`
   ).join('\n')
 
   const obstListe = profile
@@ -38,6 +38,8 @@ ${gerichteText}
 
 Regeln:
 - Wähle NUR Gerichte aus der obigen Liste
+- Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 4 davon pro Woche einplanen
+- Gerichte mit "weniger beliebt" maximal 1x pro Woche
 - Ca. 70% bekannte Lieblingsgerichte, 30% gesündere Optionen
 - Keine Wiederholungen innerhalb einer Woche
 - Abwechslungsreiche Kategorien (nicht jeden Tag Nudeln)
@@ -75,7 +77,8 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const raw = message.content[0].type === 'text' ? message.content[0].text : '{}'
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
   const parsed = JSON.parse(text)
   return {
     mahlzeiten: parsed.mahlzeiten ?? [],

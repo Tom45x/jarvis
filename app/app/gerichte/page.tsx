@@ -167,6 +167,15 @@ export default function GerichtePage() {
     }
   }
 
+  async function bewerten(id: string, sterne: number) {
+    await fetch(`/api/gerichte/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bewertung: sterne }),
+    })
+    setGerichte(prev => prev.map(g => g.id === id ? { ...g, bewertung: sterne } : g))
+  }
+
   async function loeschen(id: string) {
     setLoescht(id)
     try {
@@ -308,11 +317,23 @@ export default function GerichtePage() {
           <div key={gericht.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-medium text-gray-900">{gericht.name}</h2>
                   {gericht.aufwand && (
                     <span className="text-xs text-gray-400">⏱ {gericht.aufwand}</span>
                   )}
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <button
+                        key={s}
+                        onClick={() => bewerten(gericht.id, s)}
+                        className={`text-base leading-none transition-colors ${s <= (gericht.bewertung ?? 3) ? 'text-yellow-400' : 'text-gray-200'} hover:text-yellow-300`}
+                        title={`${s} Stern${s > 1 ? 'e' : ''}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {bearbeiteId !== gericht.id && (
                   <p className="text-sm text-gray-500 mt-1">

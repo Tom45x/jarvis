@@ -7,11 +7,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const body = await request.json() as { zutaten: Zutat[] }
+  const body = await request.json() as { zutaten?: Zutat[]; bewertung?: number }
+
+  const updates: Record<string, unknown> = {}
+  if (body.zutaten !== undefined) updates.zutaten = body.zutaten
+  if (body.bewertung !== undefined) updates.bewertung = body.bewertung
 
   const { data, error } = await supabase
     .from('gerichte')
-    .update({ zutaten: body.zutaten })
+    .update(updates)
     .eq('id', id)
     .select()
     .single()
