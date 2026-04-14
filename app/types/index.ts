@@ -10,13 +10,20 @@ export type Kategorie =
   | 'sonstiges'
   | 'kinder'
 
+export interface Zutat {
+  name: string
+  menge: number
+  einheit: string       // 'g' | 'ml' | 'Stück' | 'EL' | 'TL' | 'Bund' | 'Packung' | 'kg' | 'l'
+  haltbarkeit_tage: number  // wie viele Tage die Zutat im Kühlschrank hält
+}
+
 export interface Gericht {
   id: string
   name: string
-  zutaten: string[]
+  zutaten: Zutat[]     // war: string[] — jetzt strukturiert
   gesund: boolean
   kategorie: Kategorie
-  beliebtheit: Record<string, number> // person_name → 1-5
+  beliebtheit: Record<string, number>
   quelle: 'manuell' | 'themealdb'
 }
 
@@ -40,10 +47,21 @@ export interface WochenplanEintrag {
 
 export interface Wochenplan {
   id: string
-  woche_start: string // ISO date string, e.g. "2026-04-13"
+  woche_start: string
   eintraege: WochenplanEintrag[]
   status: 'entwurf' | 'genehmigt'
   erstellt_am: string
+}
+
+export interface EinkaufsItem {
+  name: string
+  menge: number
+  einheit: string
+}
+
+export interface EinkaufslistenErgebnis {
+  einkauf1: EinkaufsItem[]
+  einkauf2: EinkaufsItem[]
 }
 
 export interface EinkaufsArtikel {
