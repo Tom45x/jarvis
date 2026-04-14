@@ -77,8 +77,14 @@ export default function WochenplanPage() {
       const res = await fetch('/api/einkaufsliste/senden', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
+      const picnicInfo = (data.picnic1Count ?? 0) > 0 || (data.picnic2Count ?? 0) > 0
+        ? ` | Picnic: ${(data.picnic1Count ?? 0) + (data.picnic2Count ?? 0)} Artikel`
+        : ''
+      const fallbackInfo = data.picnic1Fallback || data.picnic2Fallback
+        ? ' (Mindestbestellwert nicht erreicht → Bring)'
+        : ''
       setEinkaufMeldung(
-        `✅ Einkauf 1 (${data.einkauf1Count} Artikel) und Einkauf 2 (${data.einkauf2Count} Artikel) wurden in Bring aktualisiert`
+        `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}${fallbackInfo}`
       )
     } catch (e: unknown) {
       setEinkaufMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
