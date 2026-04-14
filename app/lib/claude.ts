@@ -41,28 +41,20 @@ export async function generiereWochenplan(
 
   const prompt = `Du bist Jarvis, ein Haushaltsassistent für eine deutsche Familie.
 
-Erstelle einen Wochenplan für Montag bis Sonntag mit je Mittag und Abend (14 Einträge gesamt).
+Erstelle einen Wochenplan für Montag bis Sonntag. Deine Aufgabe: NUR die 11 normalen Mahlzeiten wählen (Mittag und Abend, außer Montag/Dienstag/Donnerstag Abend — die werden separat befüllt).
 
 Familienprofile:
 ${profilText}
 
-Verfügbare Gerichte (normaler Wochenplan):
+Verfügbare Gerichte:
 ${gerichteText}
 
-Gerichte für Trainingstage (Montag-, Dienstag- und Donnerstagabend):
-${trainingsGerichteText}
-
-Gerichte für Wochenend-Frühstück (nur Samstag + Sonntag):
-${fruehstueckGerichteText}
-
 Regeln:
-- Wähle NUR Gerichte aus der obigen Listen
-- PFLICHT: Montagabend, Dienstagabend und Donnerstagabend MÜSSEN ein Gericht aus der Trainingstage-Liste sein (Bens Trainingstage — schnelle Mahlzeiten notwendig)
-- PFLICHT: Samstagsfrühstück und Sonntagsfrühstück MÜSSEN aus der Wochenend-Frühstücks-Liste kommen
+- Wähle NUR Gerichte aus der obigen Liste — exakte Schreibweise beibehalten
 - Gerichte mit ⭐⭐⭐⭐⭐ FAVORIT sind Lieblingsgerichte der Familie — mindestens 3 VERSCHIEDENE davon pro Woche einplanen (jedes nur 1x)
 - Gerichte mit "weniger beliebt" maximal 1x pro Woche
 - Ca. 70% bekannte Lieblingsgerichte, 30% gesündere Optionen
-- Keine Wiederholungen innerhalb einer Woche (außer Trainingstage-Gerichte dürfen mehrfach erscheinen)
+- Keine Wiederholungen innerhalb einer Woche
 - Abwechslungsreiche Kategorien (nicht jeden Tag Nudeln)
 - Berücksichtige die Abneigungen aller Familienmitglieder
 - Füge am Ende 3 Saft-/Drink-Vorschläge für den Entsafter hinzu (basierend auf Lieblingsobst: ${obstListe})
@@ -71,19 +63,14 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
 {
   "mahlzeiten": [
     {"tag": "montag", "mahlzeit": "mittag", "gericht_name": "..."},
-    {"tag": "montag", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "dienstag", "mahlzeit": "mittag", "gericht_name": "..."},
-    {"tag": "dienstag", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "mittwoch", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "mittwoch", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "donnerstag", "mahlzeit": "mittag", "gericht_name": "..."},
-    {"tag": "donnerstag", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "freitag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "freitag", "mahlzeit": "abend", "gericht_name": "..."},
-    {"tag": "samstag", "mahlzeit": "frühstück", "gericht_name": "..."},
     {"tag": "samstag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "samstag", "mahlzeit": "abend", "gericht_name": "..."},
-    {"tag": "sonntag", "mahlzeit": "frühstück", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "abend", "gericht_name": "..."}
   ],

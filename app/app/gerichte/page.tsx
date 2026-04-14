@@ -358,10 +358,13 @@ export default function GerichtePage() {
               className="rounded-2xl p-4"
               style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
             >
-              {/* Kopfzeile: Name + Badges */}
-              <button
-                className="w-full text-left"
+              {/* Kopfzeile: Name + Badges — div statt button wegen verschachtelten Sterne-Buttons */}
+              <div
+                role="button"
+                tabIndex={0}
+                className="w-full text-left cursor-pointer"
                 onClick={() => !isEditing && setExpandedId(isExpanded ? null : gericht.id)}
+                onKeyDown={e => e.key === 'Enter' && !isEditing && setExpandedId(isExpanded ? null : gericht.id)}
               >
                 <div className="flex items-start gap-2 flex-wrap">
                   <h2 className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>
@@ -404,7 +407,7 @@ export default function GerichtePage() {
                       : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
                   </p>
                 )}
-              </button>
+              </div>
 
               {/* Action-Buttons (nur wenn nicht im Bearbeitungsmodus) */}
               {!isEditing && (
