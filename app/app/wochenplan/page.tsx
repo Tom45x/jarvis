@@ -37,7 +37,8 @@ export default function WochenplanPage() {
   async function tauschen(tag: string, mahlzeit: string) {
     if (!plan) return
     const aktuell = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
-    const andere = gerichte.filter(g => g.id !== aktuell?.gericht_id)
+    // Gesperrte Gerichte aus der Zufallsauswahl ausschließen
+    const andere = gerichte.filter(g => g.id !== aktuell?.gericht_id && !g.gesperrt)
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return
 
@@ -52,6 +53,11 @@ export default function WochenplanPage() {
       body: JSON.stringify({ eintraege, status: plan.status })
     })
     setPlan(await res.json())
+
+    // Fire-and-forget: Tausch im alten Gericht protokollieren
+    if (aktuell?.gericht_id) {
+      fetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' }).catch(() => {})
+    }
   }
 
   async function genehmigen() {
