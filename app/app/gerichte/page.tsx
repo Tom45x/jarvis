@@ -22,6 +22,7 @@ export default function GerichtePage() {
   const [ladeVorschlaege, setLadeVorschlaege] = useState(false)
   const [fuegeHinzu, setFuegeHinzu] = useState<string | null>(null)
   const [rezeptOffen, setRezeptOffen] = useState<string | null>(null)
+  const [filterKategorie, setFilterKategorie] = useState<string>('alle')
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -194,6 +195,11 @@ export default function GerichtePage() {
   const gesperrteGerichte = gerichte.filter(g => g.gesperrt)
   const ohneZutaten = aktiveGerichte.filter(g => g.zutaten.length === 0).length
 
+  const alleKategorien = ['alle', ...Array.from(new Set(aktiveGerichte.map(g => g.kategorie))).sort()]
+  const gefilterteGerichte = filterKategorie === 'alle'
+    ? aktiveGerichte
+    : aktiveGerichte.filter(g => g.kategorie === filterKategorie)
+
   return (
     <main className="p-4 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -312,13 +318,33 @@ export default function GerichtePage() {
         )}
       </div>
 
+      {/* Kategorie-Filter */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {alleKategorien.map(kat => (
+          <button
+            key={kat}
+            onClick={() => setFilterKategorie(kat)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filterKategorie === kat
+                ? 'bg-gray-800 text-white border-gray-800'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
+            }`}
+          >
+            {kat === 'alle' ? `Alle (${aktiveGerichte.length})` : kat}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-3">
-        {aktiveGerichte.map(gericht => (
+        {gefilterteGerichte.map(gericht => (
           <div key={gericht.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-medium text-gray-900">{gericht.name}</h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    {gericht.kategorie}
+                  </span>
                   {gericht.aufwand && (
                     <span className="text-xs text-gray-400">⏱ {gericht.aufwand}</span>
                   )}
