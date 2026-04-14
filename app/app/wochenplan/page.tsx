@@ -10,6 +10,8 @@ export default function WochenplanPage() {
   const [drinks, setDrinks] = useState<DrinkVorschlag[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [einkaufLoading, setEinkaufLoading] = useState(false)
+  const [einkaufMeldung, setEinkaufMeldung] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
@@ -62,17 +64,42 @@ export default function WochenplanPage() {
     setPlan(await res.json())
   }
 
+  async function einkaufslisteSenden() {
+    setEinkaufLoading(true)
+    setEinkaufMeldung(null)
+    try {
+      const res = await fetch('/api/einkaufsliste/senden', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Fehler')
+      setEinkaufMeldung(
+        `✅ Einkauf 1 (${data.einkauf1Count} Artikel) und Einkauf 2 (${data.einkauf2Count} Artikel) wurden in Bring aktualisiert`
+      )
+    } catch (e: unknown) {
+      setEinkaufMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    } finally {
+      setEinkaufLoading(false)
+    }
+  }
+
   return (
     <main className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">🍽️ Wochenplan</h1>
-        <button
-          onClick={generieren}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Generiere...' : '✨ Neuer Plan'}
-        </button>
+        <div className="flex gap-2">
+          <a
+            href="/gerichte"
+            className="text-gray-600 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            🥘 Gerichte
+          </a>
+          <button
+            onClick={generieren}
+            disabled={loading}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'Generiere...' : '✨ Neuer Plan'}
+          </button>
+        </div>
       </div>
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -85,6 +112,18 @@ export default function WochenplanPage() {
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
           />
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <button
+              onClick={einkaufslisteSenden}
+              disabled={einkaufLoading}
+              className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            >
+              {einkaufLoading ? 'Sende...' : '🛒 Einkaufslisten in Bring übertragen'}
+            </button>
+            {einkaufMeldung && (
+              <p className="text-sm mt-2 text-gray-600">{einkaufMeldung}</p>
+            )}
+          </div>
           {drinks.length > 0 && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold text-gray-700 mb-3">🥤 Saft-Vorschläge</h2>
