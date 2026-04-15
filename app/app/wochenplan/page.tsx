@@ -162,12 +162,12 @@ export default function WochenplanPage() {
               <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--near-black)' }}>
                 🥤 Saft-Vorschläge
               </h2>
-              <div className="flex gap-3 overflow-x-auto scroll-hide pb-1">
+              <div className="flex gap-3 overflow-x-auto scroll-hide pb-1" style={{ paddingLeft: '16px', paddingRight: '16px', scrollSnapType: 'x mandatory' }}>
                 {drinks.map((drink, i) => (
                   <div
                     key={i}
                     className="shrink-0 rounded-2xl p-4"
-                    style={{ width: '180px', background: '#fff8f0', boxShadow: 'var(--card-shadow)' }}
+                    style={{ width: 'calc(85vw - 32px)', maxWidth: '320px', scrollSnapAlign: 'start', background: '#fff8f0', boxShadow: 'var(--card-shadow)' }}
                   >
                     <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{drink.name}</p>
                     <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--gray-secondary)' }}>
