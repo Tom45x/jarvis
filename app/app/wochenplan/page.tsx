@@ -196,9 +196,9 @@ export default function WochenplanPage() {
 
       {/* Thumb-Zone Action Bar — fest unten, über der BottomNav */}
       <div
-        className="fixed left-0 right-0 px-4 pb-2 pt-3 z-40"
+        className="fixed left-0 right-0 px-4 pb-2 pt-3 z-50"
         style={{
-          bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+          bottom: 'calc(64px + env(safe-area-inset-bottom, 34px))',
           background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))',
         }}
       >
