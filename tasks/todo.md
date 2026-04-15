@@ -14,9 +14,13 @@
 - [x] **Airbnb Mobile Redesign** — Rausch-Red, #fffbf0 Karten, BottomNav, Thumb-Zone
 - [x] **Mobile UX** — Auto-Scroll zu Heute (3 Sek. Verzögerung nach Tausch), iOS Zoom-Prevention, 44px Touch-Targets
 
-## Morgen 📋
+## Erledigt ✅ (Fortsetzung)
 
-- [ ] **Rezepte anzeigen** — Zubereitung/Rezept pro Gericht hinterlegen und auf der Wochenplan- oder Gerichte-Seite anzeigbar machen
+- [x] **Rezepte** — Zubereitung pro Gericht via Claude generieren, im Wochenplan als Bottom Sheet, auf Gerichte-Seite bearbeitbar
+
+## Als nächstes 🎯
+
+- [ ] **Einkaufsliste** — überarbeiten / verbessern
 
 ## Offen / Nächste Schritte
 
