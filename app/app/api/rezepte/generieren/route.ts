@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { Gericht } from '@/types'
 
+export const maxDuration = 300 // 5 Minuten — für viele Gerichte nötig
+
 const BATCH_SIZE = 5
 
 type RezeptGericht = { name: string; rezept: { zutaten: string[]; zubereitung: string[] } }
@@ -83,21 +85,19 @@ export async function POST(request: NextRequest) {
   let aktualisiert = 0
   const fehler: string[] = []
 
-  for (const batch of batches) {
+  await Promise.all(batches.map(async (batch) => {
     try {
       const ergebnisse = await generiereRezeptBatch(client, batch)
-
-      const updates = ergebnisse.map(async (g) => {
+      await Promise.all(ergebnisse.map(async (g) => {
         const gericht = batch.find(dbG => dbG.name === g.name)
         if (!gericht) return
         await supabase.from('gerichte').update({ rezept: g.rezept }).eq('id', gericht.id)
         aktualisiert++
-      })
-      await Promise.all(updates)
+      }))
     } catch (e: unknown) {
       fehler.push(e instanceof Error ? e.message : 'Unbekannter Fehler')
     }
-  }
+  }))
 
   if (fehler.length > 0 && aktualisiert === 0) {
     return NextResponse.json({ error: fehler[0] }, { status: 502 })

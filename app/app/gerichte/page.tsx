@@ -39,16 +39,25 @@ export default function GerichtePage() {
 
   async function allesDatenGenerieren() {
     setGeneriere(true)
-    setMeldung(null)
+    setMeldung('⏳ Zutaten werden generiert...')
     try {
+      // Zutaten generieren
       const res = await apiFetch('/api/zutaten/generieren', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
-      // Rezepte generieren (nur für Gerichte ohne Rezept)
-      const res2 = await apiFetch('/api/rezepte/generieren', { method: 'POST' })
-      const data2 = await res2.json()
-      if (!res2.ok) throw new Error(data2.error ?? 'Fehler')
-      setMeldung(`✅ ${data.aktualisiert} Zutaten, ${data2.aktualisiert} Rezepte aktualisiert`)
+
+      setMeldung(`✅ ${data.aktualisiert} Zutaten aktualisiert — Rezepte werden generiert...`)
+
+      // Rezepte generieren — läuft im Hintergrund weiter
+      apiFetch('/api/rezepte/generieren', { method: 'POST' })
+        .then(r => r.json())
+        .then(data2 => {
+          setMeldung(`✅ ${data.aktualisiert} Zutaten, ${data2.aktualisiert ?? 0} Rezepte aktualisiert`)
+          apiFetch('/api/gerichte').then(r => r.json()).then(setGerichte)
+        })
+        .catch(() => setMeldung(`✅ ${data.aktualisiert} Zutaten aktualisiert — Rezepte konnten nicht generiert werden`))
+
+      // Gerichte nach Zutaten-Update direkt aktualisieren
       const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
     } catch (e: unknown) {
