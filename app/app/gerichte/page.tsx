@@ -393,14 +393,8 @@ export default function GerichtePage() {
                 {/* Zutaten-Vorschau */}
                 {!isEditing && (
                   <p
-                    className="text-xs mt-1.5"
-                    style={{
-                      color: 'var(--gray-secondary)',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: isExpanded ? 'unset' : 1,
-                      WebkitBoxOrient: 'vertical',
-                    } as React.CSSProperties}
+                    className="text-xs mt-1.5 leading-relaxed"
+                    style={{ color: 'var(--gray-secondary)' }}
                   >
                     {gericht.zutaten.length === 0
                       ? 'Keine Zutaten hinterlegt'
