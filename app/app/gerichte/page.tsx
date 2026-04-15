@@ -87,8 +87,15 @@ export default function GerichtePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
       setMeldung(`✅ Rezept für ${gericht.name} generiert`)
-      const updated = await apiFetch('/api/gerichte').then(r => r.json())
+      const updated: typeof gerichte = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
+      // Im Edit-Modus: bearbeiteRezept mit neuem Rezept synchronisieren
+      if (bearbeiteId === gericht.id) {
+        const neuesGericht = updated.find((g: { id: string }) => g.id === gericht.id)
+        if (neuesGericht?.rezept) {
+          setBearbeiteRezept({ zutaten: [...neuesGericht.rezept.zutaten], zubereitung: [...neuesGericht.rezept.zubereitung] })
+        }
+      }
     } catch (e: unknown) {
       setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
     }
@@ -99,7 +106,7 @@ export default function GerichtePage() {
     setBearbeiteZutaten([...gericht.zutaten])
     setBearbeiteRezept(gericht.rezept
       ? { zutaten: [...gericht.rezept.zutaten], zubereitung: [...gericht.rezept.zubereitung] }
-      : { zutaten: [], zubereitung: [] }
+      : null
     )
   }
 
@@ -142,7 +149,7 @@ export default function GerichtePage() {
 
   async function reaktivieren(id: string) {
     try {
-      await fetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
+      await apiFetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
       const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung('✅ Gericht reaktiviert')
@@ -204,7 +211,7 @@ export default function GerichtePage() {
   }
 
   async function bewerten(id: string, sterne: number) {
-    await fetch(`/api/gerichte/${id}`, {
+    await apiFetch(`/api/gerichte/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bewertung: sterne }),
@@ -215,7 +222,7 @@ export default function GerichtePage() {
   async function loeschen(id: string) {
     setLoescht(id)
     try {
-      await fetch(`/api/gerichte/${id}`, { method: 'DELETE' })
+      await apiFetch(`/api/gerichte/${id}`, { method: 'DELETE' })
       const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung('✅ Gericht gelöscht')
