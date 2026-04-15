@@ -85,11 +85,13 @@ export async function POST(request: NextRequest) {
   let aktualisiert = 0
   const fehler: string[] = []
 
-  await Promise.all(batches.map(async (batch) => {
+  // Sequenziell mit Pause — vermeidet Rate-Limit (8.000 Output-Tokens/Minute)
+  for (let i = 0; i < batches.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 4000)) // 4s Pause zwischen Batches
     try {
-      const ergebnisse = await generiereRezeptBatch(client, batch)
+      const ergebnisse = await generiereRezeptBatch(client, batches[i])
       await Promise.all(ergebnisse.map(async (g) => {
-        const gericht = batch.find(dbG => dbG.name === g.name)
+        const gericht = batches[i].find(dbG => dbG.name === g.name)
         if (!gericht) return
         await supabase.from('gerichte').update({ rezept: g.rezept }).eq('id', gericht.id)
         aktualisiert++
@@ -97,7 +99,7 @@ export async function POST(request: NextRequest) {
     } catch (e: unknown) {
       fehler.push(e instanceof Error ? e.message : 'Unbekannter Fehler')
     }
-  }))
+  }
 
   if (fehler.length > 0 && aktualisiert === 0) {
     return NextResponse.json({ error: fehler[0] }, { status: 502 })
