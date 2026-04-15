@@ -12,7 +12,6 @@ export default function GerichtePage() {
     zutaten: string[]
     zubereitung: string[]
   } | null>(null)
-  const [generiere, setGeneriere] = useState(false)
   const [speichere, setSpeichere] = useState(false)
   const [meldung, setMeldung] = useState<string | null>(null)
   const [loescht, setLoescht] = useState<string | null>(null)
@@ -36,36 +35,6 @@ export default function GerichtePage() {
       .then(setGerichte)
       .catch(() => setMeldung('❌ Gerichte konnten nicht geladen werden'))
   }, [])
-
-  async function allesDatenGenerieren() {
-    setGeneriere(true)
-    setMeldung('⏳ Zutaten werden generiert...')
-    try {
-      // Zutaten generieren
-      const res = await apiFetch('/api/zutaten/generieren', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Fehler')
-
-      setMeldung(`✅ ${data.aktualisiert} Zutaten aktualisiert — Rezepte werden generiert...`)
-
-      // Rezepte generieren — läuft im Hintergrund weiter
-      apiFetch('/api/rezepte/generieren', { method: 'POST' })
-        .then(r => r.json())
-        .then(data2 => {
-          setMeldung(`✅ ${data.aktualisiert} Zutaten, ${data2.aktualisiert ?? 0} Rezepte aktualisiert`)
-          apiFetch('/api/gerichte').then(r => r.json()).then(setGerichte)
-        })
-        .catch(() => setMeldung(`✅ ${data.aktualisiert} Zutaten aktualisiert — Rezepte konnten nicht generiert werden`))
-
-      // Gerichte nach Zutaten-Update direkt aktualisieren
-      const updated = await apiFetch('/api/gerichte').then(r => r.json())
-      setGerichte(updated)
-    } catch (e: unknown) {
-      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
-    } finally {
-      setGeneriere(false)
-    }
-  }
 
   async function einzelnGenerieren(gericht: Gericht) {
     setMeldung(null)
@@ -255,19 +224,9 @@ export default function GerichtePage() {
     <main className="min-h-screen bg-white">
       {/* Header */}
       <div className="px-4 pt-12 pb-4">
-        <div className="flex justify-between items-start mb-1">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
-            Gerichte
-          </h1>
-          <button
-            onClick={allesDatenGenerieren}
-            disabled={generiere}
-            className="text-sm font-medium px-4 py-2 rounded-xl disabled:opacity-50"
-            style={{ background: 'var(--surface)', color: 'var(--near-black)' }}
-          >
-            {generiere ? '...' : '✨ Generieren'}
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
+          Gerichte
+        </h1>
         {ohneZutaten > 0 && (
           <p className="text-xs mt-1" style={{ color: '#c13515' }}>
             ⚠️ {ohneZutaten} Gerichte ohne Zutaten
