@@ -72,10 +72,11 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
     autoScrollTimer.current = setTimeout(scrollZuHeute, 10000)
   }
 
-  // Beim ersten Rendern und bei Plan-Änderungen sofort zu heute scrollen
+  // Beim ersten Rendern zu heute scrollen
   useEffect(() => {
     scrollZuHeute()
-  }, [plan])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Nach manuellem Scrollen: 5 Sekunden Inaktivität → zurück zu heute
   useEffect(() => {
