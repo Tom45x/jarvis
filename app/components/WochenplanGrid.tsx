@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
-import type { Wochenplan, Gericht } from '@/types'
+import type { Wochenplan, Gericht, DrinkVorschlag } from '@/types'
 
 const TAGE = ['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonntag'] as const
 const TAG_LABEL: Record<string, string> = {
@@ -27,12 +27,13 @@ function heutigesDatum(): string {
 interface WochenplanGridProps {
   plan: Wochenplan
   gerichte: Gericht[]
+  drinks?: DrinkVorschlag[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onGenehmigen: () => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ plan, gerichte, drinks = [], onTauschen, onGenehmigen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
@@ -184,6 +185,31 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
           >
             Plan genehmigen ✓
           </button>
+        </div>
+      )}
+
+      {drinks.length > 0 && (
+        <div>
+          <p className="text-sm font-semibold mb-3" style={{ color: 'var(--near-black)', paddingLeft: '16px' }}>
+            Saft-Vorschläge
+          </p>
+          <div
+            className="flex gap-3 overflow-x-auto scroll-hide pb-2"
+            style={{ paddingLeft: '16px', paddingRight: '16px', scrollSnapType: 'x mandatory' }}
+          >
+            {drinks.map((drink, i) => (
+              <div
+                key={i}
+                className="shrink-0 rounded-2xl p-4"
+                style={{ width: 'calc(85vw - 32px)', maxWidth: '320px', scrollSnapAlign: 'start', background: '#fff8f0', boxShadow: 'var(--card-shadow)' }}
+              >
+                <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{drink.name}</p>
+                <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--gray-secondary)' }}>
+                  {drink.zutaten.join(', ')}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -151,33 +151,11 @@ export default function WochenplanPage() {
           <WochenplanGrid
             plan={plan}
             gerichte={gerichte}
+            drinks={drinks}
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
             onRezept={setRezeptGericht}
           />
-
-          {/* Drinks */}
-          {drinks.length > 0 && (
-            <div className="mt-8">
-              <p className="text-sm font-semibold mb-3" style={{ color: 'var(--near-black)', paddingLeft: '16px' }}>
-                Saft-Vorschläge
-              </p>
-              <div className="flex gap-3 overflow-x-auto scroll-hide pb-2" style={{ paddingLeft: '16px', paddingRight: '16px', scrollSnapType: 'x mandatory' }}>
-                {drinks.map((drink, i) => (
-                  <div
-                    key={i}
-                    className="shrink-0 rounded-2xl p-4"
-                    style={{ width: 'calc(85vw - 32px)', maxWidth: '320px', scrollSnapAlign: 'start', background: '#fff8f0', boxShadow: 'var(--card-shadow)' }}
-                  >
-                    <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{drink.name}</p>
-                    <p className="text-xs mt-1.5 leading-relaxed" style={{ color: 'var(--gray-secondary)' }}>
-                      {drink.zutaten.join(', ')}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       ) : (
         /* Leerer Zustand */
