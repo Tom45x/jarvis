@@ -12,10 +12,12 @@ interface GerichtCardProps {
   gerichtName: string
   mahlzeit: Mahlzeit
   gesund?: boolean
+  hatRezept?: boolean
   onTauschen?: () => void
+  onRezept?: () => void
 }
 
-export function GerichtCard({ gerichtName, mahlzeit, gesund, onTauschen }: GerichtCardProps) {
+export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTauschen, onRezept }: GerichtCardProps) {
   const { label } = MAHLZEIT_CONFIG[mahlzeit]
 
   return (
@@ -53,6 +55,20 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, onTauschen }: Geric
           </button>
         )}
       </div>
+
+      {/* Rezept-Link — nur wenn Rezept vorhanden */}
+      {hatRezept && onRezept && (
+        <button
+          onClick={onRezept}
+          className="mt-2 pt-2 w-full text-left text-xs font-medium active:opacity-70 transition-opacity"
+          style={{
+            borderTop: '1px solid var(--surface)',
+            color: 'var(--rausch)',
+          }}
+        >
+          Rezept ansehen →
+        </button>
+      )}
     </div>
   )
 }
