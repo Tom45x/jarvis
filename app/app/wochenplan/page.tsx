@@ -159,9 +159,9 @@ export default function WochenplanPage() {
           {/* Drinks */}
           {drinks.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-base font-semibold mb-3 px-4" style={{ color: 'var(--near-black)' }}>
-                🥤 Saft-Vorschläge
-              </h2>
+              <p className="text-sm font-semibold mb-3" style={{ color: 'var(--near-black)', paddingLeft: '16px' }}>
+                Saft-Vorschläge
+              </p>
               <div className="flex gap-3 overflow-x-auto scroll-hide pb-2" style={{ paddingLeft: '16px', paddingRight: '16px', scrollSnapType: 'x mandatory' }}>
                 {drinks.map((drink, i) => (
                   <div

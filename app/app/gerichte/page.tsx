@@ -250,7 +250,7 @@ export default function GerichtePage() {
             type="text"
             value={vorschlagHinweis}
             onChange={e => setVorschlagHinweis(e.target.value)}
-            placeholder="z.B. mehr Fisch, Wochenend-Frühstück …"
+            placeholder="z.B. mehr Fisch"
             className="flex-1 rounded-xl outline-none"
             style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', padding: '12px 14px', minHeight: '48px' }}
           />
