@@ -2,17 +2,20 @@ import {
   generiereEinkaufslisten,
   tagZuWochenindex,
   aggregiere,
+  istGrundvorrat,
+  istInRegelbedarf,
 } from '@/lib/einkaufsliste'
 import type { Gericht, WochenplanEintrag, Zutat } from '@/types'
 
 const hackfleisch: Zutat = { name: 'Hackfleisch', menge: 500, einheit: 'g', haltbarkeit_tage: 2 }
 const nudeln: Zutat = { name: 'Nudeln', menge: 400, einheit: 'g', haltbarkeit_tage: 365 }
 const zwiebeln: Zutat = { name: 'Zwiebeln', menge: 2, einheit: 'Stück', haltbarkeit_tage: 14 }
+const kaese: Zutat = { name: 'Parmesan', menge: 50, einheit: 'g', haltbarkeit_tage: 14 }
 
 const bolognese: Gericht = {
   id: 'g1', name: 'Spaghetti Bolognese', gesund: false, kategorie: 'nudeln',
   beliebtheit: {}, quelle: 'manuell',
-  zutaten: [hackfleisch, nudeln, zwiebeln]
+  zutaten: [hackfleisch, nudeln, zwiebeln, kaese]
 }
 
 const chickenWings: Gericht = {
@@ -23,6 +26,44 @@ const chickenWings: Gericht = {
     { name: 'Pommes', menge: 500, einheit: 'g', haltbarkeit_tage: 30 }
   ]
 }
+
+describe('istGrundvorrat', () => {
+  it('erkennt typische Grundvorräte', () => {
+    expect(istGrundvorrat('Salz')).toBe(true)
+    expect(istGrundvorrat('Schwarzer Pfeffer')).toBe(true)
+    expect(istGrundvorrat('Olivenöl')).toBe(true)
+    expect(istGrundvorrat('Weizenmehl')).toBe(true)
+    expect(istGrundvorrat('Zwiebeln')).toBe(true)
+    expect(istGrundvorrat('Knoblauchzehen')).toBe(true)
+    expect(istGrundvorrat('Paprikapulver')).toBe(true)
+  })
+
+  it('filtert keine Nicht-Grundvorräte heraus', () => {
+    expect(istGrundvorrat('Hackfleisch')).toBe(false)
+    expect(istGrundvorrat('Nudeln')).toBe(false)
+    expect(istGrundvorrat('Parmesan')).toBe(false)
+    expect(istGrundvorrat('Chicken Wings')).toBe(false)
+  })
+})
+
+describe('istInRegelbedarf', () => {
+  const regelbedarf = ['Butter', 'Milch', 'Eier']
+
+  it('erkennt exakte Treffer', () => {
+    expect(istInRegelbedarf('Butter', regelbedarf)).toBe(true)
+    expect(istInRegelbedarf('Milch', regelbedarf)).toBe(true)
+  })
+
+  it('erkennt Teilstring-Treffer in beide Richtungen', () => {
+    expect(istInRegelbedarf('frische Butter', regelbedarf)).toBe(true)
+    expect(istInRegelbedarf('Ei', ['Eier'])).toBe(true)
+  })
+
+  it('schlägt nicht an bei unbekannten Zutaten', () => {
+    expect(istInRegelbedarf('Hackfleisch', regelbedarf)).toBe(false)
+    expect(istInRegelbedarf('Parmesan', regelbedarf)).toBe(false)
+  })
+})
 
 describe('tagZuWochenindex', () => {
   it('gibt 1 für montag zurück', () => expect(tagZuWochenindex('montag')).toBe(1))
@@ -60,8 +101,9 @@ describe('generiereEinkaufslisten', () => {
     ]
     const { einkauf1, einkauf2 } = generiereEinkaufslisten(eintraege, [bolognese], einkaufstag2)
     expect(einkauf1.find(i => i.name === 'Nudeln')).toBeTruthy()
-    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeTruthy()
     expect(einkauf2.find(i => i.name === 'Nudeln')).toBeUndefined()
+    // Zwiebeln sind Grundvorrat — nicht auf der Einkaufsliste
+    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeUndefined()
   })
 
   it('legt kurzlebige Zutaten in Einkauf 1 wenn Gericht vor Einkaufstag 2', () => {
@@ -107,6 +149,37 @@ describe('generiereEinkaufslisten', () => {
     const { einkauf1, einkauf2 } = generiereEinkaufslisten([], [bolognese], einkaufstag2)
     expect(einkauf1).toHaveLength(0)
     expect(einkauf2).toHaveLength(0)
+  })
+
+  it('filtert Grundvorräte aus der Einkaufsliste heraus', () => {
+    const eintraege: WochenplanEintrag[] = [
+      { tag: 'mittwoch', mahlzeit: 'abend', gericht_id: 'g1', gericht_name: 'Spaghetti Bolognese' }
+    ]
+    const { einkauf1 } = generiereEinkaufslisten(eintraege, [bolognese], einkaufstag2)
+    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeUndefined()
+    expect(einkauf1.find(i => i.name === 'Hackfleisch')).toBeTruthy()
+    expect(einkauf1.find(i => i.name === 'Parmesan')).toBeTruthy()
+  })
+
+  it('filtert Regelbedarf-Zutaten aus der Einkaufsliste heraus', () => {
+    const gerichtMitButter: Gericht = {
+      id: 'g4', name: 'Pfannkuchen', gesund: false, kategorie: 'frühstück',
+      beliebtheit: {}, quelle: 'manuell',
+      zutaten: [
+        { name: 'Butter', menge: 30, einheit: 'g', haltbarkeit_tage: 14 },
+        { name: 'Mehl', menge: 200, einheit: 'g', haltbarkeit_tage: 365 },
+        { name: 'Schinken', menge: 100, einheit: 'g', haltbarkeit_tage: 3 },
+      ]
+    }
+    const eintraege: WochenplanEintrag[] = [
+      { tag: 'mittwoch', mahlzeit: 'abend', gericht_id: 'g4', gericht_name: 'Pfannkuchen' }
+    ]
+    const { einkauf1 } = generiereEinkaufslisten(eintraege, [gerichtMitButter], einkaufstag2, ['Butter', 'Milch'])
+    // Butter im Regelbedarf → nicht auf Liste; Mehl ist Grundvorrat → nicht auf Liste
+    expect(einkauf1.find(i => i.name === 'Butter')).toBeUndefined()
+    expect(einkauf1.find(i => i.name === 'Mehl')).toBeUndefined()
+    // Schinken ist weder Grundvorrat noch Regelbedarf → auf Liste
+    expect(einkauf1.find(i => i.name === 'Schinken')).toBeTruthy()
   })
 
   it('aggregiert gleiche Zutat NICHT über Listen-Grenzen hinweg', () => {

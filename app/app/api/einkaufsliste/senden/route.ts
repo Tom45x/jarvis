@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import { generiereEinkaufslisten, splitNachRouting } from '@/lib/einkaufsliste'
 import { aktualisiereEinkaufsliste } from '@/lib/bring'
 import { sucheArtikel, zumWarenkorb, warenkorbLeeren } from '@/lib/picnic'
@@ -90,11 +90,14 @@ export async function POST() {
       return NextResponse.json({ error: 'Gerichte konnten nicht geladen werden' }, { status: 500 })
     }
 
-    const einkaufstag2 = parseInt(process.env.EINKAUFSTAG_2 ?? '4', 10)
+    const einkaufstag2Raw = parseInt(process.env.EINKAUFSTAG_2 ?? '4', 10)
+    const einkaufstag2 = isNaN(einkaufstag2Raw) ? 4 : einkaufstag2Raw
+    const regelbedarfNamen = regelbedarf.map(r => r.name)
     const { einkauf1, einkauf2 } = generiereEinkaufslisten(
       plan.eintraege,
       gerichte as Gericht[],
-      einkaufstag2
+      einkaufstag2,
+      regelbedarfNamen
     )
 
     // Einkauf 1: Bring-Keywords → Bring, Rest → Picnic-Suche
@@ -105,17 +108,21 @@ export async function POST() {
     // Einkauf 2: komplett zu Bring (zu wenige Artikel für Picnic-Mindestbestellwert)
     const bring2Gesamt = [...einkauf2]
 
-    // Regelbedarf: nur für Einkauf 1 → Picnic
+    // Regelbedarf: nur für Einkauf 1 → Picnic (parallelisiert)
     const regelbedarfItems: EinkaufsItem[] = regelbedarf.map(r => ({
       name: r.name,
       menge: r.menge,
       einheit: r.einheit,
     }))
-    const regelbedarfPicnicItems: Array<{ item: EinkaufsItem; artikelId: string }> = []
-    for (const r of regelbedarfItems) {
-      const artikel = await sucheArtikel(r.name)
-      if (artikel) regelbedarfPicnicItems.push({ item: r, artikelId: artikel.artikelId })
-    }
+    const regelbedarfErgebnisse = await Promise.all(
+      regelbedarfItems.map(async (r) => {
+        const artikel = await sucheArtikel(r.name)
+        return artikel ? { item: r, artikelId: artikel.artikelId } : null
+      })
+    )
+    const regelbedarfPicnicItems = regelbedarfErgebnisse.filter(
+      (r): r is { item: EinkaufsItem; artikelId: string } => r !== null
+    )
 
     await warenkorbLeeren()
     await fuellePicnicWarenkorb([

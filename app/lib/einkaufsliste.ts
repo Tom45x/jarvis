@@ -1,5 +1,39 @@
 import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, EinkaufsRouting } from '@/types'
 
+// Zutaten, die immer im Haus sind — kommen nie auf die Einkaufsliste
+const GRUNDVORRAT_KEYWORDS = [
+  // Würzen & Gewürze
+  'salz', 'pfeffer', 'zucker', 'puderzucker', 'vanillezucker',
+  'essig', 'balsamico', 'sojasauce', 'sojasoße', 'worcestershire',
+  'senf', 'tomatenmark', 'tabasco',
+  // Backzutaten
+  'mehl', 'backpulver', 'natron', 'speisestärke', 'stärke',
+  // Fette & Öle
+  'öl', 'speiseöl',
+  // Gemüse-Basics (immer vorrätig)
+  'zwiebel', 'knoblauch', 'kartoffel',
+  // Brühe & Fonds
+  'brühe', 'gemüsebrühe', 'hühnerbrühe', 'rinderbrühe', 'fond',
+  // Getrocknete Kräuter & Gewürze
+  'oregano', 'basilikum', 'thymian', 'rosmarin', 'lorbeer',
+  'paprikapulver', 'curry', 'kurkuma', 'kreuzkümmel', 'kümmel',
+  'zimt', 'muskat', 'nelken', 'chili', 'cayenne', 'ingwerpulver',
+  'korianderpulver',
+]
+
+export function istGrundvorrat(zutatName: string): boolean {
+  const lower = zutatName.toLowerCase()
+  return GRUNDVORRAT_KEYWORDS.some(kw => lower.includes(kw))
+}
+
+export function istInRegelbedarf(zutatName: string, regelbedarfNamen: string[]): boolean {
+  const lower = zutatName.toLowerCase()
+  return regelbedarfNamen.some(r => {
+    const rLower = r.toLowerCase()
+    return lower.includes(rLower) || rLower.includes(lower)
+  })
+}
+
 export function istBringPflicht(zutatName: string, bringKeywords: string[]): boolean {
   const nameLower = zutatName.toLowerCase()
   return bringKeywords.some(kw => nameLower.includes(kw.toLowerCase()))
@@ -58,7 +92,8 @@ function basisName(name: string): string {
 export function generiereEinkaufslisten(
   eintraege: WochenplanEintrag[],
   gerichte: Gericht[],
-  einkaufstag2: number
+  einkaufstag2: number,
+  regelbedarfNamen: string[] = []
 ): EinkaufslistenErgebnis {
   const gerichtMap = new Map(gerichte.map(g => [g.name, g]))
 
@@ -87,6 +122,10 @@ export function generiereEinkaufslisten(
     const faktor = hatReste ? 2 : 1
 
     for (const zutat of gericht.zutaten) {
+      // Grundvorräte und Regelbedarf-Artikel überspringen
+      if (istGrundvorrat(zutat.name)) continue
+      if (istInRegelbedarf(zutat.name, regelbedarfNamen)) continue
+
       const item: EinkaufsItem = {
         name: zutat.name,
         menge: zutat.menge * faktor,
