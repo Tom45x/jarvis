@@ -198,7 +198,7 @@ export default function WochenplanPage() {
       <div
         className="fixed left-0 right-0 px-4 pb-2 pt-3 z-40"
         style={{
-          bottom: '64px', // Höhe der BottomNav
+          bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
           background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))',
         }}
       >
