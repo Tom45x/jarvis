@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import { generiereWochenplan } from '@/lib/claude'
 import { erstelleWochenplanEintraege, speichereWochenplan } from '@/lib/wochenplan'
 import type { FamilieMitglied, Gericht, WochenplanEintrag } from '@/types'
+
+// Einfacher In-Memory-Lock gegen parallele Generierungsanfragen (z.B. Doppelklick)
+let isGenerating = false
 
 const WOCHENTAGE_FRUEHSTUECK = ['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag'] as const
 const TRAININGSTAGE = ['montag', 'dienstag', 'donnerstag'] as const
@@ -17,6 +20,11 @@ function zufaelligOhneWiederholung<T>(arr: T[], anzahl: number): T[] {
 }
 
 export async function POST() {
+  if (isGenerating) {
+    return NextResponse.json({ error: 'Plan wird bereits generiert, bitte warten.' }, { status: 429 })
+  }
+  isGenerating = true
+  try {
   const [{ data: profile }, { data: gerichte }] = await Promise.all([
     supabase.from('familie_profile').select('*'),
     supabase.from('gerichte').select('*').eq('gesperrt', false),
@@ -86,5 +94,8 @@ export async function POST() {
   ]
 
   const plan = await speichereWochenplan(alleEintraege, 'entwurf')
-  return NextResponse.json({ ...plan, drinks: ergebnis.drinks })
+  return NextResponse.json(plan)
+  } finally {
+    isGenerating = false
+  }
 }

@@ -1,9 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { FamilieMitglied, Gericht, WochenplanEintrag, DrinkVorschlag } from '@/types'
+import type { FamilieMitglied, Gericht, WochenplanEintrag } from '@/types'
 
 export interface WochenplanGenerierungErgebnis {
   mahlzeiten: Omit<WochenplanEintrag, 'gericht_id'>[]
-  drinks: DrinkVorschlag[]
 }
 
 export async function generiereWochenplan(
@@ -24,12 +23,6 @@ export async function generiereWochenplan(
     `- ${g.name} (${g.gesund ? 'gesund' : 'nicht gesund'}, Kategorie: ${g.kategorie}${g.bewertung === 5 ? ', ⭐⭐⭐⭐⭐ FAVORIT' : g.bewertung === 1 || g.bewertung === 2 ? ', weniger beliebt' : ''})`
   ).join('\n')
 
-  const obstListe = profile
-    .flatMap(p => p.lieblingsobst)
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .slice(0, 8)
-    .join(', ')
-
   const prompt = `Du bist Jarvis, ein Haushaltsassistent für eine deutsche Familie.
 
 Erstelle einen Wochenplan für Montag bis Sonntag. Deine Aufgabe: NUR die 10 normalen Mahlzeiten wählen (Mittag und Abend, außer Montag/Dienstag/Donnerstag Abend und Freitagabend — die werden separat befüllt).
@@ -48,7 +41,6 @@ Regeln:
 - Keine Wiederholungen innerhalb einer Woche
 - Abwechslungsreiche Kategorien (nicht jeden Tag Nudeln)
 - Berücksichtige die Abneigungen aller Familienmitglieder
-- Füge am Ende 3 Saft-/Drink-Vorschläge für den Entsafter hinzu (basierend auf Lieblingsobst: ${obstListe})
 
 Antworte NUR mit diesem JSON, kein weiterer Text:
 {
@@ -63,11 +55,6 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     {"tag": "samstag", "mahlzeit": "abend", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "mittag", "gericht_name": "..."},
     {"tag": "sonntag", "mahlzeit": "abend", "gericht_name": "..."}
-  ],
-  "drinks": [
-    {"name": "...", "zutaten": ["...", "..."]},
-    {"name": "...", "zutaten": ["...", "..."]},
-    {"name": "...", "zutaten": ["...", "..."]}
   ]
 }`
 
@@ -79,9 +66,15 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-  const parsed = JSON.parse(text)
+
+  let parsed: { mahlzeiten?: unknown[] }
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    throw new Error(`Ungültige JSON-Antwort von Claude: ${text.slice(0, 200)}`)
+  }
+
   return {
-    mahlzeiten: parsed.mahlzeiten ?? [],
-    drinks: parsed.drinks ?? []
+    mahlzeiten: (parsed.mahlzeiten ?? []) as Omit<WochenplanEintrag, 'gericht_id'>[],
   }
 }

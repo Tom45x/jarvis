@@ -2,23 +2,14 @@ import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, 
 
 // Zutaten, die immer im Haus sind — kommen nie auf die Einkaufsliste
 const GRUNDVORRAT_KEYWORDS = [
-  // Würzen & Gewürze
-  'salz', 'pfeffer', 'zucker', 'puderzucker', 'vanillezucker',
-  'essig', 'balsamico', 'sojasauce', 'sojasoße', 'worcestershire',
-  'senf', 'tomatenmark', 'tabasco',
+  // Grundgewürze
+  'salz', 'pfeffer', 'zucker', 'paprikapulver',
   // Backzutaten
   'mehl', 'backpulver', 'natron', 'speisestärke', 'stärke',
   // Fette & Öle
   'öl', 'speiseöl',
-  // Gemüse-Basics (immer vorrätig)
-  'zwiebel', 'knoblauch', 'kartoffel',
-  // Brühe & Fonds
-  'brühe', 'gemüsebrühe', 'hühnerbrühe', 'rinderbrühe', 'fond',
-  // Getrocknete Kräuter & Gewürze
-  'oregano', 'basilikum', 'thymian', 'rosmarin', 'lorbeer',
-  'paprikapulver', 'curry', 'kurkuma', 'kreuzkümmel', 'kümmel',
-  'zimt', 'muskat', 'nelken', 'chili', 'cayenne', 'ingwerpulver',
-  'korianderpulver',
+  // Küche-Basics
+  'knoblauch', 'kartoffel',
 ]
 
 export function istGrundvorrat(zutatName: string): boolean {

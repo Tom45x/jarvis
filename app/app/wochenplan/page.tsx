@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
 import { apiFetch } from '@/lib/api-fetch'
-import type { Wochenplan, Gericht, DrinkVorschlag } from '@/types'
+import type { Wochenplan, Gericht } from '@/types'
 
 export default function WochenplanPage() {
   const [plan, setPlan] = useState<Wochenplan | null>(null)
   const [gerichte, setGerichte] = useState<Gericht[]>([])
-  const [drinks, setDrinks] = useState<DrinkVorschlag[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [einkaufLoading, setEinkaufLoading] = useState(false)
@@ -25,7 +24,6 @@ export default function WochenplanPage() {
       .then(r => r.ok ? r.json() : null)
       .then((data: Wochenplan | null) => {
         setPlan(data)
-        if (data?.drinks?.length) setDrinks(data.drinks)
       })
       .catch(() => setError('Wochenplan konnte nicht geladen werden'))
   }, [])
@@ -38,7 +36,6 @@ export default function WochenplanPage() {
       if (!res.ok) throw new Error('Fehler beim Generieren')
       const data: Wochenplan = await res.json()
       setPlan(data)
-      setDrinks(data.drinks ?? [])
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
     } finally {
@@ -151,7 +148,6 @@ export default function WochenplanPage() {
           <WochenplanGrid
             plan={plan}
             gerichte={gerichte}
-            drinks={drinks}
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
             onRezept={setRezeptGericht}

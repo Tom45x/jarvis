@@ -33,9 +33,8 @@ describe('istGrundvorrat', () => {
     expect(istGrundvorrat('Schwarzer Pfeffer')).toBe(true)
     expect(istGrundvorrat('Olivenöl')).toBe(true)
     expect(istGrundvorrat('Weizenmehl')).toBe(true)
-    expect(istGrundvorrat('Zwiebeln')).toBe(true)
-    expect(istGrundvorrat('Knoblauchzehen')).toBe(true)
     expect(istGrundvorrat('Paprikapulver')).toBe(true)
+    expect(istGrundvorrat('Knoblauch')).toBe(true)
   })
 
   it('filtert keine Nicht-Grundvorräte heraus', () => {
@@ -43,6 +42,8 @@ describe('istGrundvorrat', () => {
     expect(istGrundvorrat('Nudeln')).toBe(false)
     expect(istGrundvorrat('Parmesan')).toBe(false)
     expect(istGrundvorrat('Chicken Wings')).toBe(false)
+    expect(istGrundvorrat('Zwiebeln')).toBe(false)
+    expect(istGrundvorrat('Tomatenmark')).toBe(false)
   })
 })
 
@@ -102,8 +103,8 @@ describe('generiereEinkaufslisten', () => {
     const { einkauf1, einkauf2 } = generiereEinkaufslisten(eintraege, [bolognese], einkaufstag2)
     expect(einkauf1.find(i => i.name === 'Nudeln')).toBeTruthy()
     expect(einkauf2.find(i => i.name === 'Nudeln')).toBeUndefined()
-    // Zwiebeln sind Grundvorrat — nicht auf der Einkaufsliste
-    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeUndefined()
+    // Zwiebeln sind KEIN Grundvorrat — kommen auf die Einkaufsliste
+    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeTruthy()
   })
 
   it('legt kurzlebige Zutaten in Einkauf 1 wenn Gericht vor Einkaufstag 2', () => {
@@ -156,8 +157,9 @@ describe('generiereEinkaufslisten', () => {
       { tag: 'mittwoch', mahlzeit: 'abend', gericht_id: 'g1', gericht_name: 'Spaghetti Bolognese' }
     ]
     const { einkauf1 } = generiereEinkaufslisten(eintraege, [bolognese], einkaufstag2)
-    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeUndefined()
+    // Hackfleisch, Nudeln, Zwiebeln, Parmesan kommen auf die Liste
     expect(einkauf1.find(i => i.name === 'Hackfleisch')).toBeTruthy()
+    expect(einkauf1.find(i => i.name === 'Zwiebeln')).toBeTruthy()
     expect(einkauf1.find(i => i.name === 'Parmesan')).toBeTruthy()
   })
 

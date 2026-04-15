@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import type { Gericht, Wochenplan, WochenplanEintrag } from '@/types'
 
 export function getMontag(datum: Date = new Date()): Date {

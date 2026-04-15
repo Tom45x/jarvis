@@ -60,7 +60,6 @@ export interface Wochenplan {
   id: string
   woche_start: string
   eintraege: WochenplanEintrag[]
-  drinks: DrinkVorschlag[]
   status: 'entwurf' | 'genehmigt'
   erstellt_am: string
 }
@@ -88,11 +87,6 @@ export interface Einkaufsliste {
   wochenplan_id: string
   artikel: EinkaufsArtikel[]
   erstellt_am: string
-}
-
-export interface DrinkVorschlag {
-  name: string
-  zutaten: string[]
 }
 
 export interface Regelbedarf {

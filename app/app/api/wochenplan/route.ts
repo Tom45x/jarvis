@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ladeAktuellenWochenplan, speichereWochenplan } from '@/lib/wochenplan'
-import type { DrinkVorschlag, WochenplanEintrag } from '@/types'
+import type { WochenplanEintrag } from '@/types'
 
 export async function GET() {
   const plan = await ladeAktuellenWochenplan()
@@ -10,7 +10,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   const body = await req.json()
-  const { eintraege, status, drinks }: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt'; drinks?: DrinkVorschlag[] } = body
+  const { eintraege, status }: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt' } = body
 
   if (!Array.isArray(eintraege)) {
     return NextResponse.json({ error: 'eintraege muss ein Array sein' }, { status: 400 })
@@ -19,13 +19,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Ungültiger Status' }, { status: 400 })
   }
 
-  // Aktuelle Drinks laden falls nicht mitgeschickt (z.B. beim Tauschen)
-  let aktuelleAbDrinks = drinks
-  if (aktuelleAbDrinks === undefined) {
-    const aktuell = await ladeAktuellenWochenplan()
-    aktuelleAbDrinks = aktuell?.drinks ?? []
-  }
-
-  const plan = await speichereWochenplan(eintraege, status, aktuelleAbDrinks)
+  const plan = await speichereWochenplan(eintraege, status)
   return NextResponse.json(plan)
 }
