@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Gericht } from '@/types'
 
 interface RezeptSheetProps {
-  gericht: Gericht
+  gericht: Gericht & { rezept: NonNullable<Gericht['rezept']> }
   onClose: () => void
 }
 
@@ -14,15 +14,17 @@ export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    // Ein Frame warten damit die CSS-Transition greift
     const id = requestAnimationFrame(() => setVisible(true))
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
+      document.removeEventListener('keydown', handleKeyDown)
       cancelAnimationFrame(id)
       document.body.style.overflow = ''
     }
-  }, [])
-
-  if (!gericht.rezept) return null
+  }, [onClose])
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY
@@ -37,6 +39,10 @@ export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
     }
   }
 
+  function handleTouchEnd() {
+    touchStartY.current = null
+  }
+
   return (
     <>
       {/* Hintergrund-Overlay */}
@@ -48,6 +54,9 @@ export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
 
       {/* Sheet-Panel */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rezept-title"
         className="fixed left-0 right-0 bottom-0 z-50 rounded-t-3xl overflow-hidden"
         style={{
           background: '#ffffff',
@@ -56,18 +65,25 @@ export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
           transform: visible ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 0.3s ease',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
       >
-        {/* Drag-Handle */}
-        <div className="flex justify-center pt-3 pb-1">
+        {/* Drag-Handle — Touch-Events nur hier */}
+        <div
+          className="flex justify-center pt-3 pb-1"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
         </div>
 
         {/* Scrollbarer Inhalt */}
         <div className="overflow-y-auto px-5 pb-10" style={{ maxHeight: 'calc(80vh - 40px)' }}>
           {/* Titel */}
-          <h2 className="text-lg font-bold mt-2 mb-5" style={{ color: 'var(--near-black)', letterSpacing: '-0.3px' }}>
+          <h2
+            id="rezept-title"
+            className="text-lg font-bold mt-2 mb-5"
+            style={{ color: 'var(--near-black)', letterSpacing: '-0.3px' }}
+          >
             {gericht.name}
           </h2>
 
