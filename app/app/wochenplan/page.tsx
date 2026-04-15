@@ -5,6 +5,7 @@ import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
 import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
+import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 import type { Wochenplan, Gericht } from '@/types'
 
 export default function WochenplanPage() {
@@ -47,12 +48,6 @@ export default function WochenplanPage() {
     }
   }
 
-  const SONDERKATEGORIEN: Record<string, string> = {
-    'montag-abend': 'trainingstage',
-    'dienstag-abend': 'trainingstage',
-    'donnerstag-abend': 'trainingstage',
-    'freitag-abend': 'filmabend',
-  }
 
   async function tauschen(tag: string, mahlzeit: string) {
     if (!plan) return

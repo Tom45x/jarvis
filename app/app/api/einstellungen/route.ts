@@ -16,7 +16,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const body = await request.json() as Record<string, string>
+  const body = await request.json().catch(() => null) as Record<string, string> | null
+  if (!body) return NextResponse.json({ error: 'Ungültiger Request-Body' }, { status: 400 })
 
   const upserts = Object.entries(body).map(([key, value]) => ({ key, value }))
 

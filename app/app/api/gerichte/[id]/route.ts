@@ -7,11 +7,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const body = await request.json() as {
+  const body = await request.json().catch(() => null) as {
     zutaten?: Zutat[]
     bewertung?: number
     rezept?: { zutaten: string[]; zubereitung: string[] } | null
-  }
+  } | null
+
+  if (!body) return NextResponse.json({ error: 'Ungültiger Request-Body' }, { status: 400 })
 
   const updates: Record<string, unknown> = {}
   if (body.zutaten !== undefined) updates.zutaten = body.zutaten

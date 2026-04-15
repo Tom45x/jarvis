@@ -9,7 +9,9 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body) return NextResponse.json({ error: 'Ungültiger Request-Body' }, { status: 400 })
+
   const { eintraege, status }: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt' } = body
 
   if (!Array.isArray(eintraege)) {
@@ -19,6 +21,11 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Ungültiger Status' }, { status: 400 })
   }
 
-  const plan = await speichereWochenplan(eintraege, status)
-  return NextResponse.json(plan)
+  try {
+    const plan = await speichereWochenplan(eintraege, status)
+    return NextResponse.json(plan)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 }

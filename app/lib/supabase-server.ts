@@ -21,7 +21,7 @@ function getClient(): SupabaseClient {
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_, prop: string) {
     const c = getClient()
-    const val = (c as never)[prop]
+    const val = (c as unknown as Record<string, unknown>)[prop]
     return typeof val === 'function' ? (val as (...a: unknown[]) => unknown).bind(c) : val
   },
 })

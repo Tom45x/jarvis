@@ -42,7 +42,7 @@ export default function EinstellungenPage() {
   }
 
   async function regelbedarfLoeschen(id: string) {
-    await fetch(`/api/einstellungen/regelbedarf/${id}`, { method: 'DELETE' })
+    await apiFetch(`/api/einstellungen/regelbedarf/${id}`, { method: 'DELETE' })
     setRegelbedarf(prev => prev.filter(r => r.id !== id))
   }
 

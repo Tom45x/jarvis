@@ -15,8 +15,12 @@ export interface GerichtVorschlag {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json() as { hinweis?: string }
-  const hinweis = body.hinweis ?? ''
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'KI-Funktion nicht verfügbar (kein API-Key konfiguriert)' }, { status: 503 })
+  }
+
+  const body = await request.json().catch(() => null) as { hinweis?: string } | null
+  const hinweis = body?.hinweis ?? ''
 
   const [{ data: gerichteDB }, { data: profile }] = await Promise.all([
     supabase.from('gerichte').select('name'),

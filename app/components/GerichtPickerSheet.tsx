@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Gericht, Mahlzeit } from '@/types'
-
-const SONDERKATEGORIEN: Record<string, string> = {
-  'montag-abend': 'trainingstage',
-  'dienstag-abend': 'trainingstage',
-  'donnerstag-abend': 'trainingstage',
-  'freitag-abend': 'filmabend',
-}
+import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 
 const TAG_LABEL: Record<string, string> = {
   montag: 'Montag', dienstag: 'Dienstag', mittwoch: 'Mittwoch',

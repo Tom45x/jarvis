@@ -16,14 +16,15 @@ const GUELTIGE_KATEGORIEN = [
 ] as const
 
 export async function POST(request: NextRequest) {
-  const body = await request.json() as {
+  const body = await request.json().catch(() => null) as {
     name: string
     kategorie: string
     aufwand: string
     gesund?: boolean
     quelle?: string
-  }
+  } | null
 
+  if (!body) return NextResponse.json({ error: 'Ungültiger Request-Body' }, { status: 400 })
   if (!body.name?.trim()) {
     return NextResponse.json({ error: 'Name ist erforderlich' }, { status: 400 })
   }
