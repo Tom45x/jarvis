@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
+import { apiFetch } from '@/lib/api-fetch'
 import type { Wochenplan, Gericht, DrinkVorschlag } from '@/types'
 
 export default function WochenplanPage() {
@@ -14,17 +15,26 @@ export default function WochenplanPage() {
   const [einkaufMeldung, setEinkaufMeldung] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
-    fetch('/api/wochenplan').then(r => r.ok ? r.json() : null).then(setPlan)
+    apiFetch('/api/gerichte')
+      .then(r => r.json())
+      .then(setGerichte)
+      .catch(() => setError('Gerichte konnten nicht geladen werden'))
+    apiFetch('/api/wochenplan')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: Wochenplan | null) => {
+        setPlan(data)
+        if (data?.drinks?.length) setDrinks(data.drinks)
+      })
+      .catch(() => setError('Wochenplan konnte nicht geladen werden'))
   }, [])
 
   async function generieren() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/wochenplan/generate', { method: 'POST' })
+      const res = await apiFetch('/api/wochenplan/generate', { method: 'POST' })
       if (!res.ok) throw new Error('Fehler beim Generieren')
-      const data = await res.json()
+      const data: Wochenplan = await res.json()
       setPlan(data)
       setDrinks(data.drinks ?? [])
     } catch (e: unknown) {
@@ -59,12 +69,16 @@ export default function WochenplanPage() {
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return
 
-    const eintraege = plan.eintraege.map(e =>
-      e.tag === tag && e.mahlzeit === mahlzeit
-        ? { ...e, gericht_id: neu.id, gericht_name: neu.name }
-        : e
-    )
-    const res = await fetch('/api/wochenplan', {
+    // Slot existiert bereits → ersetzen; leerer Slot → neuen Eintrag hinzufügen
+    const slotExistiert = plan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
+    const eintraege = slotExistiert
+      ? plan.eintraege.map(e =>
+          e.tag === tag && e.mahlzeit === mahlzeit
+            ? { ...e, gericht_id: neu.id, gericht_name: neu.name }
+            : e
+        )
+      : [...plan.eintraege, { tag, mahlzeit, gericht_id: neu.id, gericht_name: neu.name }]
+    const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eintraege, status: plan.status })
@@ -72,13 +86,18 @@ export default function WochenplanPage() {
     setPlan(await res.json())
 
     if (aktuell?.gericht_id) {
-      fetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' }).catch(() => {})
+      try {
+        await apiFetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' })
+      } catch {
+        // Tausch-Counter-Fehler ist nicht blockierend — Plan wurde bereits gespeichert
+        console.warn('Tausch-Counter konnte nicht aktualisiert werden:', aktuell.gericht_id)
+      }
     }
   }
 
   async function genehmigen() {
     if (!plan) return
-    const res = await fetch('/api/wochenplan', {
+    const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eintraege: plan.eintraege, status: 'genehmigt' })
@@ -90,7 +109,7 @@ export default function WochenplanPage() {
     setEinkaufLoading(true)
     setEinkaufMeldung(null)
     try {
-      const res = await fetch('/api/einkaufsliste/senden', { method: 'POST' })
+      const res = await apiFetch('/api/einkaufsliste/senden', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
       const picnicArtikel = data.picnic1Count ?? 0
@@ -132,6 +151,7 @@ export default function WochenplanPage() {
             gerichte={gerichte}
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
+            onRezept={() => {}}
           />
 
           {/* Drinks */}

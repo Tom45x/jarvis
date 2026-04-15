@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
 import type { Wochenplan, Gericht } from '@/types'
 
@@ -29,10 +29,14 @@ interface WochenplanGridProps {
   gerichte: Gericht[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onGenehmigen: () => void
+  onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: WochenplanGridProps) {
-  const gerichtMap = Object.fromEntries(gerichte.map(g => [g.id, g]))
+export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRezept }: WochenplanGridProps) {
+  const gerichtMap = useMemo(
+    () => Object.fromEntries(gerichte.map(g => [g.id, g])),
+    [gerichte]
+  )
   const heute = heutigerTag()
   const scrollRef = useRef<HTMLDivElement>(null)
   const heuteRef = useRef<HTMLDivElement>(null)
@@ -56,7 +60,6 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
       return
     }
 
-    // Nach Tausch: nach 3 Sekunden sanft zum heutigen Tag zurückscrollen
     if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
     autoScrollTimer.current = setTimeout(doScroll, 3000)
     return () => {
@@ -66,7 +69,6 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
 
   return (
     <div className="space-y-4">
-      {/* Horizontal scroll — one card per day */}
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto scroll-hide pb-2"
@@ -96,7 +98,6 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                 scrollSnapAlign: 'start',
               }}
             >
-              {/* Day header */}
               <div className="flex items-center gap-2 px-1">
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
@@ -125,16 +126,14 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                   gerichtName={fruehstueck.gericht_name}
                   mahlzeit="frühstück"
                   gesund={gerichtMap[fruehstueck.gericht_id]?.gesund}
+                  hatRezept={!!gerichtMap[fruehstueck.gericht_id]?.rezept}
                   onTauschen={() => onTauschen(tag, 'frühstück')}
+                  onRezept={() => { const g = gerichtMap[fruehstueck.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
                 <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>
-                    Frühstück
-                  </p>
-                  <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>
-                    Toast mit Aufschnitt
-                  </p>
+                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Frühstück</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>Toast mit Aufschnitt</p>
                 </div>
               )}
 
@@ -144,7 +143,9 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                   gerichtName={mittag.gericht_name}
                   mahlzeit="mittag"
                   gesund={gerichtMap[mittag.gericht_id]?.gesund}
+                  hatRezept={!!gerichtMap[mittag.gericht_id]?.rezept}
                   onTauschen={() => onTauschen(tag, 'mittag')}
+                  onRezept={() => { const g = gerichtMap[mittag.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
                 <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
@@ -159,7 +160,9 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
                   gerichtName={abend.gericht_name}
                   mahlzeit="abend"
                   gesund={gerichtMap[abend.gericht_id]?.gesund}
+                  hatRezept={!!gerichtMap[abend.gericht_id]?.rezept}
                   onTauschen={() => onTauschen(tag, 'abend')}
+                  onRezept={() => { const g = gerichtMap[abend.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
                 <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
@@ -172,7 +175,6 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen }: Woc
         })}
       </div>
 
-      {/* Genehmigen */}
       {plan.status === 'entwurf' && (
         <div className="px-4">
           <button
