@@ -371,7 +371,7 @@ export default function GerichtePage() {
                     {gericht.name}
                   </h2>
                   <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--gray-secondary)' }}>
+                    style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}>
                     {gericht.kategorie}
                   </span>
                 </div>
@@ -404,18 +404,20 @@ export default function GerichtePage() {
                   >
                     {gericht.zutaten.length === 0
                       ? 'Keine Zutaten hinterlegt'
-                      : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
+                      : gericht.zutaten.some(z => z.name === 'Essen wird bestellt')
+                        ? 'Essen wird bestellt'
+                        : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
                   </p>
                 )}
               </div>
 
               {/* Action-Buttons (nur wenn nicht im Bearbeitungsmodus) */}
               {!isEditing && (
-                <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--surface)' }}>
                   <button
                     onClick={() => einzelnGenerieren(gericht)}
                     className="flex-1 text-xs font-medium py-2 rounded-xl active:opacity-70"
-                    style={{ background: 'rgba(0,0,0,0.06)', color: 'var(--near-black)' }}
+                    style={{ background: 'var(--surface)', color: 'var(--near-black)' }}
                   >
                     Neu generieren
                   </button>
@@ -431,7 +433,7 @@ export default function GerichtePage() {
 
               {/* Zutaten bearbeiten */}
               {isEditing && (
-                <div className="mt-3 space-y-2" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '12px' }}>
+                <div className="mt-3 space-y-2" style={{ borderTop: '1px solid var(--surface)', paddingTop: '12px' }}>
                   {bearbeiteZutaten.map((zutat, i) => (
                     <div key={i} className="flex gap-1.5 items-center">
                       <input
