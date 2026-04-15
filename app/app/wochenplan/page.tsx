@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
+import { RezeptSheet } from '@/components/RezeptSheet'
 import { apiFetch } from '@/lib/api-fetch'
 import type { Wochenplan, Gericht, DrinkVorschlag } from '@/types'
 
@@ -13,6 +14,7 @@ export default function WochenplanPage() {
   const [error, setError] = useState<string | null>(null)
   const [einkaufLoading, setEinkaufLoading] = useState(false)
   const [einkaufMeldung, setEinkaufMeldung] = useState<string | null>(null)
+  const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -151,7 +153,7 @@ export default function WochenplanPage() {
             gerichte={gerichte}
             onTauschen={tauschen}
             onGenehmigen={genehmigen}
-            onRezept={() => {}}
+            onRezept={setRezeptGericht}
           />
 
           {/* Drinks */}
@@ -249,6 +251,12 @@ export default function WochenplanPage() {
           </button>
         </div>
       </div>
+      {rezeptGericht?.rezept && (
+        <RezeptSheet
+          gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }}
+          onClose={() => setRezeptGericht(null)}
+        />
+      )}
     </main>
   )
 }
