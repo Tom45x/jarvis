@@ -29,6 +29,18 @@ async function ladeRegelbedarf(): Promise<Regelbedarf[]> {
   return (data ?? []) as Regelbedarf[]
 }
 
+async function mitRetry<T>(fn: () => Promise<T>, versuche = 3): Promise<T> {
+  for (let i = 0; i < versuche; i++) {
+    try {
+      return await fn()
+    } catch (e) {
+      if (i === versuche - 1) throw e
+      await new Promise(r => setTimeout(r, 800 * (i + 1)))
+    }
+  }
+  throw new Error('Unreachable')
+}
+
 async function verarbeitePicnicListe(
   picnicKandidaten: EinkaufsItem[],
   mindestbestellwert: number
@@ -134,8 +146,8 @@ export async function POST() {
     const listName2 = process.env.BRING_LIST_NAME_2 ?? 'Jarvis — Einkauf 2'
 
     await Promise.all([
-      aktualisiereEinkaufsliste(listName1, bring1Gesamt),
-      aktualisiereEinkaufsliste(listName2, bring2Gesamt),
+      mitRetry(() => aktualisiereEinkaufsliste(listName1, bring1Gesamt)),
+      mitRetry(() => aktualisiereEinkaufsliste(listName2, bring2Gesamt)),
     ])
 
     const picnicItems = [
@@ -155,8 +167,10 @@ export async function POST() {
       },
     })
   } catch (e) {
+    const msg = e instanceof Error ? e.message : ''
+    const istTimeout = msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('blocking read')
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Unbekannter Fehler' },
+      { error: istTimeout ? 'Verbindung fehlgeschlagen — bitte erneut versuchen' : (msg || 'Unbekannter Fehler') },
       { status: 500 }
     )
   }
