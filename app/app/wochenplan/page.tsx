@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
+import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
 import type { Wochenplan, Gericht } from '@/types'
 
@@ -13,6 +14,8 @@ export default function WochenplanPage() {
   const [error, setError] = useState<string | null>(null)
   const [einkaufLoading, setEinkaufLoading] = useState(false)
   const [einkaufMeldung, setEinkaufMeldung] = useState<string | null>(null)
+  const [einkaufslisteDaten, setEinkaufslisteDaten] = useState<EinkaufslistenDaten | null>(null)
+  const [einkaufslisteOffen, setEinkaufslisteOffen] = useState(false)
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
 
   useEffect(() => {
@@ -31,6 +34,7 @@ export default function WochenplanPage() {
   async function generieren() {
     setLoading(true)
     setError(null)
+    setEinkaufslisteDaten(null) // Neuer Plan → Liste zurücksetzen
     try {
       const res = await apiFetch('/api/wochenplan/generate', { method: 'POST' })
       if (!res.ok) throw new Error('Fehler beim Generieren')
@@ -83,6 +87,7 @@ export default function WochenplanPage() {
       body: JSON.stringify({ eintraege, status: plan.status })
     })
     setPlan(await res.json())
+    setEinkaufslisteDaten(null) // Plan geändert → Liste zurücksetzen
 
     if (aktuell?.gericht_id) {
       try {
@@ -111,6 +116,7 @@ export default function WochenplanPage() {
       const res = await apiFetch('/api/einkaufsliste/senden', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
+      if (data.listen) setEinkaufslisteDaten(data.listen)
       const picnicArtikel = data.picnic1Count ?? 0
       const picnicInfo = picnicArtikel > 0 ? ` · Picnic: ${picnicArtikel}` : ''
       setEinkaufMeldung(
@@ -182,22 +188,35 @@ export default function WochenplanPage() {
         <div className="flex gap-3">
           {/* Einkaufsliste — primäre Aktion, größer */}
           {plan && (
-            <button
-              onClick={einkaufslisteSenden}
-              disabled={einkaufLoading}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity"
-              style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
-            >
-              {einkaufLoading ? 'Sende...' : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                  </svg>
-                  Einkaufslisten senden
-                </>
-              )}
-            </button>
+            einkaufslisteDaten ? (
+              <button
+                onClick={() => setEinkaufslisteOffen(true)}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
+                style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                </svg>
+                Einkaufsliste ansehen
+              </button>
+            ) : (
+              <button
+                onClick={einkaufslisteSenden}
+                disabled={einkaufLoading}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity"
+                style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
+              >
+                {einkaufLoading ? 'Sende...' : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                    Einkaufslisten senden
+                  </>
+                )}
+              </button>
+            )
           )}
           {/* Neuer Plan — sekundär */}
           <button
@@ -229,6 +248,12 @@ export default function WochenplanPage() {
         <RezeptSheet
           gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }}
           onClose={() => setRezeptGericht(null)}
+        />
+      )}
+      {einkaufslisteOffen && einkaufslisteDaten && (
+        <EinkaufslisteSheet
+          daten={einkaufslisteDaten}
+          onClose={() => setEinkaufslisteOffen(false)}
         />
       )}
     </main>

@@ -69,7 +69,7 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
 
   const starteRueckScrollTimer = () => {
     if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
-    autoScrollTimer.current = setTimeout(scrollZuHeute, 5000)
+    autoScrollTimer.current = setTimeout(scrollZuHeute, 10000)
   }
 
   // Beim ersten Rendern und bei Plan-Änderungen sofort zu heute scrollen

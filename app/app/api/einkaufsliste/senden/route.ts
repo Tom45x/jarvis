@@ -138,11 +138,21 @@ export async function POST() {
       aktualisiereEinkaufsliste(listName2, bring2Gesamt),
     ])
 
+    const picnicItems = [
+      ...picnic1Ergebnis.zuPicnic.map(p => p.item),
+      ...regelbedarfPicnicItems.map(p => p.item),
+    ]
+
     return NextResponse.json({
       einkauf1Count: bring1Gesamt.length,
       einkauf2Count: bring2Gesamt.length,
-      picnic1Count: picnic1Ergebnis.zuPicnic.length + regelbedarfPicnicItems.length,
+      picnic1Count: picnicItems.length,
       picnic1Fallback: picnic1Ergebnis.zuPicnic.length === 0 && routing1.picnic.length > 0,
+      listen: {
+        picnic: picnicItems,
+        bring1: bring1Gesamt,
+        bring2: bring2Gesamt,
+      },
     })
   } catch (e) {
     return NextResponse.json(
