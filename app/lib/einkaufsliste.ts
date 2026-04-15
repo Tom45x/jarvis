@@ -77,6 +77,9 @@ export function generiereEinkaufslisten(
     const gericht = gerichtMap.get(eintrag.gericht_name)
     if (!gericht || gericht.zutaten.length === 0) continue
 
+    // Gerichte die bestellt werden (kein Einkauf nötig) überspringen
+    if (gericht.zutaten.some(z => z.name === 'Essen wird bestellt')) continue
+
     const tagIndex = tagZuWochenindex(eintrag.tag)
     if (tagIndex === 0) continue // unbekannter Tag-String — überspringen
     const hatReste = gerichteNamenMitResten.has(eintrag.gericht_name)

@@ -34,15 +34,27 @@ export default function WochenplanPage() {
     }
   }
 
+  const SONDERKATEGORIEN: Record<string, string> = {
+    'montag-abend': 'trainingstage',
+    'dienstag-abend': 'trainingstage',
+    'donnerstag-abend': 'trainingstage',
+    'freitag-abend': 'filmabend',
+  }
+
   async function tauschen(tag: string, mahlzeit: string) {
     if (!plan) return
     const aktuell = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
+
+    const sonderKategorie = mahlzeit === 'frühstück'
+      ? 'frühstück'
+      : SONDERKATEGORIEN[`${tag}-${mahlzeit}`] ?? null
+
     const andere = gerichte.filter(g =>
       g.id !== aktuell?.gericht_id &&
       !g.gesperrt &&
-      (mahlzeit === 'frühstück'
-        ? g.kategorie === 'frühstück'
-        : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage')
+      (sonderKategorie
+        ? g.kategorie === sonderKategorie
+        : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage' && g.kategorie !== 'filmabend')
     )
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return

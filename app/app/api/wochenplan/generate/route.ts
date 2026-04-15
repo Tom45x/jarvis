@@ -30,6 +30,7 @@ export async function POST() {
   const toast = alleGerichte.find(g => g.name === 'Toast mit Aufschnitt')
   const trainingsGerichte = alleGerichte.filter(g => g.kategorie === 'trainingstage')
   const fruehstueckGerichte = alleGerichte.filter(g => g.kategorie === 'frühstück' && g.name !== 'Toast mit Aufschnitt')
+  const filmabendGerichte = alleGerichte.filter(g => g.kategorie === 'filmabend')
 
   const ergebnis = await generiereWochenplan(profile as FamilieMitglied[], alleGerichte)
   const claudeEintraege = erstelleWochenplanEintraege(ergebnis.mahlzeiten, alleGerichte)
@@ -64,11 +65,23 @@ export async function POST() {
       }))
     : []
 
+  // Freitagabend: Filmabend-Gericht (zufällig)
+  const filmabendGericht = filmabendGerichte.length > 0 ? zufaellig(filmabendGerichte) : null
+  const filmabendEintrag: WochenplanEintrag[] = filmabendGericht
+    ? [{
+        tag: 'freitag',
+        mahlzeit: 'abend' as const,
+        gericht_id: filmabendGericht.id,
+        gericht_name: filmabendGericht.name,
+      }]
+    : []
+
   // Alle zusammenführen — programmatische Einträge haben Vorrang
   const alleEintraege = [
     ...fruehstueckMoFr,
     ...trainingsEintraege,
     ...wochenendFruehstueck,
+    ...filmabendEintrag,
     ...claudeEintraege,
   ]
 

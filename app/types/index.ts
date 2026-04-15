@@ -11,6 +11,7 @@ export type Kategorie =
   | 'kinder'
   | 'trainingstage'
   | 'frühstück'
+  | 'filmabend'
 
 export interface Zutat {
   name: string
