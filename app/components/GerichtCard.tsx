@@ -20,12 +20,14 @@ interface GerichtCardProps {
 export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTauschen, onRezept }: GerichtCardProps) {
   const { label } = MAHLZEIT_CONFIG[mahlzeit]
 
+  const hatAktion = !!(hatRezept && onRezept)
+
   return (
     <div
-      className="rounded-2xl p-4"
+      className="rounded-2xl p-4 flex flex-col"
       style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
     >
-      <div className="flex justify-between items-start gap-3">
+      <div className="flex justify-between items-start gap-3 flex-1">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>
             {label}
@@ -33,11 +35,6 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTausch
           <p className="font-semibold text-sm leading-snug truncate" style={{ color: 'var(--near-black)' }}>
             {gerichtName}
           </p>
-          {gesund && (
-            <span className="text-xs mt-1 inline-block" style={{ color: '#3d9970' }}>
-              ✓ gesund
-            </span>
-          )}
         </div>
         {onTauschen && (
           <button
@@ -56,19 +53,24 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTausch
         )}
       </div>
 
-      {/* Rezept-Link — nur wenn Rezept vorhanden */}
-      {hatRezept && onRezept && (
+      {/* Fixer Footer — immer gerendert für einheitliche Kartenhöhe */}
+      <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--surface)' }}>
         <button
-          onClick={onRezept}
-          className="mt-2 pt-2 w-full text-left text-xs font-medium active:opacity-70 transition-opacity"
+          onClick={hatAktion ? onRezept : undefined}
+          className="w-full text-left text-xs font-medium transition-opacity"
           style={{
-            borderTop: '1px solid var(--surface)',
-            color: 'var(--rausch)',
+            color: hatAktion ? 'var(--rausch)' : 'transparent',
+            pointerEvents: hatAktion ? 'auto' : 'none',
           }}
+          tabIndex={hatAktion ? 0 : -1}
+          aria-hidden={!hatAktion}
         >
           Rezept ansehen →
         </button>
-      )}
+        <p className="text-xs mt-1" style={{ color: gesund ? '#3d9970' : 'transparent' }}>
+          ✓ gesund
+        </p>
+      </div>
     </div>
   )
 }

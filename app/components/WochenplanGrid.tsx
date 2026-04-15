@@ -15,6 +15,21 @@ const TAG_SHORT: Record<string, string> = {
 }
 const WOCHENENDE = new Set(['samstag', 'sonntag'])
 
+function StaticCard({ label, name }: { label: string; name: string }) {
+  return (
+    <div className="rounded-2xl p-4 flex flex-col" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
+      <div className="flex-1">
+        <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>{label}</p>
+        <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{name}</p>
+      </div>
+      <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--surface)' }}>
+        <p className="text-xs font-medium" style={{ color: 'transparent' }}>Rezept ansehen →</p>
+        <p className="text-xs mt-1" style={{ color: 'transparent' }}>✓ gesund</p>
+      </div>
+    </div>
+  )
+}
+
 function heutigerTag(): string {
   const tage = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag']
   return tage[new Date().getDay()]
@@ -122,7 +137,7 @@ export function WochenplanGrid({ plan, gerichte, drinks = [], onTauschen, onGene
               </div>
 
               {/* Frühstück */}
-              {istWochenende && fruehstueck ? (
+              {fruehstueck ? (
                 <GerichtCard
                   gerichtName={fruehstueck.gericht_name}
                   mahlzeit="frühstück"
@@ -132,10 +147,7 @@ export function WochenplanGrid({ plan, gerichte, drinks = [], onTauschen, onGene
                   onRezept={() => { const g = gerichtMap[fruehstueck.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
-                <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Frühstück</p>
-                  <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>Toast mit Aufschnitt</p>
-                </div>
+                <StaticCard label="Frühstück" name="Toast mit Aufschnitt" />
               )}
 
               {/* Mittag */}
@@ -149,10 +161,7 @@ export function WochenplanGrid({ plan, gerichte, drinks = [], onTauschen, onGene
                   onRezept={() => { const g = gerichtMap[mittag.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
-                <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Mittag</p>
-                  <p className="text-sm" style={{ color: 'var(--gray-disabled)' }}>—</p>
-                </div>
+                <StaticCard label="Mittag" name="—" />
               )}
 
               {/* Abend */}
@@ -166,10 +175,7 @@ export function WochenplanGrid({ plan, gerichte, drinks = [], onTauschen, onGene
                   onRezept={() => { const g = gerichtMap[abend.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
-                <div className="rounded-2xl p-4" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
-                  <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>Abend</p>
-                  <p className="text-sm" style={{ color: 'var(--gray-disabled)' }}>—</p>
-                </div>
+                <StaticCard label="Abend" name="—" />
               )}
             </div>
           )
