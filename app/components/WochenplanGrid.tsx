@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
-import type { Wochenplan, Gericht } from '@/types'
+import { GerichtPickerSheet } from '@/components/GerichtPickerSheet'
+import type { Wochenplan, Gericht, Mahlzeit } from '@/types'
 
 const TAGE = ['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonntag'] as const
 const TAG_LABEL: Record<string, string> = {
@@ -17,12 +18,12 @@ const WOCHENENDE = new Set(['samstag', 'sonntag'])
 
 function StaticCard({ label, name }: { label: string; name: string }) {
   return (
-    <div className="rounded-2xl p-4 flex flex-col" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
+    <div className="rounded-2xl px-3 pt-3 pb-2.5 flex flex-col" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
       <div className="flex-1">
-        <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>{label}</p>
+        <p className="text-xs font-medium mb-1" style={{ color: 'var(--gray-secondary)' }}>{label}</p>
         <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{name}</p>
       </div>
-      <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--surface)' }}>
+      <div className="mt-1.5 flex items-center justify-between">
         <p className="text-xs font-medium" style={{ color: 'transparent' }}>Rezept ansehen →</p>
         <p className="text-xs" style={{ color: 'transparent' }}>✓ gesund</p>
       </div>
@@ -39,15 +40,18 @@ function heutigesDatum(): string {
   return new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
 }
 
+interface AktionSlot { tag: string; mahlzeit: Mahlzeit; gerichtId?: string }
+
 interface WochenplanGridProps {
   plan: Wochenplan
   gerichte: Gericht[]
   onTauschen: (tag: string, mahlzeit: string) => void
+  onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
   onGenehmigen: () => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ plan, gerichte, onTauschen, onWaehlen, onGenehmigen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
@@ -57,19 +61,15 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
   const heuteRef = useRef<HTMLDivElement>(null)
   const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const [aktiverSlot, setAktiverSlot] = useState<AktionSlot | null>(null)
+  const [picker, setPicker] = useState<AktionSlot | null>(null)
+
   const scrollZuHeute = () => {
     if (!heuteRef.current || !scrollRef.current) return
-    const container = scrollRef.current
-    const card = heuteRef.current
-    container.scrollTo({
-      left: card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2,
+    scrollRef.current.scrollTo({
+      left: heuteRef.current.offsetLeft,
       behavior: 'smooth',
     })
-  }
-
-  const starteRueckScrollTimer = () => {
-    if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
-    autoScrollTimer.current = setTimeout(scrollZuHeute, 10000)
   }
 
   // Beim ersten Rendern zu heute scrollen
@@ -78,10 +78,14 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Nach manuellem Scrollen: 5 Sekunden Inaktivität → zurück zu heute
+  // Nach manuellem Scrollen: 10 Sekunden Inaktivität → zurück zu heute
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
+    const starteRueckScrollTimer = () => {
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+      autoScrollTimer.current = setTimeout(scrollZuHeute, 10000)
+    }
     container.addEventListener('scroll', starteRueckScrollTimer, { passive: true })
     return () => {
       container.removeEventListener('scroll', starteRueckScrollTimer)
@@ -90,14 +94,18 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  function toggleSlot(tag: string, mahlzeit: Mahlzeit, gerichtId?: string) {
+    setAktiverSlot(prev =>
+      prev?.tag === tag && prev?.mahlzeit === mahlzeit ? null : { tag, mahlzeit, gerichtId }
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scroll-hide pb-2"
+        className="flex overflow-x-auto scroll-hide pb-2"
         style={{
-          paddingLeft: '16px',
-          paddingRight: '16px',
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
           willChange: 'scroll-position',
@@ -107,17 +115,15 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
           const fruehstueck = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === 'frühstück')
           const mittag = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === 'mittag')
           const abend = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === 'abend')
-          const istWochenende = WOCHENENDE.has(tag)
           const istHeute = tag === heute
 
           return (
             <div
               key={tag}
               ref={istHeute ? heuteRef : null}
-              className="shrink-0 flex flex-col gap-2"
+              className="shrink-0 flex flex-col gap-2 px-4"
               style={{
-                width: 'calc(85vw - 32px)',
-                maxWidth: '320px',
+                width: '100vw',
                 scrollSnapAlign: 'start',
               }}
             >
@@ -150,7 +156,10 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
                   mahlzeit="frühstück"
                   gesund={gerichtMap[fruehstueck.gericht_id]?.gesund}
                   hatRezept={!!gerichtMap[fruehstueck.gericht_id]?.rezept}
-                  onTauschen={() => onTauschen(tag, 'frühstück')}
+                  tauschOffen={aktiverSlot?.tag === tag && aktiverSlot?.mahlzeit === 'frühstück'}
+                  onTauschen={() => toggleSlot(tag, 'frühstück', fruehstueck.gericht_id)}
+                  onTauschenZufaellig={() => { onTauschen(tag, 'frühstück'); setAktiverSlot(null) }}
+                  onTauschenWaehlen={() => { setPicker({ tag, mahlzeit: 'frühstück', gerichtId: fruehstueck.gericht_id }); setAktiverSlot(null) }}
                   onRezept={() => { const g = gerichtMap[fruehstueck.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
@@ -164,7 +173,10 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
                   mahlzeit="mittag"
                   gesund={gerichtMap[mittag.gericht_id]?.gesund}
                   hatRezept={!!gerichtMap[mittag.gericht_id]?.rezept}
-                  onTauschen={() => onTauschen(tag, 'mittag')}
+                  tauschOffen={aktiverSlot?.tag === tag && aktiverSlot?.mahlzeit === 'mittag'}
+                  onTauschen={() => toggleSlot(tag, 'mittag', mittag.gericht_id)}
+                  onTauschenZufaellig={() => { onTauschen(tag, 'mittag'); setAktiverSlot(null) }}
+                  onTauschenWaehlen={() => { setPicker({ tag, mahlzeit: 'mittag', gerichtId: mittag.gericht_id }); setAktiverSlot(null) }}
                   onRezept={() => { const g = gerichtMap[mittag.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
@@ -178,7 +190,10 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
                   mahlzeit="abend"
                   gesund={gerichtMap[abend.gericht_id]?.gesund}
                   hatRezept={!!gerichtMap[abend.gericht_id]?.rezept}
-                  onTauschen={() => onTauschen(tag, 'abend')}
+                  tauschOffen={aktiverSlot?.tag === tag && aktiverSlot?.mahlzeit === 'abend'}
+                  onTauschen={() => toggleSlot(tag, 'abend', abend.gericht_id)}
+                  onTauschenZufaellig={() => { onTauschen(tag, 'abend'); setAktiverSlot(null) }}
+                  onTauschenWaehlen={() => { setPicker({ tag, mahlzeit: 'abend', gerichtId: abend.gericht_id }); setAktiverSlot(null) }}
                   onRezept={() => { const g = gerichtMap[abend.gericht_id]; if (g) onRezept(g) }}
                 />
               ) : (
@@ -201,6 +216,17 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
         </div>
       )}
 
+      {/* Gericht-Picker */}
+      {picker && (
+        <GerichtPickerSheet
+          gerichte={gerichte}
+          tag={picker.tag}
+          mahlzeit={picker.mahlzeit as Mahlzeit}
+          aktuelleGerichtId={picker.gerichtId}
+          onWaehlen={(g) => onWaehlen(picker.tag, picker.mahlzeit, g)}
+          onClose={() => setPicker(null)}
+        />
+      )}
     </div>
   )
 }

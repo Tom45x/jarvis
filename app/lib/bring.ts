@@ -19,10 +19,14 @@ interface BringInstance {
   removeItem(listUuid: string, itemName: string): Promise<void>
 }
 
+const SESSION_TTL_MS = 60 * 60 * 1000 // 1 Stunde
+
 let client: BringInstance | null = null
+let clientCreatedAt: number | null = null
 
 async function getClient(): Promise<BringInstance> {
-  if (client) return client
+  const now = Date.now()
+  if (client && clientCreatedAt && now - clientCreatedAt < SESSION_TTL_MS) return client
   const email = process.env.BRING_EMAIL
   const password = process.env.BRING_PASSWORD
   if (!email || !password) {
@@ -31,6 +35,7 @@ async function getClient(): Promise<BringInstance> {
   const bring: BringInstance = new BringLib({ mail: email, password })
   await bring.login()
   client = bring
+  clientCreatedAt = now
   return client
 }
 

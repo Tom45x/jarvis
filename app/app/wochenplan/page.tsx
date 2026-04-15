@@ -37,8 +37,8 @@ export default function WochenplanPage() {
     setEinkaufslisteDaten(null) // Neuer Plan → Liste zurücksetzen
     try {
       const res = await apiFetch('/api/wochenplan/generate', { method: 'POST' })
-      if (!res.ok) throw new Error('Fehler beim Generieren')
-      const data: Wochenplan = await res.json()
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error ?? 'Fehler beim Generieren')
       setPlan(data)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
@@ -88,6 +88,7 @@ export default function WochenplanPage() {
     })
     setPlan(await res.json())
     setEinkaufslisteDaten(null) // Plan geändert → Liste zurücksetzen
+    setEinkaufMeldung(null)
 
     if (aktuell?.gericht_id) {
       try {
@@ -97,6 +98,26 @@ export default function WochenplanPage() {
         console.warn('Tausch-Counter konnte nicht aktualisiert werden:', aktuell.gericht_id)
       }
     }
+  }
+
+  async function waehlen(tag: string, mahlzeit: string, gericht: Gericht) {
+    if (!plan) return
+    const slotExistiert = plan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
+    const eintraege = slotExistiert
+      ? plan.eintraege.map(e =>
+          e.tag === tag && e.mahlzeit === mahlzeit
+            ? { ...e, gericht_id: gericht.id, gericht_name: gericht.name }
+            : e
+        )
+      : [...plan.eintraege, { tag, mahlzeit, gericht_id: gericht.id, gericht_name: gericht.name }]
+    const res = await apiFetch('/api/wochenplan', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eintraege, status: plan.status })
+    })
+    setPlan(await res.json())
+    setEinkaufslisteDaten(null)
+    setEinkaufMeldung(null)
   }
 
   async function genehmigen() {
@@ -118,7 +139,7 @@ export default function WochenplanPage() {
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
       if (data.listen) setEinkaufslisteDaten(data.listen)
       const picnicArtikel = data.picnic1Count ?? 0
-      const picnicInfo = picnicArtikel > 0 ? ` · Picnic: ${picnicArtikel}` : ''
+      const picnicInfo = picnicArtikel > 0 ? ` · Picnic: ${picnicArtikel} Artikel` : ''
       setEinkaufMeldung(
         `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}`
       )
@@ -155,6 +176,7 @@ export default function WochenplanPage() {
             plan={plan}
             gerichte={gerichte}
             onTauschen={tauschen}
+            onWaehlen={waehlen}
             onGenehmigen={genehmigen}
             onRezept={setRezeptGericht}
           />
@@ -180,24 +202,24 @@ export default function WochenplanPage() {
           background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))',
         }}
       >
-        {einkaufMeldung && (
-          <p className="text-xs text-center mb-2" style={{ color: 'var(--gray-secondary)' }}>
-            {einkaufMeldung}
-          </p>
-        )}
         <div className="flex gap-3">
           {/* Einkaufsliste — primäre Aktion, größer */}
           {plan && (
             einkaufslisteDaten ? (
               <button
                 onClick={() => setEinkaufslisteOffen(true)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
                 style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-                </svg>
-                Einkaufsliste ansehen
+                <div className="flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                  </svg>
+                  Einkaufsliste ansehen
+                </div>
+                {einkaufMeldung && (
+                  <span className="text-xs font-normal opacity-70">{einkaufMeldung.replace(/^✅\s*/, '')}</span>
+                )}
               </button>
             ) : (
               <button

@@ -221,7 +221,7 @@ export default function GerichtePage() {
     : aktiveGerichte.filter(g => g.kategorie === filterKategorie)
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white pb-28">
       {/* Header */}
       <div className="px-4 pt-12 pb-4">
         <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>

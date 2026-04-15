@@ -53,14 +53,12 @@ export async function POST() {
       }))
     : []
 
-  // Mo/Di/Do Abend: Trainingstage-Gerichte (keine Wiederholung)
+  // Mo/Di/Do Abend: Trainingstage-Gerichte (mit Wiederholung wenn nicht genug vorhanden)
   const trainingsEintraege: WochenplanEintrag[] = trainingsGerichte.length > 0
-    ? zufaelligOhneWiederholung(trainingsGerichte, TRAININGSTAGE.length).map((g, i) => ({
-        tag: TRAININGSTAGE[i],
-        mahlzeit: 'abend' as const,
-        gericht_id: g.id,
-        gericht_name: g.name,
-      }))
+    ? TRAININGSTAGE.map((tag, i) => {
+        const g = trainingsGerichte[i % trainingsGerichte.length]
+        return { tag, mahlzeit: 'abend' as const, gericht_id: g.id, gericht_name: g.name }
+      })
     : []
 
   // Sa + So Frühstück: aus Frühstücks-Kategorie (keine Wiederholung)
@@ -95,6 +93,10 @@ export async function POST() {
 
   const plan = await speichereWochenplan(alleEintraege, 'entwurf')
   return NextResponse.json(plan)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('[generate] Fehler:', msg)
+    return NextResponse.json({ error: msg || 'Unbekannter Fehler' }, { status: 500 })
   } finally {
     isGenerating = false
   }

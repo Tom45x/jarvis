@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 
 export async function GET() {
   const { data, error } = await supabase
@@ -10,6 +10,11 @@ export async function GET() {
   return NextResponse.json(data)
 }
 
+const GUELTIGE_KATEGORIEN = [
+  'fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat',
+  'sonstiges', 'kinder', 'trainingstage', 'frühstück', 'filmabend',
+] as const
+
 export async function POST(request: NextRequest) {
   const body = await request.json() as {
     name: string
@@ -17,6 +22,16 @@ export async function POST(request: NextRequest) {
     aufwand: string
     gesund?: boolean
     quelle?: string
+  }
+
+  if (!body.name?.trim()) {
+    return NextResponse.json({ error: 'Name ist erforderlich' }, { status: 400 })
+  }
+  if (!GUELTIGE_KATEGORIEN.includes(body.kategorie as typeof GUELTIGE_KATEGORIEN[number])) {
+    return NextResponse.json({ error: 'Ungültige Kategorie' }, { status: 400 })
+  }
+  if (!body.aufwand?.trim()) {
+    return NextResponse.json({ error: 'Aufwand ist erforderlich' }, { status: 400 })
   }
 
   const { data, error } = await supabase

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { EinkaufsItem } from '@/types'
+import { aggregiere } from '@/lib/einkaufsliste'
 
 export interface EinkaufslistenDaten {
   picnic: EinkaufsItem[]
@@ -41,9 +42,14 @@ function ItemListe({ items }: { items: EinkaufsItem[] }) {
   return (
     <ul className="space-y-1">
       {items.map((item, i) => (
-        <li key={i} className="text-sm flex gap-1.5" style={{ color: 'var(--near-black)' }}>
+        <li key={i} className="text-sm flex items-baseline gap-2" style={{ color: 'var(--near-black)' }}>
           <span style={{ color: 'var(--rausch)', flexShrink: 0 }}>·</span>
-          {item.menge > 0 ? `${item.menge} ${item.einheit} ` : ''}{item.name}
+          <span className="flex-1">{item.name}</span>
+          {item.menge > 0 && (
+            <span className="text-xs shrink-0" style={{ color: 'var(--gray-secondary)' }}>
+              {item.menge} {item.einheit}
+            </span>
+          )}
         </li>
       ))}
     </ul>
@@ -51,6 +57,9 @@ function ItemListe({ items }: { items: EinkaufsItem[] }) {
 }
 
 export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) {
+  const picnic = aggregiere(daten.picnic)
+  const bring1 = aggregiere(daten.bring1)
+  const bring2 = aggregiere(daten.bring2)
   const [visible, setVisible] = useState(false)
   const touchStartY = useRef<number | null>(null)
 
@@ -108,41 +117,41 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
           </h2>
 
           {/* Picnic */}
-          {daten.picnic.length > 0 && (
+          {picnic.length > 0 && (
             <div className="mb-5">
               <div className="flex items-center gap-2 mb-2.5">
                 <PicnicLogo />
                 <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  {daten.picnic.length} Artikel
+                  {picnic.length} Artikel
                 </span>
               </div>
-              <ItemListe items={daten.picnic} />
+              <ItemListe items={picnic} />
             </div>
           )}
 
           {/* Bring — Einkauf 1 */}
-          {daten.bring1.length > 0 && (
-            <div className="mb-5" style={{ borderTop: daten.picnic.length > 0 ? '1px solid var(--border)' : undefined, paddingTop: daten.picnic.length > 0 ? '16px' : undefined }}>
+          {bring1.length > 0 && (
+            <div className="mb-5" style={{ borderTop: picnic.length > 0 ? '1px solid var(--border)' : undefined, paddingTop: picnic.length > 0 ? '16px' : undefined }}>
               <div className="flex items-center gap-2 mb-2.5">
                 <BringLogo />
                 <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  Einkauf 1 — {daten.bring1.length} Artikel
+                  Einkauf 1 — {bring1.length} Artikel
                 </span>
               </div>
-              <ItemListe items={daten.bring1} />
+              <ItemListe items={bring1} />
             </div>
           )}
 
           {/* Bring — Einkauf 2 */}
-          {daten.bring2.length > 0 && (
+          {bring2.length > 0 && (
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
               <div className="flex items-center gap-2 mb-2.5">
                 <BringLogo />
                 <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  Einkauf 2 — {daten.bring2.length} Artikel
+                  Einkauf 2 — {bring2.length} Artikel
                 </span>
               </div>
-              <ItemListe items={daten.bring2} />
+              <ItemListe items={bring2} />
             </div>
           )}
         </div>

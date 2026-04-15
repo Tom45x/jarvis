@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { Gericht, Zutat } from '@/types'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 export async function POST(request: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'KI nicht konfiguriert' }, { status: 503 })
+  }
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const body = await request.json().catch(() => ({}))
   const { gerichtId } = body as { gerichtId?: string }
 
@@ -55,7 +57,13 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-  const parsed = JSON.parse(text) as { gerichte: Array<{ name: string; zutaten: Zutat[] }> }
+
+  let parsed: { gerichte: Array<{ name: string; zutaten: Zutat[] }> }
+  try {
+    parsed = JSON.parse(text) as { gerichte: Array<{ name: string; zutaten: Zutat[] }> }
+  } catch {
+    return NextResponse.json({ error: `Ungültige JSON-Antwort von Claude: ${text.slice(0, 200)}` }, { status: 502 })
+  }
 
   const updates = parsed.gerichte.map(async (g) => {
     const gericht = (gerichte as Pick<Gericht, 'id' | 'name'>[]).find(dbG => dbG.name === g.name)

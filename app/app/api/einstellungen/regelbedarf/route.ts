@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 
 export async function GET() {
   const { data, error } = await supabase
@@ -13,6 +13,16 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json() as { name: string; menge: number; einheit: string }
+
+  if (!body.name?.trim()) {
+    return NextResponse.json({ error: 'Name ist erforderlich' }, { status: 400 })
+  }
+  if (typeof body.menge !== 'number' || isNaN(body.menge) || body.menge <= 0) {
+    return NextResponse.json({ error: 'Menge muss eine positive Zahl sein' }, { status: 400 })
+  }
+  if (!body.einheit?.trim()) {
+    return NextResponse.json({ error: 'Einheit ist erforderlich' }, { status: 400 })
+  }
 
   const { data, error } = await supabase
     .from('regelbedarf')

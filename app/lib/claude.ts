@@ -5,10 +5,41 @@ export interface WochenplanGenerierungErgebnis {
   mahlzeiten: Omit<WochenplanEintrag, 'gericht_id'>[]
 }
 
+function mockWochenplan(gerichte: Gericht[]): WochenplanGenerierungErgebnis {
+  const normale = gerichte.filter(
+    g => g.kategorie !== 'trainingstage' && g.kategorie !== 'frühstück' && g.kategorie !== 'filmabend' && !g.gesperrt
+  )
+  const shuffle = (arr: Gericht[]) => [...arr].sort(() => Math.random() - 0.5)
+  const pool = shuffle(normale)
+  const slots: Omit<WochenplanEintrag, 'gericht_id'>[] = [
+    { tag: 'montag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'dienstag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'mittwoch', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'mittwoch', mahlzeit: 'abend', gericht_name: '' },
+    { tag: 'donnerstag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'freitag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'samstag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'samstag', mahlzeit: 'abend', gericht_name: '' },
+    { tag: 'sonntag', mahlzeit: 'mittag', gericht_name: '' },
+    { tag: 'sonntag', mahlzeit: 'abend', gericht_name: '' },
+  ]
+  return {
+    mahlzeiten: slots.map((slot, i) => ({
+      ...slot,
+      gericht_name: pool[i % pool.length]?.name ?? 'Unbekannt',
+    })),
+  }
+}
+
 export async function generiereWochenplan(
   profile: FamilieMitglied[],
   gerichte: Gericht[]
 ): Promise<WochenplanGenerierungErgebnis> {
+  if (process.env.CLAUDE_DEV_MODE === 'true') {
+    console.log('[claude] DEV_MODE aktiv — Mock-Wochenplan wird verwendet')
+    return mockWochenplan(gerichte)
+  }
+
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
   const profilText = profile.map(p =>

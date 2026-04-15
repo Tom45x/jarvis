@@ -5,7 +5,12 @@ import { BottomNav } from '@/components/BottomNav'
 export const metadata: Metadata = {
   title: 'Jarvis',
   description: 'Familien-Wochenplaner',
-  manifest: undefined,
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Jarvis',
+  },
 }
 
 export const viewport: Viewport = {
@@ -14,6 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
+  themeColor: '#FF385C',
 }
 
 export default function RootLayout({

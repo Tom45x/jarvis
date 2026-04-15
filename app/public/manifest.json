@@ -1,0 +1,23 @@
+{
+  "name": "Jarvis",
+  "short_name": "Jarvis",
+  "description": "Familien-Wochenplaner",
+  "start_url": "/wochenplan",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF385C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

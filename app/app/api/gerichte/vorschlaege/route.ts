@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { FamilieMitglied } from '@/types'
 
@@ -32,7 +32,15 @@ export async function POST(request: NextRequest) {
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const prompt = `Du bist Jarvis, Chefkoch und Haushaltsassistent für eine deutsche Familie mit 2 Kindern (Ben 11, Marie 8).
+  const kinderProfil = profileTyped
+    .filter(p => p.alter && p.alter < 18)
+    .map(p => `${p.name} ${p.alter}`)
+    .join(', ')
+  const familienBeschreibung = kinderProfil
+    ? `mit Kindern (${kinderProfil})`
+    : ''
+
+  const prompt = `Du bist Jarvis, Chefkoch und Haushaltsassistent für eine deutsche Familie ${familienBeschreibung}.
 
 Schlage 3 neue Gerichte vor und liefere für jedes ein vollständiges Rezept.
 
@@ -74,7 +82,13 @@ Antworte NUR mit diesem JSON-Array, kein weiterer Text:
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '[]'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-  const vorschlaege = JSON.parse(text) as GerichtVorschlag[]
+
+  let vorschlaege: GerichtVorschlag[]
+  try {
+    vorschlaege = JSON.parse(text) as GerichtVorschlag[]
+  } catch {
+    return NextResponse.json({ error: `Ungültige JSON-Antwort von Claude: ${text.slice(0, 200)}` }, { status: 502 })
+  }
 
   return NextResponse.json(vorschlaege)
 }

@@ -30,21 +30,29 @@ interface PicnicInstance {
   }
 }
 
+const SESSION_TTL_MS = 60 * 60 * 1000 // 1 Stunde
+
 let client: PicnicInstance | null = null
+let clientCreatedAt: number | null = null
 
 async function getClient(): Promise<PicnicInstance> {
-  if (client) return client
+  const now = Date.now()
 
   const authKey = process.env.PICNIC_AUTH_KEY
   const email = process.env.PICNIC_EMAIL
   const password = process.env.PICNIC_PASSWORD
 
   if (authKey) {
-    // Auth-Key aus .env.local verwenden (kein Login nötig, 2FA bereits abgeschlossen)
+    // Auth-Key ist statisch — kein TTL notwendig, aber trotzdem cachen
+    if (client && clientCreatedAt) return client
     const instance: PicnicInstance = new PicnicClient({ countryCode: 'DE', authKey })
     client = instance
+    clientCreatedAt = now
     return client
   }
+
+  // Session-basierter Login — nach TTL neu authentifizieren
+  if (client && clientCreatedAt && now - clientCreatedAt < SESSION_TTL_MS) return client
 
   if (!email || !password) {
     throw new Error('PICNIC_AUTH_KEY oder PICNIC_EMAIL + PICNIC_PASSWORD müssen in .env.local gesetzt sein. Für 2FA-Konten: node scripts/picnic-auth.mjs ausführen.')
@@ -53,6 +61,7 @@ async function getClient(): Promise<PicnicInstance> {
   const instance: PicnicInstance = new PicnicClient({ countryCode: 'DE' })
   await instance.auth.login(email, password)
   client = instance
+  clientCreatedAt = now
   return client
 }
 

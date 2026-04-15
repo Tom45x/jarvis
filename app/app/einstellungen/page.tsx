@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api-fetch'
 import type { Regelbedarf } from '@/types'
 
 export default function EinstellungenPage() {
@@ -15,8 +16,8 @@ export default function EinstellungenPage() {
   const [speichere, setSpeichere] = useState(false)
 
   useEffect(() => {
-    fetch('/api/einstellungen/regelbedarf').then(r => r.json()).then(setRegelbedarf)
-    fetch('/api/einstellungen').then(r => r.json()).then((data: Record<string, string>) => {
+    apiFetch('/api/einstellungen/regelbedarf').then(r => r.json()).then(setRegelbedarf)
+    apiFetch('/api/einstellungen').then(r => r.json()).then((data: Record<string, string>) => {
       setMindestbestellwert(data['picnic_mindestbestellwert'] ?? '35')
       try {
         setBringKeywords(JSON.parse(data['picnic_bring_keywords'] ?? '[]'))
@@ -28,13 +29,13 @@ export default function EinstellungenPage() {
 
   async function regelbedarfHinzufuegen() {
     if (!neuerName || !neueMenge) return
-    const res = await fetch('/api/einstellungen/regelbedarf', {
+    const res = await apiFetch('/api/einstellungen/regelbedarf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: neuerName, menge: parseFloat(neueMenge), einheit: neueEinheit }),
     })
     if (res.ok) {
-      setRegelbedarf(await fetch('/api/einstellungen/regelbedarf').then(r => r.json()))
+      setRegelbedarf(await apiFetch('/api/einstellungen/regelbedarf').then(r => r.json()))
       setNeuerName('')
       setNeueMenge('')
     }
@@ -48,7 +49,7 @@ export default function EinstellungenPage() {
   async function picnicEinstellungenSpeichern() {
     setSpeichere(true)
     try {
-      await fetch('/api/einstellungen', {
+      await apiFetch('/api/einstellungen', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
