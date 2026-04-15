@@ -9,7 +9,8 @@ import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 import type { Wochenplan, Gericht } from '@/types'
 
 export default function WochenplanPage() {
-  const [plan, setPlan] = useState<Wochenplan | null>(null)
+  const [carryOverPlan, setCarryOverPlan] = useState<Wochenplan | null>(null)
+  const [aktiverPlan, setAktiverPlan] = useState<Wochenplan | null>(null)
   const [gerichte, setGerichte] = useState<Gericht[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,8 +27,11 @@ export default function WochenplanPage() {
       .catch(() => setError('Gerichte konnten nicht geladen werden'))
     apiFetch('/api/wochenplan')
       .then(r => r.ok ? r.json() : null)
-      .then((data: Wochenplan | null) => {
-        setPlan(data)
+      .then((data: { carryOverPlan: Wochenplan | null; aktiverPlan: Wochenplan | null } | null) => {
+        if (data) {
+          setCarryOverPlan(data.carryOverPlan)
+          setAktiverPlan(data.aktiverPlan)
+        }
       })
       .catch(() => setError('Wochenplan konnte nicht geladen werden'))
   }, [])
@@ -35,12 +39,12 @@ export default function WochenplanPage() {
   async function generieren() {
     setLoading(true)
     setError(null)
-    setEinkaufslisteDaten(null) // Neuer Plan → Liste zurücksetzen
+    setEinkaufslisteDaten(null)
     try {
       const res = await apiFetch('/api/wochenplan/generate', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error ?? 'Fehler beim Generieren')
-      setPlan(data)
+      setAktiverPlan(data)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
     } finally {
@@ -48,10 +52,9 @@ export default function WochenplanPage() {
     }
   }
 
-
   async function tauschen(tag: string, mahlzeit: string) {
-    if (!plan) return
-    const aktuell = plan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
+    if (!aktiverPlan) return
+    const aktuell = aktiverPlan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
 
     const sonderKategorie = mahlzeit === 'frühstück'
       ? 'frühstück'
@@ -67,62 +70,62 @@ export default function WochenplanPage() {
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return
 
-    // Slot existiert bereits → ersetzen; leerer Slot → neuen Eintrag hinzufügen
-    const slotExistiert = plan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
+    const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const eintraege = slotExistiert
-      ? plan.eintraege.map(e =>
+      ? aktiverPlan.eintraege.map(e =>
           e.tag === tag && e.mahlzeit === mahlzeit
             ? { ...e, gericht_id: neu.id, gericht_name: neu.name }
             : e
         )
-      : [...plan.eintraege, { tag, mahlzeit, gericht_id: neu.id, gericht_name: neu.name }]
+      : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: neu.id, gericht_name: neu.name }]
+
     const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege, status: plan.status })
+      body: JSON.stringify({ eintraege, status: aktiverPlan.status })
     })
-    setPlan(await res.json())
-    setEinkaufslisteDaten(null) // Plan geändert → Liste zurücksetzen
+    setAktiverPlan(await res.json())
+    setEinkaufslisteDaten(null)
     setEinkaufMeldung(null)
 
     if (aktuell?.gericht_id) {
       try {
         await apiFetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' })
       } catch {
-        // Tausch-Counter-Fehler ist nicht blockierend — Plan wurde bereits gespeichert
         console.warn('Tausch-Counter konnte nicht aktualisiert werden:', aktuell.gericht_id)
       }
     }
   }
 
   async function waehlen(tag: string, mahlzeit: string, gericht: Gericht) {
-    if (!plan) return
-    const slotExistiert = plan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
+    if (!aktiverPlan) return
+    const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const eintraege = slotExistiert
-      ? plan.eintraege.map(e =>
+      ? aktiverPlan.eintraege.map(e =>
           e.tag === tag && e.mahlzeit === mahlzeit
             ? { ...e, gericht_id: gericht.id, gericht_name: gericht.name }
             : e
         )
-      : [...plan.eintraege, { tag, mahlzeit, gericht_id: gericht.id, gericht_name: gericht.name }]
+      : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: gericht.id, gericht_name: gericht.name }]
+
     const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege, status: plan.status })
+      body: JSON.stringify({ eintraege, status: aktiverPlan.status })
     })
-    setPlan(await res.json())
+    setAktiverPlan(await res.json())
     setEinkaufslisteDaten(null)
     setEinkaufMeldung(null)
   }
 
   async function genehmigen() {
-    if (!plan) return
+    if (!aktiverPlan) return
     const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege: plan.eintraege, status: 'genehmigt' })
+      body: JSON.stringify({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' })
     })
-    setPlan(await res.json())
+    setAktiverPlan(await res.json())
   }
 
   async function einkaufslisteSenden() {
@@ -145,17 +148,18 @@ export default function WochenplanPage() {
     }
   }
 
+  const hatPlan = carryOverPlan !== null || aktiverPlan !== null
+
   return (
     <main className="min-h-screen bg-white pb-32">
-      {/* Header — nur Titel + Status, kein Button oben */}
       <div className="px-4 pt-12 pb-4">
         <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
           Diese Woche
         </h1>
         <p className="text-sm mt-0.5" style={{ color: 'var(--gray-secondary)' }}>
-          {plan
-            ? plan.status === 'genehmigt' ? '✓ Genehmigt' : 'Entwurf — noch nicht genehmigt'
-            : 'Noch kein Plan für diese Woche'}
+          {aktiverPlan
+            ? aktiverPlan.status === 'genehmigt' ? '✓ Genehmigt' : 'Entwurf — noch nicht genehmigt'
+            : carryOverPlan ? 'Nächste Woche noch nicht geplant' : 'Noch kein Plan für diese Woche'}
         </p>
         {error && (
           <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
@@ -164,20 +168,17 @@ export default function WochenplanPage() {
         )}
       </div>
 
-      {/* Plan */}
-      {plan ? (
-        <>
-          <WochenplanGrid
-            plan={plan}
-            gerichte={gerichte}
-            onTauschen={tauschen}
-            onWaehlen={waehlen}
-            onGenehmigen={genehmigen}
-            onRezept={setRezeptGericht}
-          />
-        </>
+      {hatPlan ? (
+        <WochenplanGrid
+          carryOverPlan={carryOverPlan}
+          aktiverPlan={aktiverPlan}
+          gerichte={gerichte}
+          onTauschen={tauschen}
+          onWaehlen={waehlen}
+          onGenehmigen={genehmigen}
+          onRezept={setRezeptGericht}
+        />
       ) : (
-        /* Leerer Zustand */
         <div className="flex flex-col items-center justify-center px-8 py-20 text-center">
           <div className="text-5xl mb-4">🍽️</div>
           <p className="text-lg font-semibold mb-2" style={{ color: 'var(--near-black)' }}>
@@ -189,7 +190,7 @@ export default function WochenplanPage() {
         </div>
       )}
 
-      {/* Thumb-Zone Action Bar — fest unten, über der BottomNav */}
+      {/* Thumb-Zone Action Bar */}
       <div
         className="fixed left-0 right-0 px-4 pb-2 pt-3 z-50"
         style={{
@@ -198,8 +199,7 @@ export default function WochenplanPage() {
         }}
       >
         <div className="flex gap-3">
-          {/* Einkaufsliste — primäre Aktion, größer */}
-          {plan && (
+          {aktiverPlan && (
             einkaufslisteDaten ? (
               <button
                 onClick={() => setEinkaufslisteOffen(true)}
@@ -235,7 +235,6 @@ export default function WochenplanPage() {
               </button>
             )
           )}
-          {/* Neuer Plan — sekundär */}
           <button
             onClick={generieren}
             disabled={loading}
@@ -244,15 +243,15 @@ export default function WochenplanPage() {
               background: 'var(--rausch)',
               color: '#ffffff',
               minHeight: '52px',
-              minWidth: plan ? '52px' : '100%',
-              width: plan ? '52px' : '100%',
+              minWidth: aktiverPlan ? '52px' : '100%',
+              width: aktiverPlan ? '52px' : '100%',
             }}
           >
             {loading ? (
               <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56" />
               </svg>
-            ) : plan ? (
+            ) : aktiverPlan ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="1 4 1 10 7 10" />
                 <path d="M3.51 15a9 9 0 1 0 .49-3.51" />
@@ -261,6 +260,7 @@ export default function WochenplanPage() {
           </button>
         </div>
       </div>
+
       {rezeptGericht?.rezept && (
         <RezeptSheet
           gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }}
