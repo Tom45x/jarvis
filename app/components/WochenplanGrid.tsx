@@ -163,7 +163,7 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
 
           return (
             <div
-              key={idx}
+              key={slot.datum.toISOString().slice(0, 10)}
               ref={istHeute ? heuteRef : null}
               className="shrink-0 flex flex-col gap-2 px-4"
               style={{
