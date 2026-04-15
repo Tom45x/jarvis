@@ -20,32 +20,35 @@ const mockGerichte: Gericht[] = [
 
 describe('WochenplanGrid', () => {
   it('zeigt Gerichte des Plans an', () => {
-    render(<WochenplanGrid plan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
     expect(screen.getByText('Flickerklopse')).toBeInTheDocument()
     expect(screen.getByText('Pizza Margherita')).toBeInTheDocument()
   })
 
-  it('ruft onTauschen auf wenn Tauschen-Button geklickt wird', () => {
+  it('ruft onTauschen auf wenn Tauschen-Button zweimal geklickt wird', () => {
     const onTauschen = jest.fn()
-    render(<WochenplanGrid plan={mockPlan} gerichte={mockGerichte} onTauschen={onTauschen} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
-    fireEvent.click(screen.getAllByLabelText(/tauschen/i)[0])
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} onTauschen={onTauschen} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
+    // Erster Klick öffnet das Tausch-Panel; zweiter Klick löst zufälliges Tauschen aus
+    const buttons = screen.getAllByLabelText(/tauschen/i)
+    fireEvent.click(buttons[0])
+    fireEvent.click(screen.getAllByLabelText(/zufällig tauschen/i)[0])
     expect(onTauschen).toHaveBeenCalled()
   })
 
   it('zeigt Genehmigen-Button bei Entwurf-Status', () => {
-    render(<WochenplanGrid plan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
     expect(screen.getByText(/genehmigen/i)).toBeInTheDocument()
   })
 
   it('zeigt keinen Genehmigen-Button bei genehmigtem Plan', () => {
     const genehmigterPlan = { ...mockPlan, status: 'genehmigt' as const }
-    render(<WochenplanGrid plan={genehmigterPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={genehmigterPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={() => {}} onRezept={() => {}} />)
     expect(screen.queryByText(/genehmigen/i)).not.toBeInTheDocument()
   })
 
   it('ruft onGenehmigen auf wenn Genehmigen-Button geklickt wird', () => {
     const onGenehmigen = jest.fn()
-    render(<WochenplanGrid plan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={onGenehmigen} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} onTauschen={() => {}} onWaehlen={() => {}} onGenehmigen={onGenehmigen} onRezept={() => {}} />)
     fireEvent.click(screen.getByText(/genehmigen/i))
     expect(onGenehmigen).toHaveBeenCalled()
   })
