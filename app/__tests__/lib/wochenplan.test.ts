@@ -1,4 +1,5 @@
-import { getMontag, erstelleWochenplanEintraege } from '@/lib/wochenplan'
+import { getMontag } from '@/lib/datum-utils'
+import { erstelleWochenplanEintraege } from '@/lib/wochenplan'
 import type { Gericht } from '@/types'
 
 // Mock supabase to avoid real DB calls

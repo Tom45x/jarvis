@@ -1,14 +1,8 @@
 import { supabase } from '@/lib/supabase-server'
-import type { Gericht, Wochenplan, WochenplanEintrag } from '@/types'
+import { getMontag, getLetztenFreitag, getAktivenMontag } from '@/lib/datum-utils'
+import type { Gericht, Wochenplan, WochenplanEintrag, WochenAnsicht } from '@/types'
 
-export function getMontag(datum: Date = new Date()): Date {
-  const d = new Date(datum)
-  const tag = d.getDay() // 0 = Sonntag, 1 = Montag, ...
-  const diff = tag === 0 ? -6 : 1 - tag
-  d.setDate(d.getDate() + diff)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
+export { getMontag, getLetztenFreitag, getAktivenMontag }
 
 export function erstelleWochenplanEintraege(
   claudeAntwort: Omit<WochenplanEintrag, 'gericht_id'>[],
@@ -23,22 +17,27 @@ export function erstelleWochenplanEintraege(
     .filter((e): e is WochenplanEintrag => e !== null)
 }
 
-export async function ladeAktuellenWochenplan(): Promise<Wochenplan | null> {
-  const montag = getMontag().toISOString().split('T')[0]
-  const { data, error } = await supabase
-    .from('wochenplaene')
-    .select('*')
-    .eq('woche_start', montag)
-    .single()
-  if (error || !data) return null
-  return data as Wochenplan
+export async function ladeWochenAnsicht(): Promise<WochenAnsicht> {
+  const letzterFreitag = getLetztenFreitag()
+  const carryOverMontag = getMontag(letzterFreitag).toISOString().split('T')[0]
+  const aktiverMontag = getAktivenMontag().toISOString().split('T')[0]
+
+  const [carryOverResult, aktivResult] = await Promise.all([
+    supabase.from('wochenplaene').select('*').eq('woche_start', carryOverMontag).single(),
+    supabase.from('wochenplaene').select('*').eq('woche_start', aktiverMontag).single(),
+  ])
+
+  return {
+    carryOverPlan: carryOverResult.error ? null : (carryOverResult.data as Wochenplan),
+    aktiverPlan: aktivResult.error ? null : (aktivResult.data as Wochenplan),
+  }
 }
 
 export async function speichereWochenplan(
   eintraege: WochenplanEintrag[],
   status: 'entwurf' | 'genehmigt' = 'entwurf'
 ): Promise<Wochenplan> {
-  const montag = getMontag().toISOString().split('T')[0]
+  const montag = getAktivenMontag().toISOString().split('T')[0]
   const { data, error } = await supabase
     .from('wochenplaene')
     .upsert({ woche_start: montag, eintraege, status }, { onConflict: 'woche_start' })

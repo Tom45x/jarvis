@@ -106,3 +106,8 @@ export interface EinkaufsRouting {
   picnic: EinkaufsItem[]
   bring: EinkaufsItem[]
 }
+
+export interface WochenAnsicht {
+  carryOverPlan: Wochenplan | null
+  aktiverPlan: Wochenplan | null
+}

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase-server'
 import { generiereEinkaufslisten, splitNachRouting } from '@/lib/einkaufsliste'
 import { aktualisiereEinkaufsliste } from '@/lib/bring'
 import { sucheArtikel, zumWarenkorb, warenkorbLeeren } from '@/lib/picnic'
-import { ladeAktuellenWochenplan } from '@/lib/wochenplan'
+import { ladeWochenAnsicht } from '@/lib/wochenplan'
 import type { Gericht, EinkaufsItem, Regelbedarf } from '@/types'
 
 async function ladePicnicEinstellungen(): Promise<{
@@ -84,7 +84,7 @@ async function fuellePicnicWarenkorb(items: Array<{ item: EinkaufsItem; artikelI
 
 export async function POST() {
   try {
-    const plan = await ladeAktuellenWochenplan()
+    const { aktiverPlan: plan } = await ladeWochenAnsicht()
     if (!plan) {
       return NextResponse.json(
         { error: 'Kein Wochenplan für diese Woche gefunden' },
