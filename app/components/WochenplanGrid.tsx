@@ -22,9 +22,9 @@ function StaticCard({ label, name }: { label: string; name: string }) {
         <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--gray-secondary)' }}>{label}</p>
         <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{name}</p>
       </div>
-      <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--surface)' }}>
+      <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--surface)' }}>
         <p className="text-xs font-medium" style={{ color: 'transparent' }}>Rezept ansehen →</p>
-        <p className="text-xs mt-1" style={{ color: 'transparent' }}>✓ gesund</p>
+        <p className="text-xs" style={{ color: 'transparent' }}>✓ gesund</p>
       </div>
     </div>
   )

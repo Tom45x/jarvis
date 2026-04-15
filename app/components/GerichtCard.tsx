@@ -54,10 +54,10 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTausch
       </div>
 
       {/* Fixer Footer — immer gerendert für einheitliche Kartenhöhe */}
-      <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--surface)' }}>
+      <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--surface)' }}>
         <button
           onClick={hatAktion ? onRezept : undefined}
-          className="w-full text-left text-xs font-medium transition-opacity"
+          className="text-xs font-medium transition-opacity"
           style={{
             color: hatAktion ? 'var(--rausch)' : 'transparent',
             pointerEvents: hatAktion ? 'auto' : 'none',
@@ -67,7 +67,7 @@ export function GerichtCard({ gerichtName, mahlzeit, gesund, hatRezept, onTausch
         >
           Rezept ansehen →
         </button>
-        <p className="text-xs mt-1" style={{ color: gesund ? '#3d9970' : 'transparent' }}>
+        <p className="text-xs" style={{ color: gesund ? '#3d9970' : 'transparent' }}>
           ✓ gesund
         </p>
       </div>
