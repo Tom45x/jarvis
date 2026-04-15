@@ -3,9 +3,8 @@ import { ladeWochenAnsicht, speichereWochenplan } from '@/lib/wochenplan'
 import type { WochenplanEintrag } from '@/types'
 
 export async function GET() {
-  const { aktiverPlan } = await ladeWochenAnsicht()
-  if (!aktiverPlan) return NextResponse.json(null, { status: 404 })
-  return NextResponse.json(aktiverPlan)
+  const ansicht = await ladeWochenAnsicht()
+  return NextResponse.json(ansicht)
 }
 
 export async function PUT(req: NextRequest) {
