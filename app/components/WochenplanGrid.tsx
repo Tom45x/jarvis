@@ -55,32 +55,39 @@ export function WochenplanGrid({ plan, gerichte, onTauschen, onGenehmigen, onRez
   const heute = heutigerTag()
   const scrollRef = useRef<HTMLDivElement>(null)
   const heuteRef = useRef<HTMLDivElement>(null)
-  const isFirstRender = useRef(true)
   const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const doScroll = () => {
-      if (!heuteRef.current || !scrollRef.current) return
-      const container = scrollRef.current
-      const card = heuteRef.current
-      container.scrollTo({
-        left: card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2,
-        behavior: 'smooth',
-      })
-    }
+  const scrollZuHeute = () => {
+    if (!heuteRef.current || !scrollRef.current) return
+    const container = scrollRef.current
+    const card = heuteRef.current
+    container.scrollTo({
+      left: card.offsetLeft - (container.offsetWidth - card.offsetWidth) / 2,
+      behavior: 'smooth',
+    })
+  }
 
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      doScroll()
-      return
-    }
-
+  const starteRueckScrollTimer = () => {
     if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
-    autoScrollTimer.current = setTimeout(doScroll, 3000)
+    autoScrollTimer.current = setTimeout(scrollZuHeute, 5000)
+  }
+
+  // Beim ersten Rendern und bei Plan-Änderungen sofort zu heute scrollen
+  useEffect(() => {
+    scrollZuHeute()
+  }, [plan])
+
+  // Nach manuellem Scrollen: 5 Sekunden Inaktivität → zurück zu heute
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    container.addEventListener('scroll', starteRueckScrollTimer, { passive: true })
     return () => {
+      container.removeEventListener('scroll', starteRueckScrollTimer)
       if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
     }
-  }, [plan])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="space-y-4">
