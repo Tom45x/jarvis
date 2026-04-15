@@ -13,9 +13,6 @@ function getClient(): SupabaseClient {
         autoRefreshToken: false,
         detectSessionInUrl: false,
       },
-      global: {
-        headers: { Authorization: `Bearer ${key}` },
-      },
     })
   }
   return _client
