@@ -1,12 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api-fetch'
 import type { Gericht, Zutat } from '@/types'
 
 export default function GerichtePage() {
   const [gerichte, setGerichte] = useState<Gericht[]>([])
   const [bearbeiteId, setBearbeiteId] = useState<string | null>(null)
   const [bearbeiteZutaten, setBearbeiteZutaten] = useState<Zutat[]>([])
+  const [bearbeiteRezept, setBearbeiteRezept] = useState<{
+    zutaten: string[]
+    zubereitung: string[]
+  } | null>(null)
   const [generiere, setGeneriere] = useState(false)
   const [speichere, setSpeichere] = useState(false)
   const [meldung, setMeldung] = useState<string | null>(null)
@@ -26,18 +31,25 @@ export default function GerichtePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/gerichte').then(r => r.json()).then(setGerichte)
+    apiFetch('/api/gerichte')
+      .then(r => r.json())
+      .then(setGerichte)
+      .catch(() => setMeldung('❌ Gerichte konnten nicht geladen werden'))
   }, [])
 
-  async function alleZutatenGenerieren() {
+  async function allesDatenGenerieren() {
     setGeneriere(true)
     setMeldung(null)
     try {
-      const res = await fetch('/api/zutaten/generieren', { method: 'POST' })
+      const res = await apiFetch('/api/zutaten/generieren', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
-      setMeldung(`✅ ${data.aktualisiert} Gerichte aktualisiert`)
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      // Rezepte generieren (nur für Gerichte ohne Rezept)
+      const res2 = await apiFetch('/api/rezepte/generieren', { method: 'POST' })
+      const data2 = await res2.json()
+      if (!res2.ok) throw new Error(data2.error ?? 'Fehler')
+      setMeldung(`✅ ${data.aktualisiert} Zutaten, ${data2.aktualisiert} Rezepte aktualisiert`)
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
     } catch (e: unknown) {
       setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
@@ -49,7 +61,7 @@ export default function GerichtePage() {
   async function einzelnGenerieren(gericht: Gericht) {
     setMeldung(null)
     try {
-      const res = await fetch('/api/zutaten/generieren', {
+      const res = await apiFetch('/api/zutaten/generieren', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gerichtId: gericht.id })
@@ -57,7 +69,25 @@ export default function GerichtePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Fehler')
       setMeldung(`✅ ${gericht.name} aktualisiert`)
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+    } catch (e: unknown) {
+      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    }
+  }
+
+  async function einzelnRezeptGenerieren(gericht: Gericht) {
+    setMeldung(null)
+    try {
+      const res = await apiFetch('/api/rezepte/generieren', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gerichtId: gericht.id })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Fehler')
+      setMeldung(`✅ Rezept für ${gericht.name} generiert`)
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
     } catch (e: unknown) {
       setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
@@ -67,6 +97,10 @@ export default function GerichtePage() {
   function bearbeiteStart(gericht: Gericht) {
     setBearbeiteId(gericht.id)
     setBearbeiteZutaten([...gericht.zutaten])
+    setBearbeiteRezept(gericht.rezept
+      ? { zutaten: [...gericht.rezept.zutaten], zubereitung: [...gericht.rezept.zubereitung] }
+      : { zutaten: [], zubereitung: [] }
+    )
   }
 
   function zutatAendern(index: number, feld: keyof Zutat, wert: string | number) {
@@ -89,13 +123,13 @@ export default function GerichtePage() {
   async function speichern(gerichtId: string) {
     setSpeichere(true)
     try {
-      const res = await fetch('/api/gerichte/' + gerichtId, {
+      const res = await apiFetch('/api/gerichte/' + gerichtId, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zutaten: bearbeiteZutaten })
+        body: JSON.stringify({ zutaten: bearbeiteZutaten, rezept: bearbeiteRezept })
       })
       if (!res.ok) throw new Error('Speichern fehlgeschlagen')
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setBearbeiteId(null)
       setMeldung('✅ Gespeichert')
@@ -109,7 +143,7 @@ export default function GerichtePage() {
   async function reaktivieren(id: string) {
     try {
       await fetch(`/api/gerichte/${id}/reaktivieren`, { method: 'PATCH' })
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung('✅ Gericht reaktiviert')
     } catch {
@@ -121,7 +155,7 @@ export default function GerichtePage() {
     setLadeVorschlaege(true)
     setMeldung(null)
     try {
-      const res = await fetch('/api/gerichte/vorschlaege', {
+      const res = await apiFetch('/api/gerichte/vorschlaege', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hinweis: vorschlagHinweis }),
@@ -138,7 +172,7 @@ export default function GerichtePage() {
   async function vorschlagHinzufuegen(vorschlag: typeof vorschlaege[0]) {
     setFuegeHinzu(vorschlag.name)
     try {
-      const res = await fetch('/api/gerichte', {
+      const res = await apiFetch('/api/gerichte', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,19 +180,19 @@ export default function GerichtePage() {
           kategorie: vorschlag.kategorie,
           aufwand: vorschlag.aufwand,
           gesund: false,
-          quelle: 'themealdb',
+          quelle: 'ki-vorschlag',
         }),
       })
       if (!res.ok) throw new Error('Anlegen fehlgeschlagen')
       const neuesGericht = await res.json()
 
-      await fetch('/api/zutaten/generieren', {
+      await apiFetch('/api/zutaten/generieren', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gerichtId: neuesGericht.id }),
       })
 
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setVorschlaege(prev => prev.filter(v => v.name !== vorschlag.name))
       setMeldung(`✅ ${vorschlag.name} hinzugefügt`)
@@ -182,7 +216,7 @@ export default function GerichtePage() {
     setLoescht(id)
     try {
       await fetch(`/api/gerichte/${id}`, { method: 'DELETE' })
-      const updated = await fetch('/api/gerichte').then(r => r.json())
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung('✅ Gericht gelöscht')
     } catch {
@@ -210,12 +244,12 @@ export default function GerichtePage() {
             Gerichte
           </h1>
           <button
-            onClick={alleZutatenGenerieren}
+            onClick={allesDatenGenerieren}
             disabled={generiere}
             className="text-sm font-medium px-4 py-2 rounded-xl disabled:opacity-50"
             style={{ background: 'var(--surface)', color: 'var(--near-black)' }}
           >
-            {generiere ? '...' : '✨ Zutaten'}
+            {generiere ? '...' : '✨ Generieren'}
           </button>
         </div>
         {ohneZutaten > 0 && (
@@ -287,7 +321,7 @@ export default function GerichtePage() {
                           <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--near-black)' }}>Zutaten (4 Personen)</p>
                           <ul className="space-y-0.5">
                             {v.rezept.zutaten.map((z, i) => (
-                              <li key={i} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>· {z}</li>
+                              <li key={`${v.name}-zutat-${i}`} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>· {z}</li>
                             ))}
                           </ul>
                         </div>
@@ -295,7 +329,7 @@ export default function GerichtePage() {
                           <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--near-black)' }}>Zubereitung</p>
                           <ol className="space-y-1">
                             {v.rezept.zubereitung.map((s, i) => (
-                              <li key={i} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>
+                              <li key={`${v.name}-schritt-${i}`} className="text-xs" style={{ color: 'var(--gray-secondary)' }}>
                                 {i + 1}. {s.replace(/^Schritt \d+:\s*/i, '')}
                               </li>
                             ))}
@@ -403,6 +437,21 @@ export default function GerichtePage() {
                         : gericht.zutaten.map(z => `${z.menge}${z.einheit} ${z.name}`).join(', ')}
                   </p>
                 )}
+
+                {/* Rezept-Vorschau */}
+                {!isEditing && gericht.rezept && (
+                  <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--surface)' }}>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--near-black)' }}>Zubereitung</p>
+                    <ol className="space-y-1">
+                      {gericht.rezept.zubereitung.map((schritt, i) => (
+                        <li key={`schritt-${gericht.id}-${i}`} className="text-xs flex gap-2" style={{ color: 'var(--gray-secondary)' }}>
+                          <span className="shrink-0 font-semibold" style={{ color: 'var(--rausch)' }}>{i + 1}.</span>
+                          {schritt.replace(/^Schritt \d+:\s*/i, '')}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
               </div>
 
               {/* Action-Buttons (nur wenn nicht im Bearbeitungsmodus) */}
@@ -429,7 +478,7 @@ export default function GerichtePage() {
               {isEditing && (
                 <div className="mt-3 space-y-2" style={{ borderTop: '1px solid var(--surface)', paddingTop: '12px' }}>
                   {bearbeiteZutaten.map((zutat, i) => (
-                    <div key={i} className="flex gap-1.5 items-center">
+                    <div key={`${zutat.name}-${i}`} className="flex gap-1.5 items-center">
                       <input
                         value={zutat.name}
                         onChange={e => zutatAendern(i, 'name', e.target.value)}
@@ -463,6 +512,55 @@ export default function GerichtePage() {
                       </button>
                     </div>
                   ))}
+                  {/* Rezept bearbeiten */}
+                  {bearbeiteRezept && (
+                    <div className="mt-3 pt-3 space-y-2" style={{ borderTop: '1px solid var(--surface)', paddingTop: '12px' }}>
+                      <p className="text-xs font-semibold mb-2" style={{ color: 'var(--near-black)' }}>Zubereitung</p>
+                      {bearbeiteRezept.zubereitung.map((schritt, i) => (
+                        <div key={`edit-schritt-${i}`} className="flex gap-1.5 items-start">
+                          <span className="text-xs font-semibold pt-2 shrink-0" style={{ color: 'var(--rausch)' }}>{i + 1}.</span>
+                          <textarea
+                            value={schritt.replace(/^Schritt \d+:\s*/i, '')}
+                            onChange={e => {
+                              const neu = [...bearbeiteRezept.zubereitung]
+                              neu[i] = e.target.value
+                              setBearbeiteRezept({ ...bearbeiteRezept, zubereitung: neu })
+                            }}
+                            rows={2}
+                            className="flex-1 px-2 py-1.5 rounded-lg resize-none"
+                            style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '14px' }}
+                          />
+                          <button
+                            onClick={() => {
+                              const neu = bearbeiteRezept.zubereitung.filter((_, idx) => idx !== i)
+                              setBearbeiteRezept({ ...bearbeiteRezept, zubereitung: neu })
+                            }}
+                            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg active:opacity-70"
+                            style={{ background: '#fff0f3', color: 'var(--rausch)' }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => setBearbeiteRezept({ ...bearbeiteRezept, zubereitung: [...bearbeiteRezept.zubereitung, ''] })}
+                          className="text-xs font-medium px-3 py-2 rounded-xl"
+                          style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
+                        >
+                          + Schritt
+                        </button>
+                        <button
+                          onClick={() => einzelnRezeptGenerieren(gericht)}
+                          className="text-xs font-medium px-3 py-2 rounded-xl"
+                          style={{ background: 'var(--surface)', color: 'var(--near-black)' }}
+                        >
+                          ✨ Rezept neu generieren
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 pt-1">
                     <button
                       onClick={zutatHinzufuegen}
@@ -480,7 +578,7 @@ export default function GerichtePage() {
                       {speichere ? '...' : 'Speichern'}
                     </button>
                     <button
-                      onClick={() => setBearbeiteId(null)}
+                      onClick={() => { setBearbeiteId(null); setBearbeiteRezept(null) }}
                       className="text-xs font-medium px-3 py-2 rounded-xl"
                       style={{ background: 'var(--surface)', color: 'var(--gray-secondary)' }}
                     >

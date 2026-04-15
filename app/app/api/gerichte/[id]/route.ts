@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-server'
 import type { Zutat } from '@/types'
 
 export async function PATCH(
@@ -7,11 +7,16 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const body = await request.json() as { zutaten?: Zutat[]; bewertung?: number }
+  const body = await request.json() as {
+    zutaten?: Zutat[]
+    bewertung?: number
+    rezept?: { zutaten: string[]; zubereitung: string[] } | null
+  }
 
   const updates: Record<string, unknown> = {}
   if (body.zutaten !== undefined) updates.zutaten = body.zutaten
   if (body.bewertung !== undefined) updates.bewertung = body.bewertung
+  if (body.rezept !== undefined) updates.rezept = body.rezept
 
   const { data, error } = await supabase
     .from('gerichte')
