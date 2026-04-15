@@ -1,7 +1,6 @@
-// app/components/RezeptSheet.tsx
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Gericht } from '@/types'
 
 interface RezeptSheetProps {
@@ -10,13 +9,33 @@ interface RezeptSheetProps {
 }
 
 export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
-  // Body-Scroll sperren solange Sheet offen ist
+  const [visible, setVisible] = useState(false)
+  const touchStartY = useRef<number | null>(null)
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    // Ein Frame warten damit die CSS-Transition greift
+    const id = requestAnimationFrame(() => setVisible(true))
+    return () => {
+      cancelAnimationFrame(id)
+      document.body.style.overflow = ''
+    }
   }, [])
 
   if (!gericht.rezept) return null
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (touchStartY.current === null) return
+    const delta = e.touches[0].clientY - touchStartY.current
+    if (delta > 80) {
+      touchStartY.current = null
+      onClose()
+    }
+  }
 
   return (
     <>
@@ -34,7 +53,11 @@ export function RezeptSheet({ gericht, onClose }: RezeptSheetProps) {
           background: '#ffffff',
           maxHeight: '80vh',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+          transform: visible ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.3s ease',
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
       >
         {/* Drag-Handle */}
         <div className="flex justify-center pt-3 pb-1">
