@@ -273,8 +273,8 @@ export default function GerichtePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: neuesGerichtName.trim(),
-          kategorie: 'sonstiges',
-          aufwand: '30 Min',
+          kategorie: 'sonstiges', // KI überschreibt beim Generieren
+          aufwand: '30 Min',      // KI überschreibt beim Generieren
           gesund: false,
           quelle: 'manuell',
         }),
