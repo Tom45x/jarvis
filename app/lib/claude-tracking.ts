@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase-server'
 
+// Preise in USD pro 1 Million Tokens.
+// VOR dem ersten echten Produktionseinsatz gegen aktuelle Preise prüfen:
+// https://www.anthropic.com/pricing
 const PREISE: Record<string, { input: number; output: number }> = {
   'claude-sonnet-4-6': { input: 3, output: 15 },
   'claude-haiku-4-5-20251001': { input: 0.8, output: 4 },
