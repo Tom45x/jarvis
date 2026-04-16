@@ -11,3 +11,7 @@ CREATE TABLE IF NOT EXISTS claude_nutzung (
   output_tokens int4 NOT NULL,
   kosten_usd    numeric(10,6) NOT NULL
 );
+
+-- Indexes für Analytics-Queries
+CREATE INDEX IF NOT EXISTS idx_claude_nutzung_erstellt_am ON claude_nutzung (erstellt_am DESC);
+CREATE INDEX IF NOT EXISTS idx_claude_nutzung_operation ON claude_nutzung (operation);
