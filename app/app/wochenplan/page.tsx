@@ -150,7 +150,7 @@ export default function WochenplanPage() {
 
   const hatPlan = carryOverPlan !== null || aktiverPlan !== null
   const istFreitag = new Date().getDay() === 5
-  const einkaufAktiv = aktiverPlan?.status === 'genehmigt' || (!aktiverPlan && carryOverPlan !== null)
+  const einkaufAktiv = aktiverPlan?.status === 'genehmigt'
 
   return (
     <main className="min-h-screen bg-white pb-32">
