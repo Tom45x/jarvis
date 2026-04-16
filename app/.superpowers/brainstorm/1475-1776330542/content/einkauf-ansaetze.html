@@ -1,0 +1,115 @@
+<h2>Einkaufsübersicht — 3 Ansätze</h2>
+<p class="subtitle">Wie soll die Übersicht nach dem Senden aussehen?</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff;padding:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <!-- Mock Bottom Sheet -->
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 -2px 16px rgba(0,0,0,0.12);max-width:320px;margin:0 auto;">
+        <div style="display:flex;justify-content:center;padding:10px 0 4px"><div style="width:36px;height:4px;background:#e5e5e5;border-radius:2px"></div></div>
+        <div style="padding:0 16px 16px">
+          <div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px">Einkaufsliste</div>
+          <!-- Summary Cards Row -->
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <div style="flex:1;background:#f0fae8;border-radius:12px;padding:10px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:#5ba832">8</div>
+              <div style="font-size:10px;color:#5ba832;font-weight:600">PICNIC</div>
+            </div>
+            <div style="flex:1;background:#fff5ed;border-radius:12px;padding:10px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:#f46a00">7</div>
+              <div style="font-size:10px;color:#f46a00;font-weight:600">BRING 1</div>
+            </div>
+            <div style="flex:1;background:#fff5ed;border-radius:12px;padding:10px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:#f46a00">5</div>
+              <div style="font-size:10px;color:#f46a00;font-weight:600">BRING 2</div>
+            </div>
+          </div>
+          <!-- Detail Lists -->
+          <div style="font-size:11px;font-weight:700;color:#5ba832;margin-bottom:6px;letter-spacing:0.5px">PICNIC</div>
+          <div style="font-size:12px;color:#222;line-height:1.8">· Hähnchenbrust &nbsp;&nbsp;<span style="color:#6a6a6a">500g</span><br>· Nudeln &nbsp;&nbsp;<span style="color:#6a6a6a">500g</span><br>· Tomaten...</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Summary Cards + Detail</h3>
+      <p>Oben 3 große Zahl-Karten (Picnic, Bring 1, Bring 2) für den sofortigen Überblick. Darunter die detaillierten Listen. Man sieht auf einen Blick: „8 Artikel bei Picnic, 7+5 bei Bring".</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff;padding:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 -2px 16px rgba(0,0,0,0.12);max-width:320px;margin:0 auto;">
+        <div style="display:flex;justify-content:center;padding:10px 0 4px"><div style="width:36px;height:4px;background:#e5e5e5;border-radius:2px"></div></div>
+        <div style="padding:0 16px 16px">
+          <div style="font-size:16px;font-weight:700;color:#222;margin-bottom:12px">Einkaufsliste</div>
+          <!-- Tab Bar -->
+          <div style="display:flex;gap:6px;margin-bottom:14px">
+            <div style="background:#5ba832;color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700">Picnic 8</div>
+            <div style="background:#f2f2f2;color:#6a6a6a;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600">Bring 1 · 7</div>
+            <div style="background:#f2f2f2;color:#6a6a6a;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600">Bring 2 · 5</div>
+          </div>
+          <!-- Active Tab Content -->
+          <div style="font-size:12px;color:#222;line-height:2">
+            · Hähnchenbrust &nbsp;<span style="color:#6a6a6a;font-size:11px">500g</span><br>
+            · Nudeln &nbsp;<span style="color:#6a6a6a;font-size:11px">500g</span><br>
+            · Tomaten &nbsp;<span style="color:#6a6a6a;font-size:11px">400g</span><br>
+            · Mozzarella<br>
+            · Basilikum
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Pill-Tabs</h3>
+      <p>3 Pill-Buttons oben (Picnic, Bring 1, Bring 2) mit Artikelanzahl. Ein Tap wechselt die Liste. Sauber und kompakt — aber man sieht immer nur eine Liste gleichzeitig.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff;padding:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 -2px 16px rgba(0,0,0,0.12);max-width:320px;margin:0 auto;">
+        <div style="display:flex;justify-content:center;padding:10px 0 4px"><div style="width:36px;height:4px;background:#e5e5e5;border-radius:2px"></div></div>
+        <div style="padding:0 16px 16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:16px;font-weight:700;color:#222">Einkaufsliste</div>
+            <div style="font-size:11px;color:#6a6a6a">20 Artikel gesamt</div>
+          </div>
+          <!-- Picnic Block -->
+          <div style="background:#f0fae8;border-radius:12px;padding:10px 12px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="background:#5ba832;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px">Picnic</span>
+              <span style="font-size:11px;color:#5ba832;font-weight:600">8 Artikel</span>
+            </div>
+            <div style="font-size:11px;color:#222;line-height:1.7">Hähnchenbrust · Nudeln · Tomaten · Mozzarella ...</div>
+          </div>
+          <!-- Bring Block -->
+          <div style="background:#fff5ed;border-radius:12px;padding:10px 12px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="background:#f46a00;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px">Bring · Einkauf 1</span>
+              <span style="font-size:11px;color:#f46a00;font-weight:600">7 Artikel</span>
+            </div>
+            <div style="font-size:11px;color:#222;line-height:1.7">Milch · Butter · Eier · Käse ...</div>
+          </div>
+          <div style="background:#fff5ed;border-radius:12px;padding:10px 12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="background:#f46a00;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px">Bring · Einkauf 2</span>
+              <span style="font-size:11px;color:#f46a00;font-weight:600">5 Artikel</span>
+            </div>
+            <div style="font-size:11px;color:#222;line-height:1.7">Brot · Joghurt · Obst ...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Farbige Blöcke</h3>
+      <p>Jede Route bekommt einen farbigen Block (Picnic grün, Bring orange). Alles auf einen Blick, keine Tabs nötig. Komprimierte Artikelansicht im Block, Anzahl prominent. Meine Empfehlung.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#6a6a6a;text-align:center">Klick auf eine Karte um sie auszuwählen, dann im Terminal antworten.</p>

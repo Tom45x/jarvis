@@ -1,0 +1,145 @@
+<h2>Hochformat — kompakte Tag-Darstellung</h2>
+<p class="subtitle">Nur Kreis-Icons statt voller Tag-Namen — wie viele Tage passen rein?</p>
+
+<div class="split">
+
+  <!-- Vorher: Mit Tag-Namen -->
+  <div class="mockup">
+    <div class="mockup-header">Vorher — mit Tag-Namen</div>
+    <div class="mockup-body" style="padding:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="width:200px;height:420px;margin:0 auto;border:2px solid #e5e5e5;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.1)">
+        <div style="padding:8px 10px 6px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px">
+          <span style="color:#ff385c;font-size:11px">←</span>
+          <span style="font-size:11px;font-weight:700;color:#222">Diese Woche</span>
+        </div>
+        <div style="padding:6px 8px;overflow-y:auto;height:calc(100% - 36px)">
+          <!-- Tag mit Name: ~52px pro Tag -->
+          <div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <div style="width:22px;height:22px;background:#ff385c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:7px;font-weight:700;flex-shrink:0">Do</div>
+              <div style="font-size:9px;font-weight:700;color:#222">Donnerstag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222;line-height:1.2">Pasta Bolo</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Hähnchen</div></div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700;flex-shrink:0">Fr</div>
+              <div style="font-size:9px;font-weight:700;color:#222">Freitag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Linsen</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">🍕 Film</div></div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700;flex-shrink:0">Sa</div>
+              <div style="font-size:9px;font-weight:700;color:#222">Samstag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Müsli</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222;line-height:1.2">Flamm-k.</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Grill</div></div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700;flex-shrink:0">So</div>
+              <div style="font-size:9px;font-weight:700;color:#222">Sonntag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Croissant</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Suppe</div></div>
+              <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Pizza</div></div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:8px;color:#ff385c">↓ Mo, Di, Mi noch unten</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:11px;color:#ff385c;font-weight:600">4 Tage sichtbar</div>
+    </div>
+  </div>
+
+  <!-- Nachher: Nur Kreis -->
+  <div class="mockup">
+    <div class="mockup-header">Nachher — nur Kreis-Icon</div>
+    <div class="mockup-body" style="padding:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="width:200px;height:420px;margin:0 auto;border:2px solid #e5e5e5;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.1)">
+        <div style="padding:8px 10px 6px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px">
+          <span style="color:#ff385c;font-size:11px">←</span>
+          <span style="font-size:11px;font-weight:700;color:#222">Diese Woche</span>
+        </div>
+        <div style="padding:6px 8px;overflow-y:auto;height:calc(100% - 36px)">
+
+          <!-- Tag-Zeile: Kreis + 3 Karten inline = ~46px pro Tag -->
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#ff385c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:7px;font-weight:700">Do</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222;line-height:1.2">Pasta</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Hähnchen</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">Fr</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Linsen</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">🍕Film</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">Sa</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Müsli</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222;line-height:1.2">Flamm-k.</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Grill</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">So</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Croissant</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Suppe</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Pizza</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">Mo</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Salat</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Steak</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">Di</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Wrap</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Thai</div></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:24px 1fr 1fr 1fr;gap:3px;align-items:center;margin-bottom:5px">
+            <div style="width:22px;height:22px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:7px;font-weight:700">Mi</div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Früh</div><div style="font-size:7px;font-weight:600;color:#222">Toast</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Mittag</div><div style="font-size:7px;font-weight:600;color:#222">Burger</div></div>
+            <div style="background:#fffbf0;border-radius:5px;padding:4px 3px"><div style="font-size:6px;color:#6a6a6a">Abend</div><div style="font-size:7px;font-weight:600;color:#222">Risotto</div></div>
+          </div>
+
+          <div style="text-align:center;font-size:8px;color:#00a651;font-weight:600;margin-top:4px">✓ Alle 7 Tage sichtbar!</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:11px;color:#00a651;font-weight:600">✓ Alle 7 Tage ohne Scrollen</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;background:#fffbf0;border-radius:12px;padding:14px 16px;max-width:600px;margin-left:auto;margin-right:auto">
+  <p style="font-size:13px;color:#222;font-weight:600;margin:0 0 6px">🎯 Finales Konzept</p>
+  <p style="font-size:12px;color:#6a6a6a;margin:0;line-height:1.7">
+    <strong>Hochformat:</strong> Kreis-Icon + 3 Mahlzeit-Karten pro Zeile → alle 7 Tage auf einmal sichtbar, kein Scrollen nötig.<br>
+    <strong>Querformat:</strong> Automatisch zum Tabellen-Grid (7 Spalten × 3 Zeilen) — noch kompakter, mehr Platz pro Zelle.<br>
+    Das Handy drehen ist ein optionaler Bonus, nicht notwendig.
+  </p>
+</div>

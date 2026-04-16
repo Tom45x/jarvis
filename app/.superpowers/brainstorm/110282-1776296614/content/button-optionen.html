@@ -1,0 +1,90 @@
+<h2>Button-Design für "Plan erstellen"</h2>
+<p class="subtitle">Nur sichtbar am Freitag (vor Genehmigung). Welche Option passt am besten?</p>
+
+<div class="cards" style="gap: 24px;">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="card-image" style="padding: 16px; background: #f9f9f9; border-radius: 12px;">
+      <!-- Mockup: Freitag-Banner oben -->
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px;">FREITAG-ANSICHT</div>
+      <div style="background: #1a1a1a; border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">📋</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3;">Nächste Woche planen</div>
+          <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px;">Picnic-Bestellung Mo früh</div>
+        </div>
+        <div style="margin-left: auto; background: #e00722; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #fff;">Erstellen</div>
+      </div>
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 12px;">ANDERE TAGE</div>
+      <div style="background: #f0f0f0; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">🛒</div>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Einkaufslisten senden</div>
+          <div style="font-size: 11px; color: #888; margin-top: 2px;">Bring + Picnic aktualisieren</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Banner-Karte oben</h3>
+      <p>Am Freitag erscheint eine auffällige Karte <strong>über dem Grid</strong> — klar kontextualisiert mit "Picnic-Bestellung Mo früh".</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="card-image" style="padding: 16px; background: #f9f9f9; border-radius: 12px;">
+      <!-- Mockup: Große Action Bar mit zwei Buttons -->
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px;">FREITAG — ACTION BAR</div>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <div style="flex: 1; background: #e00722; border-radius: 14px; padding: 14px 12px; text-align: center;">
+          <div style="font-size: 18px; margin-bottom: 4px;">✨</div>
+          <div style="font-size: 12px; font-weight: 700; color: #fff;">Plan erstellen</div>
+          <div style="font-size: 10px; color: rgba(255,255,255,0.7);">nächste Woche</div>
+        </div>
+        <div style="flex: 1; background: #1a1a1a; border-radius: 14px; padding: 14px 12px; text-align: center;">
+          <div style="font-size: 18px; margin-bottom: 4px;">🛒</div>
+          <div style="font-size: 12px; font-weight: 700; color: #fff;">Einkauf</div>
+          <div style="font-size: 10px; color: rgba(255,255,255,0.7);">senden</div>
+        </div>
+      </div>
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 12px;">ANDERE TAGE — ACTION BAR</div>
+      <div style="background: #1a1a1a; border-radius: 14px; padding: 14px 16px; text-align: center;">
+        <div style="font-size: 12px; font-weight: 700; color: #fff;">🛒 Einkaufslisten senden</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Zwei gleichwertige Buttons</h3>
+      <p>Freitags zwei Buttons nebeneinander in der Action Bar — roter "Plan erstellen" links, schwarzer "Einkauf senden" rechts.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="card-image" style="padding: 16px; background: #f9f9f9; border-radius: 12px;">
+      <!-- Mockup: Volle Breite, gestapelt -->
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px;">FREITAG — ACTION BAR</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+        <div style="background: #e00722; border-radius: 14px; padding: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span style="font-size: 16px;">✨</span>
+          <span style="font-size: 14px; font-weight: 700; color: #fff;">Plan für nächste Woche erstellen</span>
+        </div>
+        <div style="background: #1a1a1a; border-radius: 14px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span style="font-size: 13px; font-weight: 600; color: #fff;">🛒 Einkaufslisten senden</span>
+        </div>
+      </div>
+      <div style="font-size: 11px; font-weight: 700; color: #888; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 12px;">ANDERE TAGE — ACTION BAR</div>
+      <div style="background: #1a1a1a; border-radius: 14px; padding: 14px; text-align: center;">
+        <div style="font-size: 13px; font-weight: 600; color: #fff;">🛒 Einkaufslisten senden</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Gestapelt, volle Breite</h3>
+      <p>Freitags zwei Buttons übereinander — "Plan erstellen" groß oben (rot), "Einkauf senden" kleiner darunter (schwarz). Klare Hierarchie.</p>
+    </div>
+  </div>
+
+</div>

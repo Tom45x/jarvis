@@ -1,0 +1,236 @@
+<h2>Wochenplan-Übersicht — 3 Ansätze</h2>
+<p class="subtitle">Neue read-only Seite: alle 7 Tage auf einen Blick</p>
+
+<div class="cards">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f9f9f9;padding:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);max-width:340px;margin:0 auto;">
+        <!-- Header -->
+        <div style="padding:14px 16px 8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e5e5e5">
+          <div style="color:#ff385c;font-size:13px">←</div>
+          <div style="font-size:15px;font-weight:700;color:#222">Diese Woche</div>
+        </div>
+        <!-- Horizontal Scroll (7 Tage) -->
+        <div style="overflow-x:auto;display:flex;gap:0;padding:12px 12px">
+          <!-- Kompakte Tag-Karte -->
+          <div style="min-width:80px;margin-right:8px">
+            <div style="text-align:center;margin-bottom:6px">
+              <div style="width:28px;height:28px;background:#ff385c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;margin:0 auto 2px">Do</div>
+              <div style="font-size:9px;color:#6a6a6a">17. Apr</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Frühstück</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">Toast</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Mittag</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">Pasta Bolognese</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Abend</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">Hähnchen-pfanne</div>
+            </div>
+          </div>
+          <!-- Zweite Karte -->
+          <div style="min-width:80px;margin-right:8px">
+            <div style="text-align:center;margin-bottom:6px">
+              <div style="width:28px;height:28px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:10px;font-weight:700;margin:0 auto 2px">Fr</div>
+              <div style="font-size:9px;color:#6a6a6a">18. Apr</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Frühstück</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">Toast</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Mittag</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">Linseneintopf</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Abend</div>
+              <div style="font-size:9px;color:#222;font-weight:600;line-height:1.2">🍕 Filmabend</div>
+            </div>
+          </div>
+          <!-- Dritte -->
+          <div style="min-width:80px;opacity:0.5">
+            <div style="text-align:center;margin-bottom:6px">
+              <div style="width:28px;height:28px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:10px;font-weight:700;margin:0 auto 2px">Sa</div>
+              <div style="font-size:9px;color:#6a6a6a">19. Apr</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Frühstück</div>
+              <div style="font-size:9px;color:#222;font-weight:600">Müsli</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;margin-bottom:4px">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Mittag</div>
+              <div style="font-size:9px;color:#222;font-weight:600">Flammkuchen</div>
+            </div>
+            <div style="background:#fffbf0;border-radius:8px;padding:5px 6px;">
+              <div style="font-size:8px;color:#6a6a6a;margin-bottom:1px">Abend</div>
+              <div style="font-size:9px;color:#222;font-weight:600">Grill</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:4px 0 12px;font-size:10px;color:#6a6a6a">← 7 Tage scrollbar →</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Horizontales Scroll-Grid</h3>
+      <p>Wie der bestehende Wochenplan, aber kompakter und read-only. Jeder Tag eine Spalte, nach links/rechts scrollen. Kennt Katja bereits vom Wochenplan.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f9f9f9;padding:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);max-width:340px;margin:0 auto;">
+        <div style="padding:14px 16px 8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #e5e5e5">
+          <div style="color:#ff385c;font-size:13px">←</div>
+          <div style="font-size:15px;font-weight:700;color:#222">Diese Woche</div>
+        </div>
+        <div style="padding:10px 12px;overflow-y:auto;max-height:300px">
+          <!-- Tag 1 -->
+          <div style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:26px;height:26px;background:#ff385c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;flex-shrink:0">Do</div>
+              <div style="font-size:12px;font-weight:700;color:#222">Donnerstag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Frühstück</div>
+                <div style="font-size:10px;color:#222;font-weight:600">Toast</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Mittag</div>
+                <div style="font-size:10px;color:#222;font-weight:600;line-height:1.2">Pasta Bolognese</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Abend</div>
+                <div style="font-size:10px;color:#222;font-weight:600;line-height:1.2">Hähnchen-pfanne</div>
+              </div>
+            </div>
+          </div>
+          <!-- Tag 2 -->
+          <div style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:26px;height:26px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:9px;font-weight:700;flex-shrink:0">Fr</div>
+              <div style="font-size:12px;font-weight:700;color:#222">Freitag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Frühstück</div>
+                <div style="font-size:10px;color:#222;font-weight:600">Toast</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Mittag</div>
+                <div style="font-size:10px;color:#222;font-weight:600;line-height:1.2">Linseneintopf</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Abend</div>
+                <div style="font-size:10px;color:#222;font-weight:600">🍕 Filmabend</div>
+              </div>
+            </div>
+          </div>
+          <!-- Tag 3 -->
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:26px;height:26px;background:#f2f2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#222;font-size:9px;font-weight:700;flex-shrink:0">Sa</div>
+              <div style="font-size:12px;font-weight:700;color:#222">Samstag</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Frühstück</div>
+                <div style="font-size:10px;color:#222;font-weight:600">Müsli</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Mittag</div>
+                <div style="font-size:10px;color:#222;font-weight:600">Flammkuchen</div>
+              </div>
+              <div style="background:#fffbf0;border-radius:8px;padding:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+                <div style="font-size:8px;color:#6a6a6a;margin-bottom:2px">Abend</div>
+                <div style="font-size:10px;color:#222;font-weight:600">Grill</div>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:center;padding:6px 0 0;font-size:10px;color:#6a6a6a">↑ 7 Tage scrollbar ↓</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Vertikale Liste (3-Spalten-Grid pro Tag)</h3>
+      <p>Jeder Tag als eigene Zeile, Frühstück/Mittag/Abend nebeneinander in 3 Spalten. Nach unten scrollen für alle 7 Tage. Sehr kompakt, übersichtlich. Meine Empfehlung.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f9f9f9;padding:12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+      <!-- Landscape hint -->
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);max-width:340px;margin:0 auto;">
+        <div style="padding:10px 12px 6px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e5e5e5">
+          <div style="color:#ff385c;font-size:12px">←</div>
+          <div style="font-size:13px;font-weight:700;color:#222">Diese Woche</div>
+          <div style="margin-left:auto;font-size:9px;color:#6a6a6a;background:#f2f2f2;border-radius:6px;padding:2px 6px">↻ Querformat</div>
+        </div>
+        <!-- 7-Spalten Grid im Querformat-Stil -->
+        <div style="padding:8px;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:8px">
+            <thead>
+              <tr>
+                <td style="padding:3px 4px;color:#6a6a6a;font-weight:600;width:50px"></td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#ff385c">Do</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">Fr</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">Sa</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">So</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">Mo</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">Di</td>
+                <td style="padding:3px 4px;text-align:center;font-weight:700;color:#222">Mi</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:3px 4px;color:#6a6a6a;font-weight:600;font-size:7px">Früh</td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Toast</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Toast</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Müsli</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Croissant</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Toast</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Toast</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Toast</div></td>
+              </tr>
+              <tr>
+                <td style="padding:3px 4px;color:#6a6a6a;font-weight:600;font-size:7px">Mittag</td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Pasta</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Linsen</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Flamm-kuchen</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Suppe</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Salat</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Wrap</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Burger</div></td>
+              </tr>
+              <tr>
+                <td style="padding:3px 4px;color:#6a6a6a;font-weight:600;font-size:7px">Abend</td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Hähnchen</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">🍕 Film</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Grill</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Pizza</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Steak</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Thai</div></td>
+                <td style="padding:2px;"><div style="background:#fffbf0;border-radius:4px;padding:3px 4px;text-align:center;line-height:1.2;color:#222">Risotto</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="text-align:center;padding:4px 0 10px;font-size:9px;color:#6a6a6a">Im Querformat passt alles ohne Scrollen auf den Screen</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Kompaktes 7×3 Tabellen-Grid</h3>
+      <p>Alle 7 Tage als Spalten, 3 Zeilen (F/M/A). Im Querformat passt die ganze Woche ohne Scrollen auf den Bildschirm — ein echter Gesamtüberblick.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#6a6a6a;text-align:center">Klick auf eine Karte um sie auszuwählen, dann im Terminal antworten.</p>
