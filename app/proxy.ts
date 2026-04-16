@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const apiKey = process.env.INTERNAL_API_KEY
   // Wenn kein Key konfiguriert ist, alle Requests durchlassen (Entwicklungsumgebung)
   if (!apiKey) return NextResponse.next()
