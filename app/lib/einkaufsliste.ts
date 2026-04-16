@@ -1,4 +1,6 @@
 import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, EinkaufsRouting } from '@/types'
+import { istTracked, normalisiereEinheit } from '@/lib/vorrat'
+import type { VorratEintrag } from '@/types'
 
 // Zutaten, die immer im Haus sind — kommen nie auf die Einkaufsliste
 const GRUNDVORRAT_KEYWORDS = [
@@ -84,7 +86,8 @@ export function generiereEinkaufslisten(
   eintraege: WochenplanEintrag[],
   gerichte: Gericht[],
   einkaufstag2: number,
-  regelbedarfNamen: string[] = []
+  regelbedarfNamen: string[] = [],
+  vorrat: VorratEintrag[] = []
 ): EinkaufslistenErgebnis {
   const gerichtMap = new Map(gerichte.map(g => [g.name, g]))
 
@@ -98,22 +101,20 @@ export function generiereEinkaufslisten(
 
   const roh1: EinkaufsItem[] = []
   const roh2: EinkaufsItem[] = []
+  const trackedNamen = new Set<string>()
 
   for (const eintrag of relevantEintraege) {
     const gericht = gerichtMap.get(eintrag.gericht_name)
     if (!gericht || gericht.zutaten.length === 0) continue
 
-    // Gerichte die bestellt werden (kein Einkauf nötig) überspringen
     if (gericht.zutaten.some(z => z.name === 'Essen wird bestellt')) continue
 
     const tagIndex = tagZuWochenindex(eintrag.tag)
-    if (tagIndex === 0) continue // unbekannter Tag-String — überspringen
+    if (tagIndex === 0) continue
     const hatReste = gerichteNamenMitResten.has(eintrag.gericht_name)
-    // Wenn das Gericht Reste hat, wird es für 2 Mahlzeiten gekocht → Menge verdoppeln
     const faktor = hatReste ? 2 : 1
 
     for (const zutat of gericht.zutaten) {
-      // Grundvorräte und Regelbedarf-Artikel überspringen
       if (istGrundvorrat(zutat.name)) continue
       if (istInRegelbedarf(zutat.name, regelbedarfNamen)) continue
 
@@ -121,6 +122,10 @@ export function generiereEinkaufslisten(
         name: zutat.name,
         menge: zutat.menge * faktor,
         einheit: zutat.einheit,
+      }
+
+      if (istTracked(zutat.haltbarkeit_tage)) {
+        trackedNamen.add(zutat.name.toLowerCase())
       }
 
       if (zutat.haltbarkeit_tage >= 5) {
@@ -133,9 +138,33 @@ export function generiereEinkaufslisten(
     }
   }
 
+  // Vorrat-Check auf aggregierten einkauf1-Daten
+  const einkauf1Aggregiert = aggregiere(roh1)
+  const einkauf1Final: EinkaufsItem[] = []
+  const ausVorrat: EinkaufsItem[] = []
+
+  if (vorrat.length > 0) {
+    const vorratMap = new Map(vorrat.map(v => [v.zutat_name, v]))
+
+    for (const item of einkauf1Aggregiert) {
+      const key = item.name.toLowerCase()
+      if (trackedNamen.has(key)) {
+        const norm = normalisiereEinheit(item.menge, item.einheit)
+        const eintragVorrat = vorratMap.get(key)
+        if (eintragVorrat && eintragVorrat.einheit_basis === norm.basis && eintragVorrat.bestand >= norm.wert) {
+          ausVorrat.push(item)
+          continue
+        }
+      }
+      einkauf1Final.push(item)
+    }
+  } else {
+    einkauf1Final.push(...einkauf1Aggregiert)
+  }
+
   return {
-    einkauf1: aggregiere(roh1),
+    einkauf1: einkauf1Final,
     einkauf2: aggregiere(roh2),
-    ausVorrat: [],
+    ausVorrat,
   }
 }

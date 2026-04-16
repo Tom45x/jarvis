@@ -202,3 +202,65 @@ describe('generiereEinkaufslisten', () => {
     expect(einkauf2.find(i => i.name === 'Hackfleisch')?.menge).toBe(400) // Chili
   })
 })
+
+describe('generiereEinkaufslisten — Vorrat-Filterung', () => {
+  const gewuerzGericht: Gericht = {
+    id: 'g5', name: 'Curry', gesund: true, kategorie: 'fleisch',
+    beliebtheit: {}, quelle: 'manuell',
+    zutaten: [
+      { name: 'Kreuzkümmel', menge: 1, einheit: 'TL', haltbarkeit_tage: 365 },
+      { name: 'Hähnchenbrust', menge: 500, einheit: 'g', haltbarkeit_tage: 2 },
+    ]
+  }
+  const eintrag: WochenplanEintrag = {
+    tag: 'montag', mahlzeit: 'abend', gericht_id: 'g5', gericht_name: 'Curry'
+  }
+
+  it('gibt leeres ausVorrat zurück wenn kein Vorrat vorhanden', () => {
+    const { ausVorrat } = generiereEinkaufslisten([eintrag], [gewuerzGericht], 4, [], [])
+    expect(ausVorrat).toHaveLength(0)
+  })
+
+  it('filtert Artikel in ausVorrat wenn Bestand ausreicht', () => {
+    const vorrat = [{ zutat_name: 'kreuzkümmel', bestand: 30, einheit_basis: 'g' as const }]
+    const { einkauf1, ausVorrat } = generiereEinkaufslisten([eintrag], [gewuerzGericht], 4, [], vorrat)
+    // Kreuzkümmel (1 TL = 5g, Vorrat 30g >= 5g) → ausVorrat
+    expect(ausVorrat.find(i => i.name === 'Kreuzkümmel')).toBeTruthy()
+    expect(einkauf1.find(i => i.name === 'Kreuzkümmel')).toBeUndefined()
+    // Hähnchenbrust (haltbarkeit 2 Tage, nicht tracked) → normal in einkauf1
+    expect(einkauf1.find(i => i.name === 'Hähnchenbrust')).toBeTruthy()
+  })
+
+  it('kauft Artikel wenn Bestand nicht ausreicht', () => {
+    const vorrat = [{ zutat_name: 'kreuzkümmel', bestand: 3, einheit_basis: 'g' as const }]
+    const { einkauf1, ausVorrat } = generiereEinkaufslisten([eintrag], [gewuerzGericht], 4, [], vorrat)
+    // Vorrat 3g < benötigt 5g → kaufen
+    expect(einkauf1.find(i => i.name === 'Kreuzkümmel')).toBeTruthy()
+    expect(ausVorrat.find(i => i.name === 'Kreuzkümmel')).toBeUndefined()
+  })
+
+  it('kauft Artikel wenn Vorrat in anderer Einheit', () => {
+    // Vorrat in 'ml', Bedarf in 'g' → kein Match → kaufen
+    const vorrat = [{ zutat_name: 'kreuzkümmel', bestand: 100, einheit_basis: 'ml' as const }]
+    const { einkauf1, ausVorrat } = generiereEinkaufslisten([eintrag], [gewuerzGericht], 4, [], vorrat)
+    expect(einkauf1.find(i => i.name === 'Kreuzkümmel')).toBeTruthy()
+    expect(ausVorrat.find(i => i.name === 'Kreuzkümmel')).toBeUndefined()
+  })
+
+  it('berücksichtigt aggregierte Menge über mehrere Gerichte', () => {
+    const zweitesGericht: Gericht = {
+      id: 'g6', name: 'Linsensuppe', gesund: true, kategorie: 'suppe',
+      beliebtheit: {}, quelle: 'manuell',
+      zutaten: [{ name: 'Kreuzkümmel', menge: 2, einheit: 'TL', haltbarkeit_tage: 365 }]
+    }
+    const eintraege: WochenplanEintrag[] = [
+      eintrag,
+      { tag: 'dienstag', mahlzeit: 'abend', gericht_id: 'g6', gericht_name: 'Linsensuppe' }
+    ]
+    // Gesamt: 3 TL = 15g. Vorrat: 30g → alles aus Vorrat
+    const vorrat = [{ zutat_name: 'kreuzkümmel', bestand: 30, einheit_basis: 'g' as const }]
+    const { einkauf1, ausVorrat } = generiereEinkaufslisten(eintraege, [gewuerzGericht, zweitesGericht], 4, [], vorrat)
+    expect(ausVorrat.find(i => i.name === 'Kreuzkümmel')).toBeTruthy()
+    expect(einkauf1.find(i => i.name === 'Kreuzkümmel')).toBeUndefined()
+  })
+})
