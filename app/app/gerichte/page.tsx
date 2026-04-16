@@ -281,16 +281,24 @@ export default function GerichtePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error ?? 'Anlegen fehlgeschlagen')
-      await apiFetch('/api/zutaten/generieren', {
+      const zutatenRes = await apiFetch('/api/zutaten/generieren', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gerichtId: data.id }),
       })
-      await apiFetch('/api/rezepte/generieren', {
+      if (!zutatenRes.ok) {
+        const zutatenErr = await zutatenRes.json().catch(() => ({}))
+        throw new Error((zutatenErr as { error?: string })?.error ?? 'Zutaten-Generierung fehlgeschlagen')
+      }
+      const rezeptRes = await apiFetch('/api/rezepte/generieren', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gerichtId: data.id }),
       })
+      if (!rezeptRes.ok) {
+        const rezeptErr = await rezeptRes.json().catch(() => ({}))
+        throw new Error((rezeptErr as { error?: string })?.error ?? 'Rezept-Generierung fehlgeschlagen')
+      }
       const updated = await apiFetch('/api/gerichte').then(r => r.json())
       setGerichte(updated)
       setMeldung(`✅ ${neuesGerichtName.trim()} hinzugefügt`)
