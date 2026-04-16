@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { EinkaufsItem } from '@/types'
 import { aggregiere } from '@/lib/einkaufsliste'
 
@@ -13,28 +14,6 @@ export interface EinkaufslistenDaten {
 interface EinkaufslisteSheetProps {
   daten: EinkaufslistenDaten
   onClose: () => void
-}
-
-function PicnicLogo() {
-  return (
-    <span
-      className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full shrink-0"
-      style={{ background: '#5ba832', color: '#ffffff', fontSize: '10px' }}
-    >
-      Picnic
-    </span>
-  )
-}
-
-function BringLogo() {
-  return (
-    <span
-      className="inline-flex items-center justify-center text-xs font-bold px-2 py-0.5 rounded-full shrink-0"
-      style={{ background: '#f46a00', color: '#ffffff', fontSize: '10px' }}
-    >
-      Bring
-    </span>
-  )
 }
 
 function ItemListe({ items }: { items: EinkaufsItem[] }) {
@@ -60,6 +39,8 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
   const picnic = aggregiere(daten.picnic)
   const bring1 = aggregiere(daten.bring1)
   const bring2 = aggregiere(daten.bring2)
+  const gesamtArtikel = picnic.length + bring1.length + bring2.length
+  const router = useRouter()
   const [visible, setVisible] = useState(false)
   const touchStartY = useRef<number | null>(null)
 
@@ -108,20 +89,36 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
         </div>
 
         <div className="overflow-y-auto px-5 pb-10" style={{ maxHeight: 'calc(80vh - 40px)' }}>
-          <h2
-            id="einkauf-title"
-            className="text-lg font-bold mt-2 mb-5"
-            style={{ color: 'var(--near-black)', letterSpacing: '-0.3px' }}
-          >
-            Einkaufsliste
-          </h2>
+          {/* Header */}
+          <div className="flex items-baseline gap-2 mt-2 mb-5">
+            <h2
+              id="einkauf-title"
+              className="text-lg font-bold"
+              style={{ color: 'var(--near-black)', letterSpacing: '-0.3px' }}
+            >
+              Einkaufsliste
+            </h2>
+            {gesamtArtikel > 0 && (
+              <span className="text-sm" style={{ color: 'var(--gray-secondary)' }}>
+                · {gesamtArtikel} Artikel
+              </span>
+            )}
+          </div>
 
-          {/* Picnic */}
+          {/* Picnic Block */}
           {picnic.length > 0 && (
-            <div className="mb-5">
-              <div className="flex items-center gap-2 mb-2.5">
-                <PicnicLogo />
-                <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
+            <div
+              className="rounded-xl p-3 mb-3"
+              style={{ background: '#f0fae8' }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: '#5ba832', color: '#ffffff', fontSize: '10px' }}
+                >
+                  Picnic
+                </span>
+                <span className="text-xs font-semibold" style={{ color: '#5ba832' }}>
                   {picnic.length} Artikel
                 </span>
               </div>
@@ -129,31 +126,62 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
             </div>
           )}
 
-          {/* Bring — Einkauf 1 */}
+          {/* Bring Einkauf 1 Block */}
           {bring1.length > 0 && (
-            <div className="mb-5" style={{ borderTop: picnic.length > 0 ? '1px solid var(--border)' : undefined, paddingTop: picnic.length > 0 ? '16px' : undefined }}>
-              <div className="flex items-center gap-2 mb-2.5">
-                <BringLogo />
-                <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  Einkauf 1 — {bring1.length} Artikel
+            <div
+              className="rounded-xl p-3 mb-3"
+              style={{ background: '#fff5ed' }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: '#f46a00', color: '#ffffff', fontSize: '10px' }}
+                >
+                  Bring · Einkauf 1
+                </span>
+                <span className="text-xs font-semibold" style={{ color: '#f46a00' }}>
+                  {bring1.length} Artikel
                 </span>
               </div>
               <ItemListe items={bring1} />
             </div>
           )}
 
-          {/* Bring — Einkauf 2 */}
+          {/* Bring Einkauf 2 Block */}
           {bring2.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-              <div className="flex items-center gap-2 mb-2.5">
-                <BringLogo />
-                <span className="text-sm font-semibold" style={{ color: 'var(--near-black)' }}>
-                  Einkauf 2 — {bring2.length} Artikel
+            <div
+              className="rounded-xl p-3 mb-5"
+              style={{ background: '#fff5ed' }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: '#f46a00', color: '#ffffff', fontSize: '10px' }}
+                >
+                  Bring · Einkauf 2
+                </span>
+                <span className="text-xs font-semibold" style={{ color: '#f46a00' }}>
+                  {bring2.length} Artikel
                 </span>
               </div>
               <ItemListe items={bring2} />
             </div>
           )}
+
+          {/* Wochenplan-Button */}
+          <button
+            onClick={() => { onClose(); router.push('/wochenplan/uebersicht') }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
+            style={{ background: 'var(--surface)', color: 'var(--near-black)', minHeight: '48px' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Wochenplan ansehen
+          </button>
         </div>
       </div>
     </>
