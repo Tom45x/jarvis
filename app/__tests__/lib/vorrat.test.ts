@@ -1,3 +1,11 @@
+const mockSelect = jest.fn()
+const mockUpsert = jest.fn().mockResolvedValue({ error: null })
+jest.mock('@/lib/supabase-server', () => ({
+  supabase: {
+    from: jest.fn(() => ({ select: mockSelect, upsert: mockUpsert })),
+  },
+}))
+
 import { istTracked, normalisiereEinheit, parsePaketgroesse } from '@/lib/vorrat'
 
 describe('istTracked', () => {
@@ -87,5 +95,76 @@ describe('parsePaketgroesse', () => {
 
   it('verarbeitet Kommazahlen', () => {
     expect(parsePaketgroesse('Olivenöl 0,5l')).toEqual({ wert: 500, basis: 'ml' })
+  })
+})
+
+describe('ladeVorrat', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('gibt leeren Array zurück wenn Supabase kein data liefert', async () => {
+    const { ladeVorrat } = await import('@/lib/vorrat')
+    mockSelect.mockResolvedValueOnce({ data: null })
+    const result = await ladeVorrat()
+    expect(result).toEqual([])
+  })
+
+  it('gibt Vorrat-Einträge zurück', async () => {
+    const { ladeVorrat } = await import('@/lib/vorrat')
+    const eintraege = [
+      { zutat_name: 'kreuzkümmel', bestand: 30, einheit_basis: 'g' },
+      { zutat_name: 'olivenöl', bestand: 450, einheit_basis: 'ml' },
+    ]
+    mockSelect.mockResolvedValueOnce({ data: eintraege })
+    const result = await ladeVorrat()
+    expect(result).toEqual(eintraege)
+  })
+})
+
+describe('aktualisiereVorrat', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('bucht Kauf ein und zieht Verbrauch ab', async () => {
+    const { aktualisiereVorrat } = await import('@/lib/vorrat')
+    const aktuellerVorrat = [{ zutat_name: 'kreuzkümmel', bestand: 0, einheit_basis: 'g' as const }]
+    const kaeufe = [{
+      zutat_name: 'kreuzkümmel',
+      paket: { wert: 35, basis: 'g' as const },
+      verbrauch: { wert: 5, basis: 'g' as const },
+    }]
+    await aktualisiereVorrat(aktuellerVorrat, kaeufe, [])
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ zutat_name: 'kreuzkümmel', bestand: 30 })]),
+      { onConflict: 'zutat_name' }
+    )
+  })
+
+  it('zieht ausVorrat-Verbrauch ab', async () => {
+    const { aktualisiereVorrat } = await import('@/lib/vorrat')
+    const aktuellerVorrat = [{ zutat_name: 'olivenöl', bestand: 450, einheit_basis: 'ml' as const }]
+    const ausVorratListe = [{ zutat_name: 'olivenöl', verbrauch: { wert: 30, basis: 'ml' as const } }]
+    await aktualisiereVorrat(aktuellerVorrat, [], ausVorratListe)
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ zutat_name: 'olivenöl', bestand: 420 })]),
+      { onConflict: 'zutat_name' }
+    )
+  })
+
+  it('lässt bestand nicht unter 0 fallen', async () => {
+    const { aktualisiereVorrat } = await import('@/lib/vorrat')
+    const aktuellerVorrat = [{ zutat_name: 'nudeln', bestand: 3, einheit_basis: 'g' as const }]
+    const ausVorratListe = [{ zutat_name: 'nudeln', verbrauch: { wert: 10, basis: 'g' as const } }]
+    await aktualisiereVorrat(aktuellerVorrat, [], ausVorratListe)
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ zutat_name: 'nudeln', bestand: 0 })]),
+      { onConflict: 'zutat_name' }
+    )
+  })
+
+  it('schluckt Fehler still', async () => {
+    const { aktualisiereVorrat } = await import('@/lib/vorrat')
+    mockUpsert.mockRejectedValueOnce(new Error('DB down'))
+    await expect(
+      aktualisiereVorrat([], [{ zutat_name: 'test', paket: null, verbrauch: { wert: 1, basis: 'g' } }], [])
+    ).resolves.toBeUndefined()
   })
 })
