@@ -465,25 +465,36 @@ export default function GerichtePage() {
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => setNeuesGerichtModus('generieren')}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
+              className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
               style={{
-                background: neuesGerichtModus === 'generieren' ? 'var(--near-black)' : '#ffffff',
-                color: neuesGerichtModus === 'generieren' ? '#ffffff' : 'var(--near-black)',
-                border: '1.5px solid var(--border)',
+                background: 'var(--near-black)',
+                color: '#ffffff',
+                opacity: neuesGerichtModus && neuesGerichtModus !== 'generieren' ? 0.35 : 1,
               }}
             >
-              ✨ Generieren
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                <path d="M5 3v4"/>
+                <path d="M19 17v4"/>
+                <path d="M3 5h4"/>
+                <path d="M17 19h4"/>
+              </svg>
+              Generieren
             </button>
             <button
               onClick={() => setNeuesGerichtModus('manuell')}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
+              className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
               style={{
-                background: neuesGerichtModus === 'manuell' ? 'var(--near-black)' : '#ffffff',
-                color: neuesGerichtModus === 'manuell' ? '#ffffff' : 'var(--near-black)',
-                border: '1.5px solid var(--border)',
+                background: 'var(--near-black)',
+                color: '#ffffff',
+                opacity: neuesGerichtModus && neuesGerichtModus !== 'manuell' ? 0.35 : 1,
               }}
             >
-              ✍️ Manuell
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              Manuell
             </button>
           </div>
 
@@ -595,10 +606,21 @@ export default function GerichtePage() {
             <button
               onClick={neuesGerichtGenerieren}
               disabled={!neuesGerichtName.trim() || neuesGerichtLaedt}
-              className="w-full text-sm font-semibold py-2.5 rounded-xl disabled:opacity-50 active:opacity-70"
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-xl disabled:opacity-50 active:opacity-70"
               style={{ background: 'var(--rausch)', color: '#ffffff', minHeight: '48px' }}
             >
-              {neuesGerichtLaedt ? '...' : '✨ Zutaten & Rezept generieren'}
+              {neuesGerichtLaedt ? '...' : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                    <path d="M5 3v4"/>
+                    <path d="M19 17v4"/>
+                    <path d="M3 5h4"/>
+                    <path d="M17 19h4"/>
+                  </svg>
+                  Zutaten & Rezept generieren
+                </>
+              )}
             </button>
           )}
 
@@ -642,9 +664,29 @@ export default function GerichtePage() {
           return (
             <div
               key={gericht.id}
-              className="rounded-2xl p-4"
+              className="relative rounded-2xl p-4"
               style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
             >
+              {/* Löschen-Button */}
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  if (window.confirm('Gericht wirklich löschen?')) loeschen(gericht.id)
+                }}
+                disabled={loescht === gericht.id}
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-50 active:opacity-70"
+                style={{ background: 'var(--rausch)', color: '#ffffff' }}
+                aria-label="Gericht löschen"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6"/>
+                  <path d="M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
+
               {/* Kopfzeile: Name + Badges — div statt button wegen verschachtelten Sterne-Buttons */}
               <div
                 role="button"
