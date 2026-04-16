@@ -175,7 +175,6 @@ export default function WochenplanPage() {
           gerichte={gerichte}
           onTauschen={tauschen}
           onWaehlen={waehlen}
-          onGenehmigen={genehmigen}
           onRezept={setRezeptGericht}
         />
       ) : (
