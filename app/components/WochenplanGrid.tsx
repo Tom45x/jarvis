@@ -88,11 +88,10 @@ interface WochenplanGridProps {
   gerichte: Gericht[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
-  onGenehmigen: () => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTauschen, onWaehlen, onGenehmigen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
@@ -266,18 +265,6 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
           )
         })}
       </div>
-
-      {aktiverPlan?.status === 'entwurf' && (
-        <div className="px-4">
-          <button
-            onClick={onGenehmigen}
-            className="w-full py-3.5 rounded-xl text-sm font-semibold transition-opacity active:opacity-70"
-            style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
-          >
-            Plan genehmigen ✓
-          </button>
-        </div>
-      )}
 
       {picker && (
         <GerichtPickerSheet
