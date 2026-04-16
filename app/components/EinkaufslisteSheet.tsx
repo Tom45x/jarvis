@@ -88,7 +88,7 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
         </div>
 
-        <div className="overflow-y-auto px-5 pb-10" style={{ maxHeight: 'calc(80vh - 40px)' }}>
+        <div className="overflow-y-auto px-5 pb-8" style={{ maxHeight: 'calc(80vh - 40px)' }}>
           {/* Header */}
           <div className="flex items-baseline gap-2 mt-2 mb-5">
             <h2
@@ -104,6 +104,21 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
               </span>
             )}
           </div>
+
+          {/* Wochenplan-Button */}
+          <button
+            onClick={() => { onClose(); router.push('/wochenplan/uebersicht') }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity mb-4"
+            style={{ background: 'var(--surface)', color: 'var(--near-black)', minHeight: '48px' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Wochenplan ansehen
+          </button>
 
           {/* Picnic Block */}
           {picnic.length > 0 && (
@@ -168,20 +183,6 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
             </div>
           )}
 
-          {/* Wochenplan-Button */}
-          <button
-            onClick={() => { onClose(); router.push('/wochenplan/uebersicht') }}
-            className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
-            style={{ background: 'var(--surface)', color: 'var(--near-black)', minHeight: '48px' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-            Wochenplan ansehen
-          </button>
         </div>
       </div>
     </>

@@ -13,10 +13,9 @@ const TAG_SHORT: Record<Tag, string> = {
   freitag: 'Fr', samstag: 'Sa', sonntag: 'So',
 }
 
-const MAHLZEITEN: Mahlzeit[] = ['frühstück', 'mittag', 'abend']
+const MAHLZEITEN: Mahlzeit[] = ['mittag', 'abend']
 
-const MAHLZEIT_LABEL: Record<Mahlzeit, string> = {
-  frühstück: 'Früh',
+const MAHLZEIT_LABEL: Record<'mittag' | 'abend', string> = {
   mittag: 'Mittag',
   abend: 'Abend',
 }
@@ -27,10 +26,13 @@ function istHeute(tag: Tag): boolean {
   return JS_TAGE[new Date().getDay()] === tag
 }
 
+const BOTTOM_NAV_HEIGHT = 64
+
 export default function WochenplanUebersichtPage() {
   const router = useRouter()
   const [plan, setPlan] = useState<Wochenplan | null>(null)
   const [istLandscape, setIstLandscape] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(0)
 
   useEffect(() => {
     apiFetch('/api/wochenplan')
@@ -42,14 +44,16 @@ export default function WochenplanUebersichtPage() {
   }, [])
 
   useEffect(() => {
-    const mq = window.matchMedia('(orientation: landscape)')
-    setIstLandscape(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIstLandscape(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    const update = () => {
+      setIstLandscape(window.innerWidth > window.innerHeight)
+      setViewportHeight(window.innerHeight)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
 
-  function gerichtName(tag: Tag, mahlzeit: Mahlzeit): string {
+  function gerichtName(tag: Tag, mahlzeit: 'mittag' | 'abend'): string {
     return plan?.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)?.gericht_name ?? '—'
   }
 
@@ -77,29 +81,36 @@ export default function WochenplanUebersichtPage() {
           </h1>
         </div>
 
-        <div className="px-4 space-y-1.5">
+        <div
+          className="px-4"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '28px 1fr 1fr',
+            gridAutoRows: '62px',
+            gap: '4px',
+          }}
+        >
           {TAGE.map(tag => (
-            <div
-              key={tag}
-              style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 1fr', gap: '6px', alignItems: 'center' }}
-            >
+            <React.Fragment key={tag}>
               {/* Kreis-Icon */}
-              <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: istHeute(tag) ? 'var(--rausch)' : 'var(--surface)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  color: istHeute(tag) ? '#ffffff' : 'var(--near-black)',
-                  flexShrink: 0,
-                }}
-              >
-                {TAG_SHORT[tag]}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: istHeute(tag) ? 'var(--rausch)' : 'var(--surface)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    color: istHeute(tag) ? '#ffffff' : 'var(--near-black)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {TAG_SHORT[tag]}
+                </div>
               </div>
 
               {/* Mahlzeit-Karten */}
@@ -107,17 +118,28 @@ export default function WochenplanUebersichtPage() {
                 <div
                   key={mahlzeit}
                   className="rounded-lg"
-                  style={{ background: '#fffbf0', padding: '6px 8px', boxShadow: 'var(--card-shadow)' }}
+                  style={{
+                    background: '#fffbf0',
+                    boxShadow: 'var(--card-shadow)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    paddingTop: '5px',
+                    paddingInline: '8px',
+                    paddingBottom: '4px',
+                  }}
                 >
-                  <p style={{ fontSize: '9px', color: 'var(--gray-secondary)', marginBottom: '2px' }}>
+                  <p style={{ fontSize: '9px', color: 'var(--gray-secondary)', marginBottom: '3px', flexShrink: 0 }}>
                     {MAHLZEIT_LABEL[mahlzeit]}
                   </p>
-                  <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--near-black)', lineHeight: '1.2' }}>
-                    {gerichtName(tag, mahlzeit)}
-                  </p>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--near-black)', lineHeight: '1.2', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {gerichtName(tag, mahlzeit)}
+                    </p>
+                  </div>
                 </div>
               ))}
-            </div>
+            </React.Fragment>
           ))}
         </div>
       </main>
@@ -126,26 +148,25 @@ export default function WochenplanUebersichtPage() {
 
   // ── Landscape Layout ─────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-white pb-8">
-      <div className="px-4 pt-6 pb-3 flex items-center gap-3">
+    <main style={{ display: 'grid', gridTemplateRows: 'auto 1fr', height: viewportHeight > 0 ? viewportHeight - BOTTOM_NAV_HEIGHT : undefined, background: 'white', overflow: 'hidden' }}>
+      <div className="px-4 pt-5 pb-2 flex items-center gap-3">
         {backButton}
         <h1 className="text-lg font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.3px' }}>
           Diese Woche
         </h1>
       </div>
 
-      <div className="px-4">
+      <div style={{ display: 'flex', alignItems: 'center', paddingInline: '16px', paddingBottom: '8px', minHeight: 0 }}>
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '44px repeat(7, 1fr)',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gridTemplateRows: 'auto 76px 76px',
             gap: '4px',
+            width: '100%',
           }}
         >
-          {/* Leer-Ecke oben links */}
-          <div />
-
-          {/* Tag-Spalten-Header */}
+          {/* Tag-Header */}
           {TAGE.map(tag => (
             <div key={tag} style={{ display: 'flex', justifyContent: 'center', paddingBottom: '4px' }}>
               <div
@@ -170,35 +191,40 @@ export default function WochenplanUebersichtPage() {
           {/* Mahlzeit-Zeilen */}
           {MAHLZEITEN.map(mahlzeit => (
             <React.Fragment key={mahlzeit}>
-              {/* Zeilen-Label */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: 'var(--gray-secondary)',
-                  paddingRight: '6px',
-                }}
-              >
-                {MAHLZEIT_LABEL[mahlzeit]}
-              </div>
-
-              {/* Zellen */}
               {TAGE.map(tag => (
                 <div
                   key={`${tag}-${mahlzeit}`}
                   className="rounded-lg"
                   style={{
                     background: '#fffbf0',
-                    padding: '6px 4px',
-                    textAlign: 'center',
                     boxShadow: 'var(--card-shadow)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    paddingTop: '6px',
+                    paddingInline: '4px',
+                    paddingBottom: '4px',
                   }}
                 >
-                  <p style={{ fontSize: '10px', fontWeight: 600, color: 'var(--near-black)', lineHeight: '1.3' }}>
-                    {gerichtName(tag, mahlzeit)}
+                  <p style={{ fontSize: '8px', color: 'var(--gray-secondary)', marginBottom: '3px', flexShrink: 0 }}>
+                    {MAHLZEIT_LABEL[mahlzeit]}
                   </p>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                    <p style={{
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: 'var(--near-black)',
+                      lineHeight: '1.2',
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                    }}>
+                      {gerichtName(tag, mahlzeit)}
+                    </p>
+                  </div>
                 </div>
               ))}
             </React.Fragment>

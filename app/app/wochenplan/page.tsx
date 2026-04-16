@@ -15,9 +15,30 @@ export default function WochenplanPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [einkaufLoading, setEinkaufLoading] = useState(false)
-  const [einkaufMeldung, setEinkaufMeldung] = useState<string | null>(null)
-  const [einkaufslisteDaten, setEinkaufslisteDaten] = useState<EinkaufslistenDaten | null>(null)
+  const [einkaufMeldung, setEinkaufMeldungRaw] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return sessionStorage.getItem('einkaufMeldung') ?? null
+  })
+
+  function setEinkaufMeldung(meldung: string | null) {
+    setEinkaufMeldungRaw(meldung)
+    if (meldung) sessionStorage.setItem('einkaufMeldung', meldung)
+    else sessionStorage.removeItem('einkaufMeldung')
+  }
+  const [einkaufslisteDaten, setEinkaufslisteDatenRaw] = useState<EinkaufslistenDaten | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const stored = sessionStorage.getItem('einkaufslisteDaten')
+      return stored ? JSON.parse(stored) : null
+    } catch { return null }
+  })
   const [einkaufslisteOffen, setEinkaufslisteOffen] = useState(false)
+
+  function setEinkaufslisteDaten(daten: EinkaufslistenDaten | null) {
+    setEinkaufslisteDatenRaw(daten)
+    if (daten) sessionStorage.setItem('einkaufslisteDaten', JSON.stringify(daten))
+    else sessionStorage.removeItem('einkaufslisteDaten')
+  }
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
 
   useEffect(() => {
