@@ -136,5 +136,6 @@ export function generiereEinkaufslisten(
   return {
     einkauf1: aggregiere(roh1),
     einkauf2: aggregiere(roh2),
+    ausVorrat: [],
   }
 }

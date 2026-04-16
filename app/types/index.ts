@@ -73,6 +73,7 @@ export interface EinkaufsItem {
 export interface EinkaufslistenErgebnis {
   einkauf1: EinkaufsItem[]
   einkauf2: EinkaufsItem[]
+  ausVorrat: EinkaufsItem[]
 }
 
 export interface EinkaufsArtikel {
@@ -105,6 +106,17 @@ export interface PicnicArtikel {
 export interface EinkaufsRouting {
   picnic: EinkaufsItem[]
   bring: EinkaufsItem[]
+}
+
+export interface NormierteMenge {
+  wert: number
+  basis: 'g' | 'ml' | 'stueck'
+}
+
+export interface VorratEintrag {
+  zutat_name: string        // normalisiert: lowercase
+  bestand: number
+  einheit_basis: 'g' | 'ml' | 'stueck'
 }
 
 export interface WochenAnsicht {
