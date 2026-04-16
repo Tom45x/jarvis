@@ -6,9 +6,10 @@ import type { EinkaufsItem } from '@/types'
 import { aggregiere } from '@/lib/einkaufsliste'
 
 export interface EinkaufslistenDaten {
-  picnic: EinkaufsItem[]
+  picnic: Array<{ picnicProdukt: string }>
   bring1: EinkaufsItem[]
   bring2: EinkaufsItem[]
+  ausVorrat: EinkaufsItem[]
 }
 
 interface EinkaufslisteSheetProps {
@@ -35,11 +36,26 @@ function ItemListe({ items }: { items: EinkaufsItem[] }) {
   )
 }
 
+function PicnicListe({ items }: { items: Array<{ picnicProdukt: string }> }) {
+  if (items.length === 0) return <p className="text-sm" style={{ color: 'var(--gray-secondary)' }}>—</p>
+  const unique = [...new Set(items.map(i => i.picnicProdukt))]
+  return (
+    <ul className="space-y-1">
+      {unique.map((produkt, i) => (
+        <li key={i} className="text-sm flex items-baseline gap-2" style={{ color: 'var(--near-black)' }}>
+          <span style={{ color: '#5ba832', flexShrink: 0 }}>·</span>
+          <span className="flex-1">{produkt}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) {
-  const picnic = aggregiere(daten.picnic)
   const bring1 = aggregiere(daten.bring1)
   const bring2 = aggregiere(daten.bring2)
-  const gesamtArtikel = picnic.length + bring1.length + bring2.length
+  const ausVorrat = aggregiere(daten.ausVorrat)
+  const gesamtArtikel = daten.picnic.length + bring1.length + bring2.length
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const touchStartY = useRef<number | null>(null)
@@ -121,11 +137,8 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
           </button>
 
           {/* Picnic Block */}
-          {picnic.length > 0 && (
-            <div
-              className="rounded-xl p-3 mb-3"
-              style={{ background: '#f0fae8' }}
-            >
+          {daten.picnic.length > 0 && (
+            <div className="rounded-xl p-3 mb-3" style={{ background: '#f0fae8' }}>
               <div className="flex items-center justify-between mb-2">
                 <span
                   className="text-xs font-bold px-2 py-0.5 rounded-full"
@@ -134,19 +147,16 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
                   Picnic
                 </span>
                 <span className="text-xs font-semibold" style={{ color: '#5ba832' }}>
-                  {picnic.length} Artikel
+                  {daten.picnic.length} Artikel
                 </span>
               </div>
-              <ItemListe items={picnic} />
+              <PicnicListe items={daten.picnic} />
             </div>
           )}
 
           {/* Bring Einkauf 1 Block */}
           {bring1.length > 0 && (
-            <div
-              className="rounded-xl p-3 mb-3"
-              style={{ background: '#fff5ed' }}
-            >
+            <div className="rounded-xl p-3 mb-3" style={{ background: '#fff5ed' }}>
               <div className="flex items-center justify-between mb-2">
                 <span
                   className="text-xs font-bold px-2 py-0.5 rounded-full"
@@ -164,10 +174,7 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
 
           {/* Bring Einkauf 2 Block */}
           {bring2.length > 0 && (
-            <div
-              className="rounded-xl p-3 mb-5"
-              style={{ background: '#fff5ed' }}
-            >
+            <div className="rounded-xl p-3 mb-3" style={{ background: '#fff5ed' }}>
               <div className="flex items-center justify-between mb-2">
                 <span
                   className="text-xs font-bold px-2 py-0.5 rounded-full"
@@ -183,6 +190,23 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
             </div>
           )}
 
+          {/* Aus dem Vorrat Block */}
+          {ausVorrat.length > 0 && (
+            <div className="rounded-xl p-3 mb-5" style={{ background: '#f5f5f5' }}>
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: '#888888', color: '#ffffff', fontSize: '10px' }}
+                >
+                  Aus dem Vorrat
+                </span>
+                <span className="text-xs font-semibold" style={{ color: '#888888' }}>
+                  {ausVorrat.length} Artikel
+                </span>
+              </div>
+              <ItemListe items={ausVorrat} />
+            </div>
+          )}
         </div>
       </div>
     </>
