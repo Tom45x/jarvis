@@ -58,19 +58,19 @@ describe('Neues Gericht — Manuell-Pfad', () => {
 
   it('zeigt Kategorie-Dropdown nach Klick auf Manuell', async () => {
     await oeffneFormular()
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
     expect(screen.getByDisplayValue('sonstiges')).toBeInTheDocument()
   })
 
   it('zeigt Aufwand-Dropdown nach Klick auf Manuell', async () => {
     await oeffneFormular()
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
     expect(screen.getByDisplayValue('30 Min')).toBeInTheDocument()
   })
 
   it('Speichern-Button ist deaktiviert wenn Name leer', async () => {
     await oeffneFormular()
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
     expect(screen.getByText('Speichern')).toBeDisabled()
   })
 
@@ -84,7 +84,7 @@ describe('Neues Gericht — Manuell-Pfad', () => {
 
     await oeffneFormular()
     fireEvent.change(screen.getByPlaceholderText('Name des Gerichts'), { target: { value: 'Testgericht' } })
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
     fireEvent.click(screen.getByText('Speichern'))
 
     await waitFor(() => {
@@ -105,7 +105,7 @@ describe('Neues Gericht — Manuell-Pfad', () => {
 
     await oeffneFormular()
     fireEvent.change(screen.getByPlaceholderText('Name des Gerichts'), { target: { value: 'Testgericht' } })
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
     fireEvent.click(screen.getByText('Speichern'))
 
     await waitFor(() => {
@@ -119,7 +119,7 @@ describe('Neues Gericht — Zutaten-Toggle', () => {
     render(<GerichtePage />)
     await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
     fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
-    fireEvent.click(screen.getByText('✍️ Manuell'))
+    fireEvent.click(screen.getByText('Manuell'))
   }
 
   it('zeigt Toggle-Button', async () => {
@@ -162,20 +162,20 @@ describe('Neues Gericht — Generieren-Pfad', () => {
     await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
     fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
     fireEvent.change(screen.getByPlaceholderText('Name des Gerichts'), { target: { value: name } })
-    fireEvent.click(screen.getByText('✨ Generieren'))
+    fireEvent.click(screen.getByText('Generieren'))
   }
 
   it('zeigt Generieren-Button wenn Generieren gewählt und Name ausgefüllt', async () => {
     await oeffneGenerieren()
-    expect(screen.getByText('✨ Zutaten & Rezept generieren')).toBeInTheDocument()
+    expect(screen.getByText('Zutaten & Rezept generieren')).toBeInTheDocument()
   })
 
   it('Generieren-Button ist deaktiviert wenn Name leer', async () => {
     render(<GerichtePage />)
     await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
     fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
-    fireEvent.click(screen.getByText('✨ Generieren'))
-    expect(screen.getByText('✨ Zutaten & Rezept generieren')).toBeDisabled()
+    fireEvent.click(screen.getByText('Generieren'))
+    expect(screen.getByText('Zutaten & Rezept generieren')).toBeDisabled()
   })
 
   it('ruft POST /api/gerichte → /api/zutaten/generieren → /api/rezepte/generieren auf', async () => {
@@ -191,7 +191,7 @@ describe('Neues Gericht — Generieren-Pfad', () => {
     })
 
     await oeffneGenerieren('Testgericht')
-    fireEvent.click(screen.getByText('✨ Zutaten & Rezept generieren'))
+    fireEvent.click(screen.getByText('Zutaten & Rezept generieren'))
 
     await waitFor(() => {
       expect(mockApiFetch).toHaveBeenCalledWith('/api/gerichte', expect.objectContaining({
@@ -218,7 +218,7 @@ describe('Neues Gericht — Generieren-Pfad', () => {
     })
 
     await oeffneGenerieren('Testgericht')
-    fireEvent.click(screen.getByText('✨ Zutaten & Rezept generieren'))
+    fireEvent.click(screen.getByText('Zutaten & Rezept generieren'))
 
     await waitFor(() => {
       expect(screen.queryByPlaceholderText('Name des Gerichts')).not.toBeInTheDocument()
