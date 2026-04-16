@@ -28,6 +28,14 @@ export default function GerichtePage() {
   const [rezeptOffen, setRezeptOffen] = useState<string | null>(null)
   const [filterKategorie, setFilterKategorie] = useState<string>('alle')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [neuesGerichtOffen, setNeuesGerichtOffen] = useState(false)
+  const [neuesGerichtName, setNeuesGerichtName] = useState('')
+  const [neuesGerichtModus, setNeuesGerichtModus] = useState<'generieren' | 'manuell' | null>(null)
+  const [neuesGerichtKategorie, setNeuesGerichtKategorie] = useState('sonstiges')
+  const [neuesGerichtAufwand, setNeuesGerichtAufwand] = useState('30 Min')
+  const [neuesGerichtZutatenOffen, setNeuesGerichtZutatenOffen] = useState(false)
+  const [neuesGerichtZutaten, setNeuesGerichtZutaten] = useState<Zutat[]>([])
+  const [neuesGerichtLaedt, setNeuesGerichtLaedt] = useState(false)
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -211,6 +219,17 @@ export default function GerichtePage() {
     }
   }
 
+  function neuesGerichtZuruecksetzen() {
+    setNeuesGerichtOffen(false)
+    setNeuesGerichtName('')
+    setNeuesGerichtModus(null)
+    setNeuesGerichtKategorie('sonstiges')
+    setNeuesGerichtAufwand('30 Min')
+    setNeuesGerichtZutatenOffen(false)
+    setNeuesGerichtZutaten([])
+    setNeuesGerichtLaedt(false)
+  }
+
   const aktiveGerichte = gerichte.filter(g => !g.gesperrt)
   const gesperrteGerichte = gerichte.filter(g => g.gesperrt)
   const ohneZutaten = aktiveGerichte.filter(g => g.zutaten.length === 0).length
@@ -336,6 +355,43 @@ export default function GerichtePage() {
           </div>
         )}
       </div>
+
+      {/* Neues Gericht hinzufügen */}
+      {!neuesGerichtOffen && (
+        <div className="mx-4 mb-4">
+          <button
+            onClick={() => setNeuesGerichtOffen(true)}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl text-sm font-semibold active:opacity-70 transition-opacity"
+            style={{ background: 'var(--surface)', color: 'var(--near-black)', minHeight: '52px', boxShadow: 'var(--card-shadow)' }}
+          >
+            ＋ Neues Gericht hinzufügen
+          </button>
+        </div>
+      )}
+
+      {neuesGerichtOffen && (
+        <div className="mx-4 mb-4 rounded-2xl p-4" style={{ background: 'var(--surface)', boxShadow: 'var(--card-shadow)' }}>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--near-black)' }}>
+            Neues Gericht
+          </h2>
+          <input
+            type="text"
+            value={neuesGerichtName}
+            onChange={e => setNeuesGerichtName(e.target.value)}
+            placeholder="Name des Gerichts"
+            className="w-full rounded-xl outline-none mb-3"
+            style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', padding: '12px 14px', minHeight: '48px' }}
+          />
+          {/* Modus-Buttons, Pfade und Abbrechen folgen in Task 2 & 3 */}
+          <button
+            onClick={neuesGerichtZuruecksetzen}
+            className="w-full text-sm font-medium py-2.5 rounded-xl mt-2"
+            style={{ background: '#f0f0f0', color: 'var(--near-black)' }}
+          >
+            Abbrechen
+          </button>
+        </div>
+      )}
 
       {/* Kategorie-Filter */}
       <div className="px-4 mb-4">
