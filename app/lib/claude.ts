@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { logClaudeNutzung } from '@/lib/claude-tracking'
 import type { FamilieMitglied, Gericht, WochenplanEintrag } from '@/types'
 
 export interface WochenplanGenerierungErgebnis {
@@ -94,6 +95,8 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
+
+  await logClaudeNutzung('wochenplan', 'claude-sonnet-4-6', message.usage)
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '{}'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()

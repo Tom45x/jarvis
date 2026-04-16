@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
+import { logClaudeNutzung } from '@/lib/claude-tracking'
 import type { Gericht } from '@/types'
 
 export const maxDuration = 300 // 5 Minuten — für viele Gerichte nötig
@@ -42,6 +43,8 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   })
+
+  await logClaudeNutzung('rezept', 'claude-sonnet-4-6', message.usage)
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : ''
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase-server'
 import Anthropic from '@anthropic-ai/sdk'
+import { logClaudeNutzung } from '@/lib/claude-tracking'
 import type { FamilieMitglied } from '@/types'
 
 export interface GerichtVorschlag {
@@ -83,6 +84,8 @@ Antworte NUR mit diesem JSON-Array, kein weiterer Text:
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
+
+  await logClaudeNutzung('vorschlaege', 'claude-sonnet-4-6', message.usage)
 
   const raw = message.content[0].type === 'text' ? message.content[0].text : '[]'
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
