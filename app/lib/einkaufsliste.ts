@@ -1,6 +1,5 @@
-import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, EinkaufsRouting } from '@/types'
+import type { Gericht, WochenplanEintrag, EinkaufsItem, EinkaufslistenErgebnis, EinkaufsRouting, VorratEintrag } from '@/types'
 import { istTracked, normalisiereEinheit } from '@/lib/vorrat'
-import type { VorratEintrag } from '@/types'
 
 // Zutaten, die immer im Haus sind — kommen nie auf die Einkaufsliste
 const GRUNDVORRAT_KEYWORDS = [
