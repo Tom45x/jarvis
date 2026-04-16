@@ -38,7 +38,7 @@ export default function WochenplanUebersichtPage() {
       .then((data: { aktiverPlan: Wochenplan | null } | null) => {
         if (data?.aktiverPlan) setPlan(data.aktiverPlan)
       })
-      .catch(() => {})
+      .catch((e) => console.error('Wochenplan konnte nicht geladen werden:', e))
   }, [])
 
   useEffect(() => {
@@ -56,6 +56,7 @@ export default function WochenplanUebersichtPage() {
   const backButton = (
     <button
       onClick={() => router.back()}
+      aria-label="Zurück"
       className="flex items-center gap-1.5 active:opacity-70 transition-opacity"
       style={{ color: 'var(--rausch)' }}
     >
