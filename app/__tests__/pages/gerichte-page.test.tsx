@@ -113,3 +113,45 @@ describe('Neues Gericht — Manuell-Pfad', () => {
     })
   })
 })
+
+describe('Neues Gericht — Zutaten-Toggle', () => {
+  async function oeffneManuell() {
+    render(<GerichtePage />)
+    await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.click(screen.getByText('✍️ Manuell'))
+  }
+
+  it('zeigt Toggle-Button', async () => {
+    await oeffneManuell()
+    expect(screen.getByText('＋ Zutaten & Rezept jetzt hinzufügen')).toBeInTheDocument()
+  })
+
+  it('Toggle öffnet Zutaten-Editor', async () => {
+    await oeffneManuell()
+    fireEvent.click(screen.getByText('＋ Zutaten & Rezept jetzt hinzufügen'))
+    expect(screen.getByPlaceholderText('Name')).toBeInTheDocument()
+  })
+
+  it('PATCH /api/gerichte/:id wird aufgerufen wenn Zutat ausgefüllt', async () => {
+    const neuesGericht = { id: '99', name: 'Testgericht', zutaten: [], gesund: false, kategorie: 'sonstiges', beliebtheit: {}, quelle: 'manuell', aufwand: '30 Min', bewertung: 3, tausch_count: 0, gesperrt: false }
+    mockApiFetch.mockImplementation((url: string, opts?: RequestInit) => {
+      if (url === '/api/gerichte' && opts?.method === 'POST')
+        return Promise.resolve(makeResponse(neuesGericht))
+      return Promise.resolve(makeResponse([]))
+    })
+
+    await oeffneManuell()
+    fireEvent.change(screen.getByPlaceholderText('Name des Gerichts'), { target: { value: 'Testgericht' } })
+    fireEvent.click(screen.getByText('＋ Zutaten & Rezept jetzt hinzufügen'))
+    fireEvent.change(screen.getByPlaceholderText('Name'), { target: { value: 'Nudeln' } })
+    fireEvent.click(screen.getByText('Speichern'))
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/gerichte/99', expect.objectContaining({
+        method: 'PATCH',
+        body: expect.stringContaining('Nudeln'),
+      }))
+    })
+  })
+})

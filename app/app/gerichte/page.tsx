@@ -467,7 +467,64 @@ export default function GerichtePage() {
                   ))}
                 </select>
               </div>
-              {/* Zutaten-Toggle folgt in Task 3 */}
+              <button
+                onClick={() => {
+                  const oeffnen = !neuesGerichtZutatenOffen
+                  setNeuesGerichtZutatenOffen(oeffnen)
+                  if (oeffnen && neuesGerichtZutaten.length === 0) {
+                    setNeuesGerichtZutaten([{ name: '', menge: 0, einheit: 'g', haltbarkeit_tage: 1 }])
+                  }
+                }}
+                className="w-full text-xs font-medium py-2 rounded-xl mb-3"
+                style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
+              >
+                {neuesGerichtZutatenOffen ? '▲ Zutaten ausblenden' : '＋ Zutaten & Rezept jetzt hinzufügen'}
+              </button>
+
+              {neuesGerichtZutatenOffen && (
+                <div className="space-y-2 mb-3">
+                  {neuesGerichtZutaten.map((zutat, i) => (
+                    <div key={i} className="flex gap-1.5 items-center">
+                      <input
+                        value={zutat.name}
+                        onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, name: e.target.value } : z))}
+                        placeholder="Name"
+                        className="flex-1 min-w-0 px-2 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                      />
+                      <input
+                        type="number"
+                        value={zutat.menge}
+                        onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, menge: parseFloat(e.target.value) || 0 } : z))}
+                        className="px-2 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', width: '56px' }}
+                      />
+                      <select
+                        value={zutat.einheit}
+                        onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, einheit: e.target.value } : z))}
+                        className="px-1 py-1.5 rounded-lg"
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                      >
+                        {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
+                          <option key={e} value={e}>{e}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setNeuesGerichtZutaten(prev => prev.filter((_, idx) => idx !== i))}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg active:opacity-70"
+                        style={{ background: '#fff0f3', color: 'var(--rausch)' }}
+                      >✕</button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setNeuesGerichtZutaten(prev => [...prev, { name: '', menge: 0, einheit: 'g', haltbarkeit_tage: 1 }])}
+                    className="text-xs font-medium px-3 py-2 rounded-xl"
+                    style={{ border: '1.5px dashed var(--border)', color: 'var(--gray-secondary)' }}
+                  >
+                    + Zutat
+                  </button>
+                </div>
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={neuesGerichtSpeichern}
