@@ -15,9 +15,10 @@ const TAG_SHORT: Record<Tag, string> = {
 
 const MAHLZEITEN: Mahlzeit[] = ['mittag', 'abend']
 
-const MAHLZEIT_LABEL: Record<'mittag' | 'abend', string> = {
+const MAHLZEIT_LABEL: Record<Mahlzeit, string> = {
   mittag: 'Mittag',
   abend: 'Abend',
+  frühstück: 'Frühstück',
 }
 
 const JS_TAGE = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag']
@@ -53,7 +54,7 @@ export default function WochenplanUebersichtPage() {
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  function gerichtName(tag: Tag, mahlzeit: 'mittag' | 'abend'): string {
+  function gerichtName(tag: Tag, mahlzeit: Mahlzeit): string {
     return plan?.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)?.gericht_name ?? '—'
   }
 
