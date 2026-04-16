@@ -4,6 +4,7 @@ import { generiereEinkaufslisten, splitNachRouting } from '@/lib/einkaufsliste'
 import { aktualisiereEinkaufsliste } from '@/lib/bring'
 import { sucheArtikel, zumWarenkorb, warenkorbLeeren } from '@/lib/picnic'
 import { ladeWochenAnsicht } from '@/lib/wochenplan'
+import { ladeVorrat, aktualisiereVorrat, parsePaketgroesse, normalisiereEinheit, istTracked } from '@/lib/vorrat'
 import type { Gericht, EinkaufsItem, Regelbedarf } from '@/types'
 
 async function ladePicnicEinstellungen(): Promise<{
@@ -44,15 +45,19 @@ async function mitRetry<T>(fn: () => Promise<T>, versuche = 3): Promise<T> {
 async function verarbeitePicnicListe(
   picnicKandidaten: EinkaufsItem[],
   mindestbestellwert: number
-): Promise<{ zuPicnic: Array<{ item: EinkaufsItem; artikelId: string }>; zuBring: EinkaufsItem[]; gesamtpreisEuro: number }> {
-  const gefunden: Array<{ item: EinkaufsItem; artikelId: string; preisCent: number }> = []
+): Promise<{
+  zuPicnic: Array<{ item: EinkaufsItem; artikelId: string; picnicProdukt: string }>
+  zuBring: EinkaufsItem[]
+  gesamtpreisEuro: number
+}> {
+  const gefunden: Array<{ item: EinkaufsItem; artikelId: string; preisCent: number; picnicProdukt: string }> = []
   const nichtGefunden: EinkaufsItem[] = []
 
   await Promise.all(
     picnicKandidaten.map(async (item) => {
       const artikel = await sucheArtikel(item.name)
       if (artikel) {
-        gefunden.push({ item, artikelId: artikel.artikelId, preisCent: artikel.preis })
+        gefunden.push({ item, artikelId: artikel.artikelId, preisCent: artikel.preis, picnicProdukt: artikel.name })
       } else {
         nichtGefunden.push(item)
       }
@@ -70,7 +75,7 @@ async function verarbeitePicnicListe(
   }
 
   return {
-    zuPicnic: gefunden.map(g => ({ item: g.item, artikelId: g.artikelId })),
+    zuPicnic: gefunden.map(g => ({ item: g.item, artikelId: g.artikelId, picnicProdukt: g.picnicProdukt })),
     zuBring: nichtGefunden,
     gesamtpreisEuro,
   }
@@ -92,10 +97,11 @@ export async function POST() {
       )
     }
 
-    const [{ data: gerichte }, einstellungen, regelbedarf] = await Promise.all([
+    const [{ data: gerichte }, einstellungen, regelbedarf, vorrat] = await Promise.all([
       supabase.from('gerichte').select('*'),
       ladePicnicEinstellungen(),
       ladeRegelbedarf(),
+      ladeVorrat(),
     ])
 
     if (!gerichte) {
@@ -105,22 +111,19 @@ export async function POST() {
     const einkaufstag2Raw = parseInt(process.env.EINKAUFSTAG_2 ?? '4', 10)
     const einkaufstag2 = isNaN(einkaufstag2Raw) ? 4 : einkaufstag2Raw
     const regelbedarfNamen = regelbedarf.map(r => r.name)
-    const { einkauf1, einkauf2 } = generiereEinkaufslisten(
+    const { einkauf1, einkauf2, ausVorrat } = generiereEinkaufslisten(
       plan.eintraege,
       gerichte as Gericht[],
       einkaufstag2,
-      regelbedarfNamen
+      regelbedarfNamen,
+      vorrat
     )
 
-    // Einkauf 1: Bring-Keywords → Bring, Rest → Picnic-Suche
     const routing1 = splitNachRouting(einkauf1, einstellungen.bringKeywords)
     const picnic1Ergebnis = await verarbeitePicnicListe(routing1.picnic, einstellungen.mindestbestellwert)
     const bring1Gesamt = [...routing1.bring, ...picnic1Ergebnis.zuBring]
-
-    // Einkauf 2: komplett zu Bring (zu wenige Artikel für Picnic-Mindestbestellwert)
     const bring2Gesamt = [...einkauf2]
 
-    // Regelbedarf: nur für Einkauf 1 → Picnic (parallelisiert)
     const regelbedarfItems: EinkaufsItem[] = regelbedarf.map(r => ({
       name: r.name,
       menge: r.menge,
@@ -129,11 +132,11 @@ export async function POST() {
     const regelbedarfErgebnisse = await Promise.all(
       regelbedarfItems.map(async (r) => {
         const artikel = await sucheArtikel(r.name)
-        return artikel ? { item: r, artikelId: artikel.artikelId } : null
+        return artikel ? { item: r, artikelId: artikel.artikelId, picnicProdukt: artikel.name } : null
       })
     )
     const regelbedarfPicnicItems = regelbedarfErgebnisse.filter(
-      (r): r is { item: EinkaufsItem; artikelId: string } => r !== null
+      (r): r is { item: EinkaufsItem; artikelId: string; picnicProdukt: string } => r !== null
     )
 
     await warenkorbLeeren()
@@ -150,20 +153,44 @@ export async function POST() {
       mitRetry(() => aktualisiereEinkaufsliste(listName2, bring2Gesamt)),
     ])
 
-    const picnicItems = [
-      ...picnic1Ergebnis.zuPicnic.map(p => p.item),
-      ...regelbedarfPicnicItems.map(p => p.item),
+    // Vorrat aktualisieren: nur tracked Picnic-Artikel (haltbarkeit >= 14)
+    const haltbarkeitMap = new Map<string, number>()
+    for (const g of gerichte as Gericht[]) {
+      for (const z of g.zutaten) {
+        haltbarkeitMap.set(z.name.toLowerCase(), z.haltbarkeit_tage)
+      }
+    }
+
+    const kaufeFuerVorrat = picnic1Ergebnis.zuPicnic
+      .filter(p => istTracked(haltbarkeitMap.get(p.item.name.toLowerCase()) ?? 0))
+      .map(p => ({
+        zutat_name: p.item.name.toLowerCase(),
+        paket: parsePaketgroesse(p.picnicProdukt),
+        verbrauch: normalisiereEinheit(p.item.menge, p.item.einheit),
+      }))
+
+    const ausVorratFuerUpdate = ausVorrat.map(item => ({
+      zutat_name: item.name.toLowerCase(),
+      verbrauch: normalisiereEinheit(item.menge, item.einheit),
+    }))
+
+    await aktualisiereVorrat(vorrat, kaufeFuerVorrat, ausVorratFuerUpdate)
+
+    const picnicListenItems = [
+      ...picnic1Ergebnis.zuPicnic.map(p => ({ picnicProdukt: p.picnicProdukt })),
+      ...regelbedarfPicnicItems.map(p => ({ picnicProdukt: p.picnicProdukt })),
     ]
 
     return NextResponse.json({
       einkauf1Count: bring1Gesamt.length,
       einkauf2Count: bring2Gesamt.length,
-      picnic1Count: picnicItems.length,
+      picnic1Count: picnicListenItems.length,
       picnic1Fallback: picnic1Ergebnis.zuPicnic.length === 0 && routing1.picnic.length > 0,
       listen: {
-        picnic: picnicItems,
+        picnic: picnicListenItems,
         bring1: bring1Gesamt,
         bring2: bring2Gesamt,
+        ausVorrat,
       },
     })
   } catch (e) {
