@@ -230,6 +230,41 @@ export default function GerichtePage() {
     setNeuesGerichtLaedt(false)
   }
 
+  async function neuesGerichtSpeichern() {
+    setNeuesGerichtLaedt(true)
+    try {
+      const res = await apiFetch('/api/gerichte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: neuesGerichtName.trim(),
+          kategorie: neuesGerichtKategorie,
+          aufwand: neuesGerichtAufwand,
+          gesund: false,
+          quelle: 'manuell',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error ?? 'Anlegen fehlgeschlagen')
+      const zutatenGefiltert = neuesGerichtZutaten.filter(z => z.name.trim())
+      if (zutatenGefiltert.length > 0) {
+        await apiFetch(`/api/gerichte/${data.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zutaten: zutatenGefiltert }),
+        })
+      }
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+      setMeldung(`✅ ${neuesGerichtName.trim()} hinzugefügt`)
+      neuesGerichtZuruecksetzen()
+    } catch (e: unknown) {
+      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    } finally {
+      setNeuesGerichtLaedt(false)
+    }
+  }
+
   const aktiveGerichte = gerichte.filter(g => !g.gesperrt)
   const gesperrteGerichte = gerichte.filter(g => g.gesperrt)
   const ohneZutaten = aktiveGerichte.filter(g => g.zutaten.length === 0).length
@@ -382,14 +417,87 @@ export default function GerichtePage() {
             className="w-full rounded-xl outline-none mb-3"
             style={{ background: '#ffffff', border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', padding: '12px 14px', minHeight: '48px' }}
           />
-          {/* Modus-Buttons, Pfade und Abbrechen folgen in Task 2 & 3 */}
-          <button
-            onClick={neuesGerichtZuruecksetzen}
-            className="w-full text-sm font-medium py-2.5 rounded-xl mt-2"
-            style={{ background: '#f0f0f0', color: 'var(--near-black)' }}
-          >
-            Abbrechen
-          </button>
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setNeuesGerichtModus('generieren')}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
+              style={{
+                background: neuesGerichtModus === 'generieren' ? 'var(--near-black)' : '#ffffff',
+                color: neuesGerichtModus === 'generieren' ? '#ffffff' : 'var(--near-black)',
+                border: '1.5px solid var(--border)',
+              }}
+            >
+              ✨ Generieren
+            </button>
+            <button
+              onClick={() => setNeuesGerichtModus('manuell')}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl active:opacity-70"
+              style={{
+                background: neuesGerichtModus === 'manuell' ? 'var(--near-black)' : '#ffffff',
+                color: neuesGerichtModus === 'manuell' ? '#ffffff' : 'var(--near-black)',
+                border: '1.5px solid var(--border)',
+              }}
+            >
+              ✍️ Manuell
+            </button>
+          </div>
+
+          {/* Manuell-Pfad */}
+          {neuesGerichtModus === 'manuell' && (
+            <>
+              <div className="flex gap-2 mb-3">
+                <select
+                  value={neuesGerichtKategorie}
+                  onChange={e => setNeuesGerichtKategorie(e.target.value)}
+                  className="flex-1 rounded-xl px-3"
+                  style={{ border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', minHeight: '48px', background: '#ffffff' }}
+                >
+                  {['fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat', 'sonstiges', 'kinder', 'trainingstage', 'frühstück', 'filmabend'].map(k => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
+                <select
+                  value={neuesGerichtAufwand}
+                  onChange={e => setNeuesGerichtAufwand(e.target.value)}
+                  className="rounded-xl px-3"
+                  style={{ border: '1.5px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', minHeight: '48px', background: '#ffffff' }}
+                >
+                  {['15 Min', '30 Min', '45 Min', '60+ Min'].map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Zutaten-Toggle folgt in Task 3 */}
+              <div className="flex gap-2">
+                <button
+                  onClick={neuesGerichtSpeichern}
+                  disabled={!neuesGerichtName.trim() || neuesGerichtLaedt}
+                  className="flex-1 text-sm font-semibold py-2.5 rounded-xl disabled:opacity-50 active:opacity-70"
+                  style={{ background: 'var(--near-black)', color: '#ffffff' }}
+                >
+                  {neuesGerichtLaedt ? '...' : 'Speichern'}
+                </button>
+                <button
+                  onClick={neuesGerichtZuruecksetzen}
+                  className="text-sm font-medium px-4 py-2.5 rounded-xl"
+                  style={{ background: '#f0f0f0', color: 'var(--near-black)' }}
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Abbrechen wenn kein Modus oder Generieren-Modus */}
+          {neuesGerichtModus !== 'manuell' && (
+            <button
+              onClick={neuesGerichtZuruecksetzen}
+              className="w-full text-sm font-medium py-2.5 rounded-xl mt-2"
+              style={{ background: '#f0f0f0', color: 'var(--near-black)' }}
+            >
+              Abbrechen
+            </button>
+          )}
         </div>
       )}
 
