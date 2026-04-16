@@ -1,16 +1,15 @@
 # Jarvis — Todo
 
 ## Nächstes Feature
-- [ ] **CLAUDE_DEV_MODE entfernen** — Coolify-Env-Var löschen sobald Anthropic-Credits aufgeladen sind; vorher Preise in `lib/claude-tracking.ts` gegen https://www.anthropic.com/pricing prüfen
+- [ ] **Bring-Update bei Tausch** — Zutaten in den Bring-Listen automatisch aktualisieren wenn ein Gericht getauscht wird
 
 ## Offen (Prio ↓)
-- [ ] **Bring-Update bei Tausch** — Zutaten in den Bring-Listen automatisch aktualisieren wenn ein Gericht getauscht wird
 - [ ] **Saftvorschlag + Gesundheitssnack** (niedrigste Prio) — passende Saft- und Snackvorschläge generieren und in den Wochenplan integrieren
 - [ ] Katja & Marie Profile — Lieblingsgerichte, Abneigungen
-- [ ] Picnic Auth-Key Setup
-- [ ] Push-Benachrichtigungen für Katja
 
 ## Erledigt
+- [x] **CLAUDE_DEV_MODE entfernt** — Credits aufgeladen, DEV_MODE aus Coolify gelöscht
+- [x] **Picnic Auth-Key Setup** — PICNIC_AUTH_KEY + Email/Password in Coolify gesetzt, Code vollständig
 - [x] **Claude API Tracking** — `claude_nutzung` Tabelle in Supabase, `logClaudeNutzung()` Helper, in alle 4 Claude-Calls integriert
 - [x] **Gericht hinzufügen** — inline Formular mit KI-Generierung und manuellem Pfad, 16 Tests
 - [x] **Lösch-Icon auf Gerichts-Kacheln** — roter Kreis oben rechts, Sicherheitsabfrage
