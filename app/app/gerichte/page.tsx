@@ -265,6 +265,43 @@ export default function GerichtePage() {
     }
   }
 
+  async function neuesGerichtGenerieren() {
+    setNeuesGerichtLaedt(true)
+    try {
+      const res = await apiFetch('/api/gerichte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: neuesGerichtName.trim(),
+          kategorie: 'sonstiges',
+          aufwand: '30 Min',
+          gesund: false,
+          quelle: 'manuell',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error ?? 'Anlegen fehlgeschlagen')
+      await apiFetch('/api/zutaten/generieren', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gerichtId: data.id }),
+      })
+      await apiFetch('/api/rezepte/generieren', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gerichtId: data.id }),
+      })
+      const updated = await apiFetch('/api/gerichte').then(r => r.json())
+      setGerichte(updated)
+      setMeldung(`✅ ${neuesGerichtName.trim()} hinzugefügt`)
+      neuesGerichtZuruecksetzen()
+    } catch (e: unknown) {
+      setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
+    } finally {
+      setNeuesGerichtLaedt(false)
+    }
+  }
+
   const aktiveGerichte = gerichte.filter(g => !g.gesperrt)
   const gesperrteGerichte = gerichte.filter(g => g.gesperrt)
   const ohneZutaten = aktiveGerichte.filter(g => g.zutaten.length === 0).length
@@ -543,6 +580,18 @@ export default function GerichtePage() {
                 </button>
               </div>
             </>
+          )}
+
+          {/* Generieren-Pfad */}
+          {neuesGerichtModus === 'generieren' && (
+            <button
+              onClick={neuesGerichtGenerieren}
+              disabled={!neuesGerichtName.trim() || neuesGerichtLaedt}
+              className="w-full text-sm font-semibold py-2.5 rounded-xl disabled:opacity-50 active:opacity-70"
+              style={{ background: 'var(--rausch)', color: '#ffffff', minHeight: '48px' }}
+            >
+              {neuesGerichtLaedt ? '...' : '✨ Zutaten & Rezept generieren'}
+            </button>
           )}
 
           {/* Abbrechen wenn kein Modus oder Generieren-Modus */}

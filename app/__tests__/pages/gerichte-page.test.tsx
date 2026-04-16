@@ -155,3 +155,73 @@ describe('Neues Gericht — Zutaten-Toggle', () => {
     })
   })
 })
+
+describe('Neues Gericht — Generieren-Pfad', () => {
+  async function oeffneGenerieren(name = 'Testgericht') {
+    render(<GerichtePage />)
+    await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.change(screen.getByPlaceholderText('Name des Gerichts'), { target: { value: name } })
+    fireEvent.click(screen.getByText('✨ Generieren'))
+  }
+
+  it('zeigt Generieren-Button wenn Generieren gewählt und Name ausgefüllt', async () => {
+    await oeffneGenerieren()
+    expect(screen.getByText('✨ Zutaten & Rezept generieren')).toBeInTheDocument()
+  })
+
+  it('Generieren-Button ist deaktiviert wenn Name leer', async () => {
+    render(<GerichtePage />)
+    await waitFor(() => screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.click(screen.getByText('＋ Neues Gericht hinzufügen'))
+    fireEvent.click(screen.getByText('✨ Generieren'))
+    expect(screen.getByText('✨ Zutaten & Rezept generieren')).toBeDisabled()
+  })
+
+  it('ruft POST /api/gerichte → /api/zutaten/generieren → /api/rezepte/generieren auf', async () => {
+    const neuesGericht = { id: '99', name: 'Testgericht' }
+    mockApiFetch.mockImplementation((url: string, opts?: RequestInit) => {
+      if (url === '/api/gerichte' && opts?.method === 'POST')
+        return Promise.resolve(makeResponse(neuesGericht))
+      if (url === '/api/zutaten/generieren')
+        return Promise.resolve(makeResponse({ ok: true }))
+      if (url === '/api/rezepte/generieren')
+        return Promise.resolve(makeResponse({ ok: true }))
+      return Promise.resolve(makeResponse([]))
+    })
+
+    await oeffneGenerieren('Testgericht')
+    fireEvent.click(screen.getByText('✨ Zutaten & Rezept generieren'))
+
+    await waitFor(() => {
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/gerichte', expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'Testgericht', kategorie: 'sonstiges', aufwand: '30 Min', gesund: false, quelle: 'manuell' }),
+      }))
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/zutaten/generieren', expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ gerichtId: '99' }),
+      }))
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/rezepte/generieren', expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ gerichtId: '99' }),
+      }))
+    })
+  })
+
+  it('Formular schließt sich nach Generieren', async () => {
+    const neuesGericht = { id: '99', name: 'Testgericht' }
+    mockApiFetch.mockImplementation((url: string, opts?: RequestInit) => {
+      if (url === '/api/gerichte' && opts?.method === 'POST')
+        return Promise.resolve(makeResponse(neuesGericht))
+      return Promise.resolve(makeResponse([]))
+    })
+
+    await oeffneGenerieren('Testgericht')
+    fireEvent.click(screen.getByText('✨ Zutaten & Rezept generieren'))
+
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText('Name des Gerichts')).not.toBeInTheDocument()
+    })
+  })
+})
