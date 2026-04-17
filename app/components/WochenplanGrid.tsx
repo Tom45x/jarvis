@@ -57,9 +57,9 @@ function heutigesDatum(): string {
   return new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
 }
 
-function StaticCard({ label, name }: { label: string; name: string }) {
+function StaticCard({ label, name, mahlzeit }: { label: string; name: string; mahlzeit?: string }) {
   return (
-    <div className="rounded-2xl px-3 pt-3 pb-2.5 flex flex-col" style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
+    <div className="rounded-2xl px-3 pt-3 pb-2.5 flex flex-col" style={{ background: mahlzeit === 'mittag' ? '#fef3c7' : '#fffbf0', boxShadow: 'var(--card-shadow)' }}>
       <div className="flex-1">
         <p className="text-xs font-medium mb-1" style={{ color: 'var(--gray-secondary)' }}>{label}</p>
         <p className="font-semibold text-sm" style={{ color: 'var(--near-black)' }}>{name}</p>
@@ -101,6 +101,9 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
   const scrollRef = useRef<HTMLDivElement>(null)
   const heuteRef = useRef<HTMLDivElement>(null)
   const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pickerOffenRef = useRef(false)
+
+  const AUTO_SCROLL_DELAY = 30000
 
   const [aktiverSlot, setAktiverSlot] = useState<AktionSlot | null>(null)
   const [picker, setPicker] = useState<AktionSlot | null>(null)
@@ -113,6 +116,11 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
     })
   }
 
+  const starteAutoScrollTimer = () => {
+    if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+    autoScrollTimer.current = setTimeout(scrollZuHeute, AUTO_SCROLL_DELAY)
+  }
+
   useEffect(() => {
     scrollZuHeute()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,17 +129,28 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
-    const starteRueckScrollTimer = () => {
-      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
-      autoScrollTimer.current = setTimeout(scrollZuHeute, 10000)
+    const onScroll = () => {
+      if (pickerOffenRef.current) return
+      starteAutoScrollTimer()
     }
-    container.addEventListener('scroll', starteRueckScrollTimer, { passive: true })
+    container.addEventListener('scroll', onScroll, { passive: true })
     return () => {
-      container.removeEventListener('scroll', starteRueckScrollTimer)
+      container.removeEventListener('scroll', onScroll)
       if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Picker-Zustand tracken: beim Öffnen Timer pausieren, beim Schließen neu starten
+  useEffect(() => {
+    pickerOffenRef.current = picker !== null
+    if (picker === null) {
+      starteAutoScrollTimer()
+    } else {
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picker])
 
   function toggleSlot(tag: string, mahlzeit: Mahlzeit, gerichtId?: string) {
     setAktiverSlot(prev =>
@@ -240,7 +259,7 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
                       onRezept={() => { const g = gerichtMap[mittag.gericht_id]; if (g) onRezept(g) }}
                     />
                   ) : (
-                    <StaticCard label="Mittag" name="—" />
+                    <StaticCard label="Mittag" name="—" mahlzeit="mittag" />
                   )}
 
                   {/* Abend */}

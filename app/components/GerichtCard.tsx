@@ -30,7 +30,7 @@ export function GerichtCard({
   return (
     <div
       className="rounded-2xl px-3 pt-3 pb-2.5 flex flex-col"
-      style={{ background: '#fffbf0', boxShadow: 'var(--card-shadow)' }}
+      style={{ background: mahlzeit === 'mittag' ? '#fef3c7' : '#fffbf0', boxShadow: 'var(--card-shadow)' }}
     >
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">

@@ -120,7 +120,7 @@ export default function WochenplanUebersichtPage() {
                   key={mahlzeit}
                   className="rounded-lg"
                   style={{
-                    background: '#fffbf0',
+                    background: mahlzeit === 'mittag' ? '#fef3c7' : '#fffbf0',
                     boxShadow: 'var(--card-shadow)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -197,7 +197,7 @@ export default function WochenplanUebersichtPage() {
                   key={`${tag}-${mahlzeit}`}
                   className="rounded-lg"
                   style={{
-                    background: '#fffbf0',
+                    background: mahlzeit === 'mittag' ? '#fef3c7' : '#fffbf0',
                     boxShadow: 'var(--card-shadow)',
                     display: 'flex',
                     flexDirection: 'column',
