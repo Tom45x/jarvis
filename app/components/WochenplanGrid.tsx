@@ -268,9 +268,7 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                     <StaticCard label="Frühstück" name="Toast mit Aufschnitt" />
                   )}
 
-                  {slot.tag === 'samstag' && extraMap.get('samstag') && (
-                    <ExtraCard extra={extraMap.get('samstag')!} />
-                  )}
+                  {(() => { const e = extraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
 
                   {/* Mittag */}
                   {mittag ? (
@@ -305,12 +303,8 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                   ) : (
                     <StaticCard label="Abend" name="—" />
                   )}
-                  {slot.tag === 'dienstag' && extraMap.get('dienstag') && (
-                    <ExtraCard extra={extraMap.get('dienstag')!} />
-                  )}
-                  {slot.tag === 'donnerstag' && extraMap.get('donnerstag') && (
-                    <ExtraCard extra={extraMap.get('donnerstag')!} />
-                  )}
+                  {(() => { const e = extraMap.get('dienstag'); return slot.tag === 'dienstag' && e ? <ExtraCard extra={e} /> : null })()}
+                  {(() => { const e = extraMap.get('donnerstag'); return slot.tag === 'donnerstag' && e ? <ExtraCard extra={e} /> : null })()}
                 </>
               )}
             </div>
