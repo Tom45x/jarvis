@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api-fetch'
 import type { Gericht, Zutat } from '@/types'
 
+const EINHEITEN = ['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'] as const
+const EINHEIT_KURZ: Record<string, string> = {
+  g: 'g', kg: 'kg', ml: 'ml', l: 'l',
+  Stück: 'Stk', EL: 'EL', TL: 'TL', Bund: 'Bd', Packung: 'Pckg',
+}
+
 export default function GerichtePage() {
   const [gerichte, setGerichte] = useState<Gericht[]>([])
   const [bearbeiteId, setBearbeiteId] = useState<string | null>(null)
@@ -546,23 +552,23 @@ export default function GerichtePage() {
                         onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, name: e.target.value } : z))}
                         placeholder="Name"
                         className="flex-1 min-w-0 px-2 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px' }}
                       />
                       <input
                         type="number"
                         value={zutat.menge}
                         onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, menge: parseFloat(e.target.value) || 0 } : z))}
                         className="px-2 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', width: '56px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px', width: '50px' }}
                       />
                       <select
                         value={zutat.einheit}
                         onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, einheit: e.target.value } : z))}
                         className="px-1 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px', width: '52px' }}
                       >
-                        {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
-                          <option key={e} value={e}>{e}</option>
+                        {EINHEITEN.map(e => (
+                          <option key={e} value={e}>{EINHEIT_KURZ[e]}</option>
                         ))}
                       </select>
                       <button
@@ -779,23 +785,23 @@ export default function GerichtePage() {
                         onChange={e => zutatAendern(i, 'name', e.target.value)}
                         placeholder="Name"
                         className="flex-1 min-w-0 px-2 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px' }}
                       />
                       <input
                         type="number"
                         value={zutat.menge}
                         onChange={e => zutatAendern(i, 'menge', parseFloat(e.target.value))}
                         className="px-2 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px', width: '56px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px', width: '50px' }}
                       />
                       <select
                         value={zutat.einheit}
                         onChange={e => zutatAendern(i, 'einheit', e.target.value)}
                         className="px-1 py-1.5 rounded-lg"
-                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '16px' }}
+                        style={{ border: '1px solid var(--border)', color: 'var(--near-black)', fontSize: '13px', width: '52px' }}
                       >
-                        {['g', 'kg', 'ml', 'l', 'Stück', 'EL', 'TL', 'Bund', 'Packung'].map(e => (
-                          <option key={e} value={e}>{e}</option>
+                        {EINHEITEN.map(e => (
+                          <option key={e} value={e}>{EINHEIT_KURZ[e]}</option>
                         ))}
                       </select>
                       <button

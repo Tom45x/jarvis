@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
 import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
@@ -9,6 +10,7 @@ import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 import type { Wochenplan, Gericht } from '@/types'
 
 export default function WochenplanPage() {
+  const router = useRouter()
   const [carryOverPlan, setCarryOverPlan] = useState<Wochenplan | null>(null)
   const [aktiverPlan, setAktiverPlan] = useState<Wochenplan | null>(null)
   const [gerichte, setGerichte] = useState<Gericht[]>([])
@@ -176,9 +178,22 @@ export default function WochenplanPage() {
   return (
     <main className="min-h-screen bg-white pb-32">
       <div className="px-4 pt-12 pb-4">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
-          Diese Woche
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--near-black)', letterSpacing: '-0.44px' }}>
+            Diese Woche
+          </h1>
+          <button
+            onClick={() => router.push('/wochenplan/uebersicht')}
+            aria-label="Wochenplan Gesamtansicht"
+            className="w-10 h-10 rounded-full flex items-center justify-center active:opacity-70 transition-opacity"
+            style={{ background: 'var(--surface)' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--near-black)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
         <div className="flex items-center justify-between mt-0.5">
           <p className="text-sm" style={{
             color: aktiverPlan?.status === 'entwurf'
