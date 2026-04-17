@@ -177,8 +177,8 @@ export async function POST() {
     await aktualisiereVorrat(vorrat, kaufeFuerVorrat, ausVorratFuerUpdate)
 
     const picnicListenItems = [
-      ...picnic1Ergebnis.zuPicnic.map(p => ({ picnicProdukt: p.picnicProdukt })),
-      ...regelbedarfPicnicItems.map(p => ({ picnicProdukt: p.picnicProdukt })),
+      ...picnic1Ergebnis.zuPicnic.map(p => ({ picnicProdukt: p.picnicProdukt, menge: p.item.menge, einheit: p.item.einheit })),
+      ...regelbedarfPicnicItems.map(p => ({ picnicProdukt: p.picnicProdukt, menge: p.item.menge, einheit: p.item.einheit })),
     ]
 
     return NextResponse.json({

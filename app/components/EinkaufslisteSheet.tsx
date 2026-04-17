@@ -6,7 +6,7 @@ import type { EinkaufsItem } from '@/types'
 import { aggregiere } from '@/lib/einkaufsliste'
 
 export interface EinkaufslistenDaten {
-  picnic: Array<{ picnicProdukt: string }>
+  picnic: Array<{ picnicProdukt: string; menge: number; einheit: string }>
   bring1: EinkaufsItem[]
   bring2: EinkaufsItem[]
   ausVorrat: EinkaufsItem[]
@@ -36,15 +36,21 @@ function ItemListe({ items }: { items: EinkaufsItem[] }) {
   )
 }
 
-function PicnicListe({ items }: { items: Array<{ picnicProdukt: string }> }) {
+function PicnicListe({ items }: { items: Array<{ picnicProdukt: string; menge: number; einheit: string }> }) {
   if (items.length === 0) return <p className="text-sm" style={{ color: 'var(--gray-secondary)' }}>—</p>
-  const unique = [...new Set(items.map(i => i.picnicProdukt))]
+  const seen = new Set<string>()
+  const unique = items.filter(i => { if (seen.has(i.picnicProdukt)) return false; seen.add(i.picnicProdukt); return true })
   return (
     <ul className="space-y-1">
-      {unique.map((produkt, i) => (
+      {unique.map((item, i) => (
         <li key={i} className="text-sm flex items-baseline gap-2" style={{ color: 'var(--near-black)' }}>
           <span style={{ color: '#5ba832', flexShrink: 0 }}>·</span>
-          <span className="flex-1">{produkt}</span>
+          <span className="flex-1">{item.picnicProdukt}</span>
+          {item.menge > 0 && (
+            <span className="text-xs shrink-0" style={{ color: 'var(--gray-secondary)' }}>
+              {item.menge} {item.einheit}
+            </span>
+          )}
         </li>
       ))}
     </ul>
@@ -55,8 +61,8 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
   const bring1 = aggregiere(daten.bring1)
   const bring2 = aggregiere(daten.bring2)
   const ausVorrat = daten.ausVorrat
-  const picnicUnique = [...new Set(daten.picnic.map(i => i.picnicProdukt))]
-  const gesamtArtikel = picnicUnique.length + bring1.length + bring2.length
+  const picnicUniqueNamen = [...new Set(daten.picnic.map(i => i.picnicProdukt))]
+  const gesamtArtikel = picnicUniqueNamen.length + bring1.length + bring2.length
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const touchStartY = useRef<number | null>(null)
@@ -138,7 +144,7 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
           </button>
 
           {/* Picnic Block */}
-          {picnicUnique.length > 0 && (
+          {picnicUniqueNamen.length > 0 && (
             <div className="rounded-xl p-3 mb-3" style={{ background: '#f0fae8' }}>
               <div className="flex items-center justify-between mb-2">
                 <span
@@ -148,7 +154,7 @@ export function EinkaufslisteSheet({ daten, onClose }: EinkaufslisteSheetProps) 
                   Picnic
                 </span>
                 <span className="text-xs font-semibold" style={{ color: '#5ba832' }}>
-                  {picnicUnique.length} Artikel
+                  {picnicUniqueNamen.length} Artikel
                 </span>
               </div>
               <PicnicListe items={daten.picnic} />

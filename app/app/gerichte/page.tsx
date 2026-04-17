@@ -540,7 +540,7 @@ export default function GerichtePage() {
               {neuesGerichtZutatenOffen && (
                 <div className="space-y-2 mb-3">
                   {neuesGerichtZutaten.map((zutat, i) => (
-                    <div key={`${zutat.name}-${i}`} className="flex gap-1.5 items-center">
+                    <div key={i} className="flex gap-1.5 items-center">
                       <input
                         value={zutat.name}
                         onChange={e => setNeuesGerichtZutaten(prev => prev.map((z, idx) => idx === i ? { ...z, name: e.target.value } : z))}
@@ -773,7 +773,7 @@ export default function GerichtePage() {
               {isEditing && (
                 <div className="mt-3 space-y-2" style={{ borderTop: '1px solid var(--surface)', paddingTop: '12px' }}>
                   {bearbeiteZutaten.map((zutat, i) => (
-                    <div key={`${zutat.name}-${i}`} className="flex gap-1.5 items-center">
+                    <div key={i} className="flex gap-1.5 items-center">
                       <input
                         value={zutat.name}
                         onChange={e => zutatAendern(i, 'name', e.target.value)}
