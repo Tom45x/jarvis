@@ -7,7 +7,7 @@ import { RezeptSheet } from '@/components/RezeptSheet'
 import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
 import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
-import type { Wochenplan, Gericht } from '@/types'
+import type { Wochenplan, Gericht, ExtrasWochenplanEintrag } from '@/types'
 
 export default function WochenplanPage() {
   const router = useRouter()
@@ -42,6 +42,7 @@ export default function WochenplanPage() {
     else sessionStorage.removeItem('einkaufslisteDaten')
   }
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
+  const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -54,6 +55,12 @@ export default function WochenplanPage() {
         if (data) {
           setCarryOverPlan(data.carryOverPlan)
           setAktiverPlan(data.aktiverPlan)
+          if (data.aktiverPlan?.id) {
+            apiFetch(`/api/extras?wochenplan_id=${data.aktiverPlan.id}`)
+              .then(r => r.ok ? r.json() : [])
+              .then(setExtras)
+              .catch(() => {})
+          }
         }
       })
       .catch(() => setError('Wochenplan konnte nicht geladen werden'))
@@ -68,6 +75,12 @@ export default function WochenplanPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error ?? 'Fehler beim Generieren')
       setAktiverPlan(data)
+      if (data?.id) {
+        apiFetch(`/api/extras?wochenplan_id=${data.id}`)
+          .then(r => r.ok ? r.json() : [])
+          .then(setExtras)
+          .catch(() => {})
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
     } finally {
@@ -231,6 +244,7 @@ export default function WochenplanPage() {
           carryOverPlan={carryOverPlan}
           aktiverPlan={aktiverPlan}
           gerichte={gerichte}
+          extras={extras}
           onTauschen={tauschen}
           onWaehlen={waehlen}
           onRezept={setRezeptGericht}
