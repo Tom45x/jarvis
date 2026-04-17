@@ -88,12 +88,13 @@ interface WochenplanGridProps {
   aktiverPlan: Wochenplan | null
   gerichte: Gericht[]
   extras: ExtrasWochenplanEintrag[]
+  carryOverExtras?: ExtrasWochenplanEintrag[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, carryOverExtras = [], onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
@@ -106,6 +107,15 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, o
       return map
     },
     [extras]
+  )
+
+  const carryOverExtraMap = useMemo(
+    () => {
+      const map = new Map<string, ExtrasWochenplanEintrag>()
+      for (const e of carryOverExtras) map.set(e.tag, e)
+      return map
+    },
+    [carryOverExtras]
   )
 
   const slots = useMemo(() => berechneSlots(), [])
@@ -234,8 +244,14 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, o
               {slot.istCarryOver ? (
                 <>
                   <CarryOverCard label="Frühstück" name={fruehstueck?.gericht_name ?? '—'} />
+                  {slot.tag === 'samstag' && carryOverExtraMap.get('samstag') && (
+                    <ExtraCard extra={carryOverExtraMap.get('samstag')!} />
+                  )}
                   <CarryOverCard label="Mittag" name={mittag?.gericht_name ?? '—'} />
                   <CarryOverCard label="Abend" name={abend?.gericht_name ?? '—'} />
+                  {(slot.tag === 'dienstag' || slot.tag === 'donnerstag') && carryOverExtraMap.get(slot.tag) && (
+                    <ExtraCard extra={carryOverExtraMap.get(slot.tag)!} />
+                  )}
                 </>
               ) : (
                 <>

@@ -43,6 +43,7 @@ export default function WochenplanPage() {
   }
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
+  const [carryOverExtras, setCarryOverExtras] = useState<ExtrasWochenplanEintrag[]>([])
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -59,6 +60,12 @@ export default function WochenplanPage() {
             apiFetch(`/api/extras?wochenplan_id=${data.aktiverPlan.id}`)
               .then(r => r.ok ? r.json() : [])
               .then(setExtras)
+              .catch(() => {})
+          }
+          if (data.carryOverPlan?.id) {
+            apiFetch(`/api/extras?wochenplan_id=${data.carryOverPlan.id}`)
+              .then(r => r.ok ? r.json() : [])
+              .then(setCarryOverExtras)
               .catch(() => {})
           }
         }
@@ -245,6 +252,7 @@ export default function WochenplanPage() {
           aktiverPlan={aktiverPlan}
           gerichte={gerichte}
           extras={extras}
+          carryOverExtras={carryOverExtras}
           onTauschen={tauschen}
           onWaehlen={waehlen}
           onRezept={setRezeptGericht}
