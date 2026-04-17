@@ -67,7 +67,7 @@ export async function speichereExtras(
 function addiereNaehrstoffe(a: Naehrstoffe, b: Naehrstoffe): Naehrstoffe {
   return Object.fromEntries(
     (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => [k, (a[k] ?? 0) + (b[k] ?? 0)])
-  ) as Naehrstoffe
+  ) as unknown as Naehrstoffe
 }
 
 export function berechneGapVektor(
@@ -77,7 +77,7 @@ export function berechneGapVektor(
   const gesamtWochenbedarf = profile.reduce((acc, kind) => {
     return addiereNaehrstoffe(acc, Object.fromEntries(
       (Object.keys(kind.tagesbedarf) as (keyof Naehrstoffe)[]).map(k => [k, (kind.tagesbedarf[k] ?? 0) * 7])
-    ) as Naehrstoffe)
+    ) as unknown as Naehrstoffe)
   }, { ...LEER_NAEHRSTOFFE })
 
   const wochenMap = new Map<string, Naehrstoffe>()
@@ -95,7 +95,7 @@ export function berechneGapVektor(
 
   const geliefertDurchschnitt = Object.fromEntries(
     (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => [k, (geliefertSumme[k] ?? 0) / anzahlWochen])
-  ) as Naehrstoffe
+  ) as unknown as Naehrstoffe
 
   return Object.fromEntries(
     (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => {
