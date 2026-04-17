@@ -56,7 +56,7 @@ export async function GET() {
     const gesendeteProdukte: string[] = snapshot.gesendete_produkte ?? []
     const fehlende = gesendeteProdukte.filter(p => {
       const norm = normalisiereProduktname(p)
-      return !bestellteNamen.some(b => b.includes(norm) || norm.includes(b.split(' ')[0]))
+      return !bestellteNamen.some(b => b.includes(norm) || norm.includes(b))
     })
 
     await supabase.from('picnic_bestellung_status').update({

@@ -36,7 +36,7 @@ export function ExtraCard({ extra, onRezept }: ExtraCardProps) {
           </span>
         )}
       </div>
-      {onRezept ? (
+      {onRezept && (extra.zubereitung || (extra.katalog_zutaten?.length ?? 0) > 0) && (
         <button
           onClick={onRezept}
           className="text-xs mt-1.5 font-medium text-left active:opacity-70"
@@ -44,10 +44,6 @@ export function ExtraCard({ extra, onRezept }: ExtraCardProps) {
         >
           Rezept ansehen →
         </button>
-      ) : (
-        <p className="text-xs mt-1.5 font-medium" style={{ color: '#16a34a' }}>
-          Rezept ansehen →
-        </p>
       )}
     </div>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
@@ -46,6 +46,7 @@ export default function WochenplanPage() {
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [carryOverExtras, setCarryOverExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [rezeptExtra, setRezeptExtra] = useState<ExtrasWochenplanEintrag | null>(null)
+  const extrasGenerierenLaeuft = useRef(false)
   const [bestellStatus, setBestellStatus] = useState<{
     status: 'offen' | 'bestellt' | 'keine_liste' | 'kein_plan'
     fehlende_produkte?: string[]
@@ -69,12 +70,18 @@ export default function WochenplanPage() {
               .then(r => r.ok ? r.json() : [])
               .then(async (geladen: ExtrasWochenplanEintrag[]) => {
                 if (geladen.length > 0) { setExtras(geladen); return }
-                const gen = await apiFetch('/api/extras', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ wochenplan_id: planId }),
-                })
-                setExtras(gen.ok ? await gen.json() : [])
+                if (extrasGenerierenLaeuft.current) return
+                extrasGenerierenLaeuft.current = true
+                try {
+                  const gen = await apiFetch('/api/extras', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wochenplan_id: planId }),
+                  })
+                  setExtras(gen.ok ? await gen.json() : [])
+                } finally {
+                  extrasGenerierenLaeuft.current = false
+                }
               })
               .catch((e) => console.warn('Extras konnten nicht geladen werden', e))
           }
@@ -143,14 +150,19 @@ export default function WochenplanPage() {
         )
       : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: neu.id, gericht_name: neu.name }]
 
-    const res = await apiFetch('/api/wochenplan', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege, status: aktiverPlan.status })
-    })
-    setAktiverPlan(await res.json())
-    setEinkaufslisteDaten(null)
-    setEinkaufMeldung(null)
+    try {
+      const res = await apiFetch('/api/wochenplan', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eintraege, status: aktiverPlan.status })
+      })
+      if (!res.ok) throw new Error('Tauschen fehlgeschlagen')
+      setAktiverPlan(await res.json())
+      setEinkaufslisteDaten(null)
+      setEinkaufMeldung(null)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Tauschen fehlgeschlagen')
+    }
 
     if (aktuell?.gericht_id) {
       try {
@@ -172,24 +184,34 @@ export default function WochenplanPage() {
         )
       : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: gericht.id, gericht_name: gericht.name }]
 
-    const res = await apiFetch('/api/wochenplan', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege, status: aktiverPlan.status })
-    })
-    setAktiverPlan(await res.json())
-    setEinkaufslisteDaten(null)
-    setEinkaufMeldung(null)
+    try {
+      const res = await apiFetch('/api/wochenplan', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eintraege, status: aktiverPlan.status })
+      })
+      if (!res.ok) throw new Error('Auswahl fehlgeschlagen')
+      setAktiverPlan(await res.json())
+      setEinkaufslisteDaten(null)
+      setEinkaufMeldung(null)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Auswahl fehlgeschlagen')
+    }
   }
 
   async function genehmigen() {
     if (!aktiverPlan) return
-    const res = await apiFetch('/api/wochenplan', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' })
-    })
-    setAktiverPlan(await res.json())
+    try {
+      const res = await apiFetch('/api/wochenplan', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' })
+      })
+      if (!res.ok) throw new Error('Genehmigen fehlgeschlagen')
+      setAktiverPlan(await res.json())
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Genehmigen fehlgeschlagen')
+    }
   }
 
   async function einkaufslisteSenden() {

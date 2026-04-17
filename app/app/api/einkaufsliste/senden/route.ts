@@ -104,9 +104,7 @@ async function verarbeitePicnicListe(
 }
 
 async function fuellePicnicWarenkorb(items: Array<{ item: EinkaufsItem; artikelId: string }>): Promise<void> {
-  for (const { artikelId } of items) {
-    await zumWarenkorb(artikelId, 1)
-  }
+  await Promise.all(items.map(({ artikelId }) => zumWarenkorb(artikelId, 1)))
 }
 
 export async function POST() {

@@ -201,6 +201,10 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
           const mittag = eintraege.find(e => e.tag === slot.tag && e.mahlzeit === 'mittag')
           const abend = eintraege.find(e => e.tag === slot.tag && e.mahlzeit === 'abend')
 
+          const hatExtraTag = slot.tag === 'samstag' || slot.tag === 'dienstag' || slot.tag === 'donnerstag'
+          const carryOverExtra = hatExtraTag ? (carryOverExtraMap.get(slot.tag) ?? null) : null
+          const aktuellesExtra = hatExtraTag ? (extraMap.get(slot.tag) ?? null) : null
+
           return (
             <div
               key={slot.datum.toISOString().slice(0, 10)}
@@ -265,7 +269,7 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                     hatRezept={!!gerichtMap[abend?.gericht_id ?? '']?.rezept}
                     onRezept={() => { const g = gerichtMap[abend?.gericht_id ?? '']; if (g) onRezept(g) }}
                   />
-                  {(() => { const e = carryOverExtraMap.get(slot.tag); return (slot.tag === 'samstag' || slot.tag === 'dienstag' || slot.tag === 'donnerstag') && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
+                  {carryOverExtra && <ExtraCard extra={carryOverExtra} onRezept={() => onExtrasRezept(carryOverExtra)} />}
                 </>
               ) : (
                 <>
@@ -319,9 +323,7 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                   ) : (
                     <StaticCard label="Abend" name="—" />
                   )}
-                  {(() => { const e = extraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
-                  {(() => { const e = extraMap.get('dienstag'); return slot.tag === 'dienstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
-                  {(() => { const e = extraMap.get('donnerstag'); return slot.tag === 'donnerstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
+                  {aktuellesExtra && <ExtraCard extra={aktuellesExtra} onRezept={() => onExtrasRezept(aktuellesExtra)} />}
                 </>
               )}
             </div>

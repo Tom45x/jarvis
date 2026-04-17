@@ -373,7 +373,7 @@ export default function GerichtePage() {
       label: 'Frühstück',
       icon: '🥐',
       farbe: '#fefce8',
-      anzahl: aktiveGerichte.filter(g => g.kategorie === 'frühstück').length + 1,
+      anzahl: aktiveGerichte.filter(g => g.kategorie === 'frühstück').length,
       einheit: 'Gerichte',
     },
     {

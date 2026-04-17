@@ -73,9 +73,20 @@ export async function speichereExtras(
 }
 
 function addiereNaehrstoffe(a: Naehrstoffe, b: Naehrstoffe): Naehrstoffe {
-  return Object.fromEntries(
-    (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => [k, (a[k] ?? 0) + (b[k] ?? 0)])
-  ) as unknown as Naehrstoffe
+  const result = { ...LEER_NAEHRSTOFFE }
+  for (const k of Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]) {
+    result[k] = (a[k] ?? 0) + (b[k] ?? 0)
+  }
+  return result
+}
+
+function isoWocheKey(dateStr: string): string {
+  const d = new Date(dateStr)
+  const tag = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - tag)
+  const jahresStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  const woche = Math.ceil(((d.getTime() - jahresStart.getTime()) / 86400000 + 1) / 7)
+  return `${d.getUTCFullYear()}-W${String(woche).padStart(2, '0')}`
 }
 
 export function berechneGapVektor(
@@ -83,14 +94,16 @@ export function berechneGapVektor(
   profile: KindProfil[]
 ): GapVektor {
   const gesamtWochenbedarf = profile.reduce((acc, kind) => {
-    return addiereNaehrstoffe(acc, Object.fromEntries(
-      (Object.keys(kind.tagesbedarf) as (keyof Naehrstoffe)[]).map(k => [k, (kind.tagesbedarf[k] ?? 0) * 7])
-    ) as unknown as Naehrstoffe)
+    const wochenbedarf = { ...LEER_NAEHRSTOFFE }
+    for (const k of Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]) {
+      wochenbedarf[k] = (kind.tagesbedarf[k] ?? 0) * 7
+    }
+    return addiereNaehrstoffe(acc, wochenbedarf)
   }, { ...LEER_NAEHRSTOFFE })
 
   const wochenMap = new Map<string, Naehrstoffe>()
   for (const entry of history) {
-    const wocheKey = entry.erstellt_am.slice(0, 10)
+    const wocheKey = isoWocheKey(entry.erstellt_am)
     const existing = wochenMap.get(wocheKey) ?? { ...LEER_NAEHRSTOFFE }
     wochenMap.set(wocheKey, addiereNaehrstoffe(existing, entry.naehrstoffe_snapshot))
   }
@@ -101,18 +114,19 @@ export function berechneGapVektor(
   )
   const anzahlWochen = Math.max(wochenMap.size, 1)
 
-  const geliefertDurchschnitt = Object.fromEntries(
-    (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => [k, (geliefertSumme[k] ?? 0) / anzahlWochen])
-  ) as unknown as Naehrstoffe
+  const geliefertDurchschnitt = { ...LEER_NAEHRSTOFFE }
+  for (const k of Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]) {
+    geliefertDurchschnitt[k] = (geliefertSumme[k] ?? 0) / anzahlWochen
+  }
 
-  return Object.fromEntries(
-    (Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]).map(k => {
-      const bedarf = gesamtWochenbedarf[k] ?? 1
-      const geliefert = geliefertDurchschnitt[k] ?? 0
-      const deckung = Math.min(geliefert / bedarf, 1)
-      return [k, Math.round((1 - deckung) * 100)]
-    })
-  ) as GapVektor
+  const gapVektor = { ...LEER_NAEHRSTOFFE }
+  for (const k of Object.keys(LEER_NAEHRSTOFFE) as (keyof Naehrstoffe)[]) {
+    const bedarf = gesamtWochenbedarf[k] ?? 1
+    const geliefert = geliefertDurchschnitt[k] ?? 0
+    const deckung = Math.min(geliefert / bedarf, 1)
+    gapVektor[k] = Math.round((1 - deckung) * 100)
+  }
+  return gapVektor as GapVektor
 }
 
 interface ExtrasGenerierungErgebnis {
@@ -214,6 +228,10 @@ Antworte NUR mit diesem JSON, kein weiterer Text:
     parsed = JSON.parse(text)
   } catch {
     throw new Error(`Ungültige JSON-Antwort von Claude (Extras): ${text.slice(0, 200)}`)
+  }
+
+  if (!parsed.snack_dienstag || !parsed.snack_donnerstag || !parsed.saft_samstag) {
+    throw new Error(`Unvollständige Extras-Antwort von Claude: ${text.slice(0, 200)}`)
   }
 
   return parsed
