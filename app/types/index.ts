@@ -12,6 +12,8 @@ export type Kategorie =
   | 'trainingstage'
   | 'frühstück'
   | 'filmabend'
+  | 'gesundheitssnack'
+  | 'saft'
 
 export interface Zutat {
   name: string
@@ -167,6 +169,8 @@ export interface ExtrasWochenplanEintrag {
   naehrstoffe_snapshot: Naehrstoffe
   ist_neu: boolean
   erstellt_am: string
+  zubereitung?: string
+  katalog_zutaten?: Array<{ name: string; menge: number; einheit: string }>
 }
 
 export interface KindProfil {

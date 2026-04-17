@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
+import { ExtrasRezeptSheet } from '@/components/ExtrasRezeptSheet'
 import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
 import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
@@ -44,6 +45,7 @@ export default function WochenplanPage() {
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [carryOverExtras, setCarryOverExtras] = useState<ExtrasWochenplanEintrag[]>([])
+  const [rezeptExtra, setRezeptExtra] = useState<ExtrasWochenplanEintrag | null>(null)
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -256,6 +258,7 @@ export default function WochenplanPage() {
           onTauschen={tauschen}
           onWaehlen={waehlen}
           onRezept={setRezeptGericht}
+          onExtrasRezept={setRezeptExtra}
         />
       ) : (
         <div className="flex flex-col items-center justify-center px-8 py-20 text-center">
@@ -349,6 +352,9 @@ export default function WochenplanPage() {
           gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }}
           onClose={() => setRezeptGericht(null)}
         />
+      )}
+      {rezeptExtra && (
+        <ExtrasRezeptSheet extra={rezeptExtra} onClose={() => setRezeptExtra(null)} />
       )}
       {einkaufslisteOffen && einkaufslisteDaten && (
         <EinkaufslisteSheet

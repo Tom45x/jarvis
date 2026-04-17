@@ -92,9 +92,10 @@ interface WochenplanGridProps {
   onTauschen: (tag: string, mahlzeit: string) => void
   onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
   onRezept: (gericht: Gericht) => void
+  onExtrasRezept: (extra: ExtrasWochenplanEintrag) => void
 }
 
-export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, carryOverExtras = [], onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, carryOverExtras = [], onTauschen, onWaehlen, onRezept, onExtrasRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
@@ -240,14 +241,31 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                 </div>
               </div>
 
-              {/* Carry-over Slots: read-only */}
+              {/* Carry-over Slots: read-only, gleiche Optik wie aktive Karten aber ohne Tausch */}
               {slot.istCarryOver ? (
                 <>
-                  <CarryOverCard label="Frühstück" name={fruehstueck?.gericht_name ?? '—'} />
-                  {(() => { const e = carryOverExtraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
-                  <CarryOverCard label="Mittag" name={mittag?.gericht_name ?? '—'} />
-                  <CarryOverCard label="Abend" name={abend?.gericht_name ?? '—'} />
-                  {(() => { const e = carryOverExtraMap.get(slot.tag); return (slot.tag === 'dienstag' || slot.tag === 'donnerstag') && e ? <ExtraCard extra={e} /> : null })()}
+                  <GerichtCard
+                    gerichtName={fruehstueck?.gericht_name ?? '—'}
+                    mahlzeit="frühstück"
+                    gesund={gerichtMap[fruehstueck?.gericht_id ?? '']?.gesund}
+                    hatRezept={!!gerichtMap[fruehstueck?.gericht_id ?? '']?.rezept}
+                    onRezept={() => { const g = gerichtMap[fruehstueck?.gericht_id ?? '']; if (g) onRezept(g) }}
+                  />
+                  <GerichtCard
+                    gerichtName={mittag?.gericht_name ?? '—'}
+                    mahlzeit="mittag"
+                    gesund={gerichtMap[mittag?.gericht_id ?? '']?.gesund}
+                    hatRezept={!!gerichtMap[mittag?.gericht_id ?? '']?.rezept}
+                    onRezept={() => { const g = gerichtMap[mittag?.gericht_id ?? '']; if (g) onRezept(g) }}
+                  />
+                  <GerichtCard
+                    gerichtName={abend?.gericht_name ?? '—'}
+                    mahlzeit="abend"
+                    gesund={gerichtMap[abend?.gericht_id ?? '']?.gesund}
+                    hatRezept={!!gerichtMap[abend?.gericht_id ?? '']?.rezept}
+                    onRezept={() => { const g = gerichtMap[abend?.gericht_id ?? '']; if (g) onRezept(g) }}
+                  />
+                  {(() => { const e = carryOverExtraMap.get(slot.tag); return (slot.tag === 'samstag' || slot.tag === 'dienstag' || slot.tag === 'donnerstag') && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
                 </>
               ) : (
                 <>
@@ -267,8 +285,6 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                   ) : (
                     <StaticCard label="Frühstück" name="Toast mit Aufschnitt" />
                   )}
-
-                  {(() => { const e = extraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
 
                   {/* Mittag */}
                   {mittag ? (
@@ -303,8 +319,9 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
                   ) : (
                     <StaticCard label="Abend" name="—" />
                   )}
-                  {(() => { const e = extraMap.get('dienstag'); return slot.tag === 'dienstag' && e ? <ExtraCard extra={e} /> : null })()}
-                  {(() => { const e = extraMap.get('donnerstag'); return slot.tag === 'donnerstag' && e ? <ExtraCard extra={e} /> : null })()}
+                  {(() => { const e = extraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
+                  {(() => { const e = extraMap.get('dienstag'); return slot.tag === 'dienstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
+                  {(() => { const e = extraMap.get('donnerstag'); return slot.tag === 'donnerstag' && e ? <ExtraCard extra={e} onRezept={() => onExtrasRezept(e)} /> : null })()}
                 </>
               )}
             </div>

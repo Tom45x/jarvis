@@ -42,11 +42,19 @@ export async function ladeExtrasHistory(wochen = 4): Promise<ExtrasWochenplanEin
 export async function ladeExtrasForPlan(wochenplanId: string): Promise<ExtrasWochenplanEintrag[]> {
   const { data, error } = await supabase
     .from('extras_wochenplan')
-    .select('*')
+    .select('*, extras_katalog(zubereitung, zutaten)')
     .eq('wochenplan_id', wochenplanId)
 
   if (error) throw error
-  return (data ?? []) as ExtrasWochenplanEintrag[]
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const katalog = row.extras_katalog as { zubereitung?: string; zutaten?: Array<{ name: string; menge: number; einheit: string }> } | null
+    return {
+      ...row,
+      extras_katalog: undefined,
+      zubereitung: katalog?.zubereitung ?? undefined,
+      katalog_zutaten: katalog?.zutaten ?? [],
+    }
+  }) as unknown as ExtrasWochenplanEintrag[]
 }
 
 export async function speichereExtras(

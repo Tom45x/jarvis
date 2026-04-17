@@ -20,14 +20,14 @@ const mockGerichte: Gericht[] = [
 
 describe('WochenplanGrid', () => {
   it('zeigt Gerichte des Plans an', () => {
-    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={() => {}} onWaehlen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={() => {}} onWaehlen={() => {}} onRezept={() => {}} onExtrasRezept={() => {}} />)
     expect(screen.getByText('Flickerklopse')).toBeInTheDocument()
     expect(screen.getByText('Pizza Margherita')).toBeInTheDocument()
   })
 
   it('ruft onTauschen auf wenn Tauschen-Button zweimal geklickt wird', () => {
     const onTauschen = jest.fn()
-    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={onTauschen} onWaehlen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={onTauschen} onWaehlen={() => {}} onRezept={() => {}} onExtrasRezept={() => {}} />)
     const buttons = screen.getAllByLabelText(/tauschen/i)
     fireEvent.click(buttons[0])
     fireEvent.click(screen.getAllByLabelText(/zufällig tauschen/i)[0])
@@ -35,7 +35,7 @@ describe('WochenplanGrid', () => {
   })
 
   it('zeigt keinen Genehmigen-Button im Grid', () => {
-    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={() => {}} onWaehlen={() => {}} onRezept={() => {}} />)
+    render(<WochenplanGrid carryOverPlan={null} aktiverPlan={mockPlan} gerichte={mockGerichte} extras={[]} onTauschen={() => {}} onWaehlen={() => {}} onRezept={() => {}} onExtrasRezept={() => {}} />)
     expect(screen.queryByText(/plan genehmigen/i)).not.toBeInTheDocument()
   })
 })

@@ -4,18 +4,18 @@ import type { ExtrasWochenplanEintrag } from '@/types'
 
 interface ExtraCardProps {
   extra: ExtrasWochenplanEintrag
+  onRezept?: () => void
 }
 
-export function ExtraCard({ extra }: ExtraCardProps) {
+export function ExtraCard({ extra, onRezept }: ExtraCardProps) {
   const istSaft = extra.typ === 'saft'
-  const icon = istSaft ? '🥤' : '🥗'
+  const icon = istSaft ? '🥤' : '🍏'
   const label = istSaft ? 'Saftvorschlag' : 'Gesundheitssnack'
-  const hintergrund = istSaft ? '#fffbeb' : '#f0fdf4'
 
   return (
     <div
       className="rounded-2xl px-3 pt-3 pb-2.5 flex flex-col"
-      style={{ background: hintergrund, boxShadow: 'var(--card-shadow)' }}
+      style={{ background: '#f0fdf4', boxShadow: 'var(--card-shadow)' }}
     >
       <div className="flex-1">
         <p className="text-xs font-medium mb-1" style={{ color: 'var(--gray-secondary)' }}>
@@ -36,9 +36,17 @@ export function ExtraCard({ extra }: ExtraCardProps) {
           </span>
         )}
       </div>
-      {extra.begruendung && (
-        <p className="text-xs mt-1.5" style={{ color: 'var(--gray-secondary)' }}>
-          {extra.begruendung}
+      {onRezept ? (
+        <button
+          onClick={onRezept}
+          className="text-xs mt-1.5 font-medium text-left active:opacity-70"
+          style={{ color: '#16a34a' }}
+        >
+          Rezept ansehen →
+        </button>
+      ) : (
+        <p className="text-xs mt-1.5 font-medium" style={{ color: '#16a34a' }}>
+          Rezept ansehen →
         </p>
       )}
     </div>
