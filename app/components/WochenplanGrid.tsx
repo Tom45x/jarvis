@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
 import { GerichtPickerSheet } from '@/components/GerichtPickerSheet'
+import { ExtraCard } from '@/components/ExtraCard'
 import { getLetztenFreitag, getMontag } from '@/lib/datum-utils'
-import type { Wochenplan, Gericht, Mahlzeit } from '@/types'
+import type { Wochenplan, Gericht, Mahlzeit, ExtrasWochenplanEintrag } from '@/types'
 
 const TAG_LABEL: Record<string, string> = {
   montag: 'Montag', dienstag: 'Dienstag', mittwoch: 'Mittwoch',
@@ -86,15 +87,25 @@ interface WochenplanGridProps {
   carryOverPlan: Wochenplan | null
   aktiverPlan: Wochenplan | null
   gerichte: Gericht[]
+  extras: ExtrasWochenplanEintrag[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
+  )
+
+  const extraMap = useMemo(
+    () => {
+      const map = new Map<string, ExtrasWochenplanEintrag>()
+      for (const e of extras) map.set(e.tag, e)
+      return map
+    },
+    [extras]
   )
 
   const slots = useMemo(() => berechneSlots(), [])
@@ -245,6 +256,10 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
                     <StaticCard label="Frühstück" name="Toast mit Aufschnitt" />
                   )}
 
+                  {slot.tag === 'samstag' && extraMap.get('samstag') && (
+                    <ExtraCard extra={extraMap.get('samstag')!} />
+                  )}
+
                   {/* Mittag */}
                   {mittag ? (
                     <GerichtCard
@@ -277,6 +292,12 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
                     />
                   ) : (
                     <StaticCard label="Abend" name="—" />
+                  )}
+                  {slot.tag === 'dienstag' && extraMap.get('dienstag') && (
+                    <ExtraCard extra={extraMap.get('dienstag')!} />
+                  )}
+                  {slot.tag === 'donnerstag' && extraMap.get('donnerstag') && (
+                    <ExtraCard extra={extraMap.get('donnerstag')!} />
                   )}
                 </>
               )}
