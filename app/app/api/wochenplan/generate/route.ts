@@ -3,6 +3,10 @@ import { supabase } from '@/lib/supabase-server'
 import { generiereWochenplan } from '@/lib/claude'
 import { erstelleWochenplanEintraege, speichereWochenplan } from '@/lib/wochenplan'
 import type { FamilieMitglied, Gericht, WochenplanEintrag } from '@/types'
+import {
+  ladeExtrasKatalog, ladeKinderProfile, ladeExtrasHistory,
+  berechneGapVektor, generiereExtras, speichereExtras
+} from '@/lib/extras'
 
 // Einfacher In-Memory-Lock gegen parallele Generierungsanfragen (z.B. Doppelklick)
 let isGenerating = false
@@ -92,6 +96,53 @@ export async function POST() {
   ]
 
   const plan = await speichereWochenplan(alleEintraege, 'entwurf')
+
+  // Extras generieren
+  try {
+    const [katalog, profile, history] = await Promise.all([
+      ladeExtrasKatalog(),
+      ladeKinderProfile(),
+      ladeExtrasHistory(4),
+    ])
+    const gapVektor = berechneGapVektor(history, profile)
+    const ergebnis = await generiereExtras(katalog, gapVektor, history, profile)
+
+    await speichereExtras(plan.id, [
+      {
+        wochenplan_id: plan.id,
+        katalog_id: ergebnis.snack_dienstag.katalog_id,
+        typ: 'snack',
+        tag: 'dienstag',
+        name: ergebnis.snack_dienstag.name,
+        begruendung: ergebnis.snack_dienstag.begruendung,
+        naehrstoffe_snapshot: ergebnis.snack_dienstag.naehrstoffe,
+        ist_neu: ergebnis.snack_dienstag.ist_neu,
+      },
+      {
+        wochenplan_id: plan.id,
+        katalog_id: ergebnis.snack_donnerstag.katalog_id,
+        typ: 'snack',
+        tag: 'donnerstag',
+        name: ergebnis.snack_donnerstag.name,
+        begruendung: ergebnis.snack_donnerstag.begruendung,
+        naehrstoffe_snapshot: ergebnis.snack_donnerstag.naehrstoffe,
+        ist_neu: ergebnis.snack_donnerstag.ist_neu,
+      },
+      {
+        wochenplan_id: plan.id,
+        katalog_id: ergebnis.saft_samstag.katalog_id,
+        typ: 'saft',
+        tag: 'samstag',
+        name: ergebnis.saft_samstag.name,
+        begruendung: ergebnis.saft_samstag.begruendung,
+        naehrstoffe_snapshot: ergebnis.saft_samstag.naehrstoffe,
+        ist_neu: ergebnis.saft_samstag.ist_neu,
+      },
+    ])
+  } catch (extrasErr) {
+    console.error('[generate] Extras-Generierung fehlgeschlagen:', extrasErr)
+  }
+
   return NextResponse.json(plan)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
