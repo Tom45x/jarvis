@@ -46,6 +46,11 @@ export default function WochenplanPage() {
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [carryOverExtras, setCarryOverExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [rezeptExtra, setRezeptExtra] = useState<ExtrasWochenplanEintrag | null>(null)
+  const [bestellStatus, setBestellStatus] = useState<{
+    status: 'offen' | 'bestellt' | 'keine_liste' | 'kein_plan'
+    fehlende_produkte?: string[]
+    gesendete_anzahl?: number
+  } | null>(null)
 
   useEffect(() => {
     apiFetch('/api/gerichte')
@@ -73,6 +78,11 @@ export default function WochenplanPage() {
               })
               .catch((e) => console.warn('Extras konnten nicht geladen werden', e))
           }
+          apiFetch('/api/picnic/bestellung-status')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d) setBestellStatus(d) })
+            .catch(() => {/* Bestellstatus ist optional */ })
+
           if (data.carryOverPlan?.id) {
             apiFetch(`/api/extras?wochenplan_id=${data.carryOverPlan.id}`)
               .then(r => r.ok ? r.json() : [])
@@ -254,6 +264,20 @@ export default function WochenplanPage() {
           <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
             {error}
           </p>
+        )}
+        {bestellStatus?.status === 'bestellt' && (
+          <div
+            className="mt-3 px-3 py-2 rounded-xl text-sm font-medium"
+            style={{
+              background: (bestellStatus.fehlende_produkte?.length ?? 0) > 0 ? '#fffbeb' : '#f0fdf4',
+              color: (bestellStatus.fehlende_produkte?.length ?? 0) > 0 ? '#92400e' : '#166534',
+            }}
+          >
+            {(bestellStatus.fehlende_produkte?.length ?? 0) === 0
+              ? `✓ Katja hat bestellt — alle ${bestellStatus.gesendete_anzahl ?? ''} Artikel im Warenkorb`
+              : `⚠ Katja hat bestellt — ${bestellStatus.fehlende_produkte!.length} Artikel möglicherweise nicht dabei: ${bestellStatus.fehlende_produkte!.slice(0, 3).join(', ')}${bestellStatus.fehlende_produkte!.length > 3 ? ' …' : ''}`
+            }
+          </div>
         )}
       </div>
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase-server'
 import { generiereEinkaufslisten, splitNachRouting, aggregiere } from '@/lib/einkaufsliste'
 import { aktualisiereEinkaufsliste } from '@/lib/bring'
-import { sucheArtikel, zumWarenkorb, warenkorbLeeren } from '@/lib/picnic'
+import { sucheArtikel, zumWarenkorb, warenkorbLeeren, ladeAktuelleBestellung } from '@/lib/picnic'
 import { ladeWochenAnsicht } from '@/lib/wochenplan'
 import { ladeExtrasForPlan } from '@/lib/extras'
 import { ladeVorrat, aktualisiereVorrat, parsePaketgroesse, normalisiereEinheit, istTracked } from '@/lib/vorrat'
@@ -204,6 +204,20 @@ export async function POST() {
       ...picnic1Ergebnis.zuPicnic.map(p => ({ picnicProdukt: p.picnicProdukt, menge: p.item.menge, einheit: p.item.einheit })),
       ...regelbedarfPicnicItems.map(p => ({ picnicProdukt: p.picnicProdukt, menge: p.item.menge, einheit: p.item.einheit })),
     ]
+
+    // Bestellstatus-Snapshot für spätere Vergleiche speichern
+    const gesendeteProdukte = picnicListenItems.map(p => p.picnicProdukt)
+    await supabase.from('picnic_bestellung_status').upsert(
+      {
+        wochenplan_id: plan.id,
+        gesendete_produkte: gesendeteProdukte,
+        bestellung_erkannt: false,
+        bestellung_id: null,
+        fehlende_produkte: [],
+        geprueft_am: null,
+      },
+      { onConflict: 'wochenplan_id' }
+    )
 
     return NextResponse.json({
       einkauf1Count: bring1Gesamt.length,

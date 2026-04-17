@@ -13,6 +13,39 @@ interface SellingUnit {
   display_price: number
 }
 
+interface OrderArticle {
+  id: string
+  name: string
+  unit_quantity: string
+}
+
+interface OrderLine {
+  type: 'ORDER_LINE'
+  id: string
+  items: OrderArticle[]
+}
+
+interface DeliveryOrder {
+  type: 'ORDER'
+  id: string
+  creation_time: string
+  status: string
+}
+
+interface DeliverySlim {
+  delivery_id: string
+  creation_time: string
+  status: string
+  orders: DeliveryOrder[]
+}
+
+interface DeliveryDetail {
+  delivery_id: string
+  creation_time: string
+  status: string
+  orders: Array<{ items: OrderLine[] }>
+}
+
 // Bewusst eingeschränktes Interface: Nur Warenkorb-Befüllung erlaubt.
 // checkout() / submitOrder() sind absichtlich NICHT exponiert —
 // Bestellungen müssen manuell in der Picnic-App ausgelöst werden.
@@ -27,6 +60,10 @@ interface PicnicInstance {
     addProductToCart(productId: string, count?: number): Promise<unknown>
     clearCart(): Promise<unknown>
     // checkout intentionally omitted
+  }
+  delivery: {
+    getDeliveries(filter?: string[]): Promise<DeliverySlim[]>
+    getDelivery(deliveryId: string): Promise<DeliveryDetail>
   }
 }
 
@@ -90,4 +127,34 @@ export async function warenkorbLeeren(): Promise<void> {
 
 export async function resetClient(): Promise<void> {
   client = null
+}
+
+export interface AktuelleBestellung {
+  bestellung_id: string
+  erstellt_am: string
+  artikel_namen: string[]
+}
+
+export async function ladeAktuelleBestellung(): Promise<AktuelleBestellung | null> {
+  const picnic = await getClient()
+  const lieferungen = await picnic.delivery.getDeliveries(['CURRENT'])
+  if (!lieferungen || lieferungen.length === 0) return null
+
+  const aktuell = lieferungen[0]
+  const details = await picnic.delivery.getDelivery(aktuell.delivery_id)
+
+  const artikel_namen: string[] = []
+  for (const order of details.orders ?? []) {
+    for (const line of order.items ?? []) {
+      for (const article of line.items ?? []) {
+        if (article.name) artikel_namen.push(article.name)
+      }
+    }
+  }
+
+  return {
+    bestellung_id: aktuell.delivery_id,
+    erstellt_am: aktuell.creation_time,
+    artikel_namen,
+  }
 }
