@@ -59,9 +59,18 @@ export default function WochenplanPage() {
           setCarryOverPlan(data.carryOverPlan)
           setAktiverPlan(data.aktiverPlan)
           if (data.aktiverPlan?.id) {
-            apiFetch(`/api/extras?wochenplan_id=${data.aktiverPlan.id}`)
+            const planId = data.aktiverPlan.id
+            apiFetch(`/api/extras?wochenplan_id=${planId}`)
               .then(r => r.ok ? r.json() : [])
-              .then(setExtras)
+              .then(async (geladen: ExtrasWochenplanEintrag[]) => {
+                if (geladen.length > 0) { setExtras(geladen); return }
+                const gen = await apiFetch('/api/extras', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ wochenplan_id: planId }),
+                })
+                setExtras(gen.ok ? await gen.json() : [])
+              })
               .catch((e) => console.warn('Extras konnten nicht geladen werden', e))
           }
           if (data.carryOverPlan?.id) {
