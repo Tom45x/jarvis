@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase-server'
-import { generiereEinkaufslisten, splitNachRouting } from '@/lib/einkaufsliste'
+import { generiereEinkaufslisten, splitNachRouting, aggregiere } from '@/lib/einkaufsliste'
 import { aktualisiereEinkaufsliste } from '@/lib/bring'
 import { sucheArtikel, zumWarenkorb, warenkorbLeeren } from '@/lib/picnic'
 import { ladeWochenAnsicht } from '@/lib/wochenplan'
+import { ladeExtrasForPlan } from '@/lib/extras'
 import { ladeVorrat, aktualisiereVorrat, parsePaketgroesse, normalisiereEinheit, istTracked } from '@/lib/vorrat'
 import type { Gericht, EinkaufsItem, Regelbedarf } from '@/types'
 
@@ -28,6 +29,26 @@ async function ladePicnicEinstellungen(): Promise<{
 async function ladeRegelbedarf(): Promise<Regelbedarf[]> {
   const { data } = await supabase.from('regelbedarf').select('*')
   return (data ?? []) as Regelbedarf[]
+}
+
+async function ladeExtrasZutaten(wochenplanId: string): Promise<EinkaufsItem[]> {
+  const extras = await ladeExtrasForPlan(wochenplanId)
+  const katalogIds = extras.map(e => e.katalog_id).filter((id): id is string => id !== null)
+  if (katalogIds.length === 0) return []
+
+  const { data } = await supabase
+    .from('extras_katalog')
+    .select('zutaten')
+    .in('id', katalogIds)
+
+  const items: EinkaufsItem[] = []
+  for (const row of data ?? []) {
+    const zutaten = (row.zutaten ?? []) as Array<{ name: string; menge: number; einheit: string }>
+    for (const z of zutaten) {
+      items.push({ name: z.name, menge: z.menge, einheit: z.einheit })
+    }
+  }
+  return items
 }
 
 async function mitRetry<T>(fn: () => Promise<T>, versuche = 3): Promise<T> {
@@ -119,7 +140,9 @@ export async function POST() {
       vorrat
     )
 
-    const routing1 = splitNachRouting(einkauf1, einstellungen.bringKeywords)
+    const extrasZutaten = await ladeExtrasZutaten(plan.id)
+    const einkauf1MitExtras = aggregiere([...einkauf1, ...extrasZutaten])
+    const routing1 = splitNachRouting(einkauf1MitExtras, einstellungen.bringKeywords)
     const picnic1Ergebnis = await verarbeitePicnicListe(routing1.picnic, einstellungen.mindestbestellwert)
     const bring1Gesamt = [...routing1.bring, ...picnic1Ergebnis.zuBring]
     const bring2Gesamt = [...einkauf2]
