@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GerichtCard } from '@/components/GerichtCard'
 import { GerichtPickerSheet } from '@/components/GerichtPickerSheet'
+import { ExtraCard } from '@/components/ExtraCard'
 import { getLetztenFreitag, getMontag } from '@/lib/datum-utils'
-import type { Wochenplan, Gericht, Mahlzeit } from '@/types'
+import type { Wochenplan, Gericht, Mahlzeit, ExtrasWochenplanEintrag } from '@/types'
 
 const TAG_LABEL: Record<string, string> = {
   montag: 'Montag', dienstag: 'Dienstag', mittwoch: 'Mittwoch',
@@ -86,15 +87,35 @@ interface WochenplanGridProps {
   carryOverPlan: Wochenplan | null
   aktiverPlan: Wochenplan | null
   gerichte: Gericht[]
+  extras: ExtrasWochenplanEintrag[]
+  carryOverExtras?: ExtrasWochenplanEintrag[]
   onTauschen: (tag: string, mahlzeit: string) => void
   onWaehlen: (tag: string, mahlzeit: string, gericht: Gericht) => void
   onRezept: (gericht: Gericht) => void
 }
 
-export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
+export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, carryOverExtras = [], onTauschen, onWaehlen, onRezept }: WochenplanGridProps) {
   const gerichtMap = useMemo(
     () => Object.fromEntries(gerichte.map(g => [g.id, g])),
     [gerichte]
+  )
+
+  const extraMap = useMemo(
+    () => {
+      const map = new Map<string, ExtrasWochenplanEintrag>()
+      for (const e of extras) map.set(e.tag, e)
+      return map
+    },
+    [extras]
+  )
+
+  const carryOverExtraMap = useMemo(
+    () => {
+      const map = new Map<string, ExtrasWochenplanEintrag>()
+      for (const e of carryOverExtras) map.set(e.tag, e)
+      return map
+    },
+    [carryOverExtras]
   )
 
   const slots = useMemo(() => berechneSlots(), [])
@@ -223,8 +244,10 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
               {slot.istCarryOver ? (
                 <>
                   <CarryOverCard label="Frühstück" name={fruehstueck?.gericht_name ?? '—'} />
+                  {(() => { const e = carryOverExtraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
                   <CarryOverCard label="Mittag" name={mittag?.gericht_name ?? '—'} />
                   <CarryOverCard label="Abend" name={abend?.gericht_name ?? '—'} />
+                  {(() => { const e = carryOverExtraMap.get(slot.tag); return (slot.tag === 'dienstag' || slot.tag === 'donnerstag') && e ? <ExtraCard extra={e} /> : null })()}
                 </>
               ) : (
                 <>
@@ -244,6 +267,8 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
                   ) : (
                     <StaticCard label="Frühstück" name="Toast mit Aufschnitt" />
                   )}
+
+                  {(() => { const e = extraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
 
                   {/* Mittag */}
                   {mittag ? (
@@ -278,6 +303,8 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, onTausche
                   ) : (
                     <StaticCard label="Abend" name="—" />
                   )}
+                  {(() => { const e = extraMap.get('dienstag'); return slot.tag === 'dienstag' && e ? <ExtraCard extra={e} /> : null })()}
+                  {(() => { const e = extraMap.get('donnerstag'); return slot.tag === 'donnerstag' && e ? <ExtraCard extra={e} /> : null })()}
                 </>
               )}
             </div>

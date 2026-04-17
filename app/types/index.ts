@@ -123,3 +123,60 @@ export interface WochenAnsicht {
   carryOverPlan: Wochenplan | null
   aktiverPlan: Wochenplan | null
 }
+
+export interface Naehrstoffe {
+  protein_g: number
+  calcium_mg: number
+  eisen_mg: number
+  zink_mg: number
+  'vitamin_a_µg': number
+  vitamin_c_mg: number
+  'vitamin_d_µg': number
+  'vitamin_k_µg': number
+  vitamin_b1_mg: number
+  vitamin_b2_mg: number
+  vitamin_b6_mg: number
+  'vitamin_b12_µg': number
+  'folsaeure_µg': number
+  omega3_g: number
+  magnesium_mg: number
+  kalium_mg: number
+}
+
+export interface ExtrasKatalogEintrag {
+  id: string
+  typ: 'snack' | 'saft'
+  name: string
+  zubereitung: string
+  geraet: 'entsafter' | 'mixer' | 'keine'
+  naehrstoffe: Naehrstoffe
+  zutaten: Zutat[]
+  portion_g: number
+  saison: number[]
+  geschmacks_hinweis: string
+}
+
+export interface ExtrasWochenplanEintrag {
+  id: string
+  wochenplan_id: string
+  katalog_id: string | null
+  typ: 'snack' | 'saft'
+  tag: 'dienstag' | 'donnerstag' | 'samstag'
+  name: string
+  begruendung: string
+  naehrstoffe_snapshot: Naehrstoffe
+  ist_neu: boolean
+  erstellt_am: string
+}
+
+export interface KindProfil {
+  id: string
+  name: string
+  geburtsdatum: string
+  groesse_cm: number
+  gewicht_kg: number
+  aktivitaetslevel: 'normal' | 'aktiv' | 'sehr_aktiv'
+  tagesbedarf: Naehrstoffe
+}
+
+export type GapVektor = Record<keyof Naehrstoffe, number>
