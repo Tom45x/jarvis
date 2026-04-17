@@ -244,14 +244,10 @@ export function WochenplanGrid({ carryOverPlan, aktiverPlan, gerichte, extras, c
               {slot.istCarryOver ? (
                 <>
                   <CarryOverCard label="Frühstück" name={fruehstueck?.gericht_name ?? '—'} />
-                  {slot.tag === 'samstag' && carryOverExtraMap.get('samstag') && (
-                    <ExtraCard extra={carryOverExtraMap.get('samstag')!} />
-                  )}
+                  {(() => { const e = carryOverExtraMap.get('samstag'); return slot.tag === 'samstag' && e ? <ExtraCard extra={e} /> : null })()}
                   <CarryOverCard label="Mittag" name={mittag?.gericht_name ?? '—'} />
                   <CarryOverCard label="Abend" name={abend?.gericht_name ?? '—'} />
-                  {(slot.tag === 'dienstag' || slot.tag === 'donnerstag') && carryOverExtraMap.get(slot.tag) && (
-                    <ExtraCard extra={carryOverExtraMap.get(slot.tag)!} />
-                  )}
+                  {(() => { const e = carryOverExtraMap.get(slot.tag); return (slot.tag === 'dienstag' || slot.tag === 'donnerstag') && e ? <ExtraCard extra={e} /> : null })()}
                 </>
               ) : (
                 <>

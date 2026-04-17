@@ -30,7 +30,7 @@ export function ExtraCard({ extra }: ExtraCardProps) {
         {extra.ist_neu && (
           <span
             className="inline-block text-xs font-semibold mt-1 px-1.5 py-0.5 rounded-full"
-            style={{ background: '#ff385c', color: '#fff', fontSize: '10px' }}
+            style={{ background: 'var(--rausch)', color: '#fff', fontSize: '10px' }}
           >
             ✦ Neu
           </span>

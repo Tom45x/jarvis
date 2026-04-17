@@ -36,10 +36,11 @@ async function ladeExtrasZutaten(wochenplanId: string): Promise<EinkaufsItem[]> 
   const katalogIds = extras.map(e => e.katalog_id).filter((id): id is string => id !== null)
   if (katalogIds.length === 0) return []
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('extras_katalog')
     .select('zutaten')
     .in('id', katalogIds)
+  if (error) throw error
 
   const items: EinkaufsItem[] = []
   for (const row of data ?? []) {

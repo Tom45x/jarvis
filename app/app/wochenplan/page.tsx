@@ -60,13 +60,13 @@ export default function WochenplanPage() {
             apiFetch(`/api/extras?wochenplan_id=${data.aktiverPlan.id}`)
               .then(r => r.ok ? r.json() : [])
               .then(setExtras)
-              .catch(() => {})
+              .catch((e) => console.warn('Extras konnten nicht geladen werden', e))
           }
           if (data.carryOverPlan?.id) {
             apiFetch(`/api/extras?wochenplan_id=${data.carryOverPlan.id}`)
               .then(r => r.ok ? r.json() : [])
               .then(setCarryOverExtras)
-              .catch(() => {})
+              .catch((e) => console.warn('Carry-Over-Extras konnten nicht geladen werden', e))
           }
         }
       })
@@ -86,7 +86,7 @@ export default function WochenplanPage() {
         apiFetch(`/api/extras?wochenplan_id=${data.id}`)
           .then(r => r.ok ? r.json() : [])
           .then(setExtras)
-          .catch(() => {})
+          .catch((e) => console.warn('Extras nach Generierung konnten nicht geladen werden', e))
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
