@@ -104,7 +104,11 @@ async function verarbeitePicnicListe(
 }
 
 async function fuellePicnicWarenkorb(items: Array<{ item: EinkaufsItem; artikelId: string }>): Promise<void> {
-  await Promise.all(items.map(({ artikelId }) => zumWarenkorb(artikelId, 1)))
+  // Sequenziell: Picnic-Cart ist serverseitig stateful, parallele Calls führen zu Race-Conditions
+  // und verworfenen Items (nur ein Teil landet im Warenkorb, Rest silent gedroppt).
+  for (const { artikelId } of items) {
+    await zumWarenkorb(artikelId, 1)
+  }
 }
 
 export async function POST() {
