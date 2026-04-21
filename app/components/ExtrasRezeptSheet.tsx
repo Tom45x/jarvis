@@ -42,12 +42,12 @@ export function ExtrasRezeptSheet({ extra, onClose }: ExtrasRezeptSheetProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose} />
+      <div className="fixed inset-0 z-[60]" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="extras-rezept-title"
-        className="fixed left-0 right-0 bottom-0 z-50 rounded-t-3xl overflow-hidden"
+        className="fixed left-0 right-0 bottom-0 z-[60] rounded-t-3xl overflow-hidden"
         style={{
           background: '#ffffff',
           maxHeight: '80vh',
