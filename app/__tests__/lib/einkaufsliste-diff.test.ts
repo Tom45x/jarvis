@@ -1,4 +1,11 @@
-import { bestimmeEinfrierstatus } from '@/lib/einkaufsliste-diff'
+import {
+  bestimmeEinfrierstatus,
+  berechneBringDiff,
+  berechnePicnicDiff,
+  istGleichBring,
+  istGleichPicnic,
+} from '@/lib/einkaufsliste-diff'
+import type { EinkaufsItem, PicnicListenArtikel } from '@/types'
 
 describe('bestimmeEinfrierstatus', () => {
   it('Bring-1 ist am Einkaufstag 1 gefroren', () => {
@@ -38,5 +45,82 @@ describe('bestimmeEinfrierstatus', () => {
     const status = bestimmeEinfrierstatus(sonntag, 1, 4, false)
     expect(status.bring1Frozen).toBe(true)
     expect(status.bring2Frozen).toBe(true)
+  })
+})
+
+describe('istGleichBring', () => {
+  it('true bei identischen Listen', () => {
+    const a: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    const b: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    expect(istGleichBring(a, b)).toBe(true)
+  })
+
+  it('false bei anderer Menge', () => {
+    const a: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    const b: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 3, einheit: 'Stück' }]
+    expect(istGleichBring(a, b)).toBe(false)
+  })
+
+  it('true unabhängig von Reihenfolge', () => {
+    const a: EinkaufsItem[] = [
+      { name: 'Zwiebeln', menge: 2, einheit: 'Stück' },
+      { name: 'Paprika', menge: 1, einheit: 'Stück' },
+    ]
+    const b: EinkaufsItem[] = [
+      { name: 'Paprika', menge: 1, einheit: 'Stück' },
+      { name: 'Zwiebeln', menge: 2, einheit: 'Stück' },
+    ]
+    expect(istGleichBring(a, b)).toBe(true)
+  })
+})
+
+describe('berechneBringDiff', () => {
+  it('erkennt hinzugefügte Items', () => {
+    const alt: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    const neu: EinkaufsItem[] = [
+      { name: 'Zwiebeln', menge: 2, einheit: 'Stück' },
+      { name: 'Paprika', menge: 1, einheit: 'Stück' },
+    ]
+    const diff = berechneBringDiff(alt, neu)
+    expect(diff.hinzu).toEqual([{ name: 'Paprika', menge: 1, einheit: 'Stück' }])
+    expect(diff.weg).toEqual([])
+  })
+
+  it('erkennt entfernte Items', () => {
+    const alt: EinkaufsItem[] = [
+      { name: 'Zwiebeln', menge: 2, einheit: 'Stück' },
+      { name: 'Paprika', menge: 1, einheit: 'Stück' },
+    ]
+    const neu: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    const diff = berechneBringDiff(alt, neu)
+    expect(diff.hinzu).toEqual([])
+    expect(diff.weg).toEqual([{ name: 'Paprika', menge: 1, einheit: 'Stück' }])
+  })
+
+  it('erkennt Mengen-Änderung als weg+hinzu', () => {
+    const alt: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }]
+    const neu: EinkaufsItem[] = [{ name: 'Zwiebeln', menge: 3, einheit: 'Stück' }]
+    const diff = berechneBringDiff(alt, neu)
+    expect(diff.weg).toEqual([{ name: 'Zwiebeln', menge: 2, einheit: 'Stück' }])
+    expect(diff.hinzu).toEqual([{ name: 'Zwiebeln', menge: 3, einheit: 'Stück' }])
+  })
+})
+
+describe('istGleichPicnic / berechnePicnicDiff', () => {
+  const a: PicnicListenArtikel = { picnicProdukt: 'Bio Zwiebeln 500g', menge: 1, einheit: 'Packung', artikelId: 's1001' }
+  const b: PicnicListenArtikel = { picnicProdukt: 'Paprika rot 3er', menge: 1, einheit: 'Packung', artikelId: 's1002' }
+
+  it('istGleichPicnic identisch', () => {
+    expect(istGleichPicnic([a], [a])).toBe(true)
+  })
+
+  it('istGleichPicnic unterschiedlich', () => {
+    expect(istGleichPicnic([a], [b])).toBe(false)
+  })
+
+  it('berechnePicnicDiff: +hinzu', () => {
+    const diff = berechnePicnicDiff([a], [a, b])
+    expect(diff.hinzu).toEqual([b])
+    expect(diff.weg).toEqual([])
   })
 })
