@@ -253,6 +253,8 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(plan)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
+    const stack = e instanceof Error ? e.stack : undefined
+    console.error('[wochenplan PUT] Fehler:', msg, stack)
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
