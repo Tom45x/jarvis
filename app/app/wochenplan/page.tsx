@@ -5,10 +5,34 @@ import { useRouter } from 'next/navigation'
 import { WochenplanGrid } from '@/components/WochenplanGrid'
 import { RezeptSheet } from '@/components/RezeptSheet'
 import { ExtrasRezeptSheet } from '@/components/ExtrasRezeptSheet'
-import { EinkaufslisteSheet, type EinkaufslistenDaten } from '@/components/EinkaufslisteSheet'
+import { EinkaufslisteSheet } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
 import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
-import type { Wochenplan, Gericht, ExtrasWochenplanEintrag } from '@/types'
+import type {
+  Wochenplan,
+  Gericht,
+  ExtrasWochenplanEintrag,
+  Einkaufsliste,
+  ListenDiff,
+  SektionDiff,
+  WochenplanEintrag,
+} from '@/types'
+
+function buildDiffToast(diff: ListenDiff): string | null {
+  const parts: string[] = []
+  for (const sektion of ['bring1', 'bring2', 'picnic'] as const) {
+    const sektionDiff = diff[sektion] as SektionDiff | undefined
+    if (!sektionDiff) continue
+    const label = sektion === 'bring1' ? 'Bring-Einkauf 1' : sektion === 'bring2' ? 'Bring-Einkauf 2' : 'Picnic'
+    const hinzuNames = sektionDiff.hinzu.map(i => ('picnicProdukt' in i ? i.picnicProdukt : i.name)).filter(Boolean)
+    const wegNames = sektionDiff.weg.map(i => ('picnicProdukt' in i ? i.picnicProdukt : i.name)).filter(Boolean)
+    const inner: string[] = []
+    if (hinzuNames.length) inner.push('+' + hinzuNames.join(', '))
+    if (wegNames.length) inner.push('−' + wegNames.join(', '))
+    if (inner.length) parts.push(`${label} aktualisiert: ${inner.join(' ')}`)
+  }
+  return parts.length ? parts.join(' · ') : null
+}
 
 export default function WochenplanPage() {
   const router = useRouter()
@@ -17,35 +41,13 @@ export default function WochenplanPage() {
   const [gerichte, setGerichte] = useState<Gericht[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [einkaufLoading, setEinkaufLoading] = useState(false)
-  const [einkaufMeldung, setEinkaufMeldungRaw] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    return sessionStorage.getItem('einkaufMeldung') ?? null
-  })
-
-  function setEinkaufMeldung(meldung: string | null) {
-    setEinkaufMeldungRaw(meldung)
-    if (meldung) sessionStorage.setItem('einkaufMeldung', meldung)
-    else sessionStorage.removeItem('einkaufMeldung')
-  }
-  const [einkaufslisteDaten, setEinkaufslisteDatenRaw] = useState<EinkaufslistenDaten | null>(() => {
-    if (typeof window === 'undefined') return null
-    try {
-      const stored = sessionStorage.getItem('einkaufslisteDaten')
-      return stored ? JSON.parse(stored) : null
-    } catch { return null }
-  })
+  const [listenStatus, setListenStatus] = useState<Einkaufsliste | null>(null)
   const [einkaufslisteOffen, setEinkaufslisteOffen] = useState(false)
-
-  function setEinkaufslisteDaten(daten: EinkaufslistenDaten | null) {
-    setEinkaufslisteDatenRaw(daten)
-    if (daten) sessionStorage.setItem('einkaufslisteDaten', JSON.stringify(daten))
-    else sessionStorage.removeItem('einkaufslisteDaten')
-  }
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [carryOverExtras, setCarryOverExtras] = useState<ExtrasWochenplanEintrag[]>([])
   const [rezeptExtra, setRezeptExtra] = useState<ExtrasWochenplanEintrag | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const extrasGenerierenLaeuft = useRef(false)
   const [bestellStatus, setBestellStatus] = useState<{
     status: 'offen' | 'bestellt' | 'keine_liste' | 'kein_plan'
@@ -53,49 +55,63 @@ export default function WochenplanPage() {
     gesendete_anzahl?: number
   } | null>(null)
 
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 4000)
+  }
+
+  async function ladeListenStatus(planId: string) {
+    try {
+      const res = await apiFetch(`/api/einkaufsliste?wochenplan_id=${planId}`)
+      if (res.ok) setListenStatus(await res.json())
+    } catch { /* ignore */ }
+  }
+
+  async function versucheSyncRetry(planId: string) {
+    try {
+      const res = await apiFetch('/api/einkaufsliste/sync-retry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wochenplan_id: planId }),
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.retried) {
+        showToast('Einkaufsliste wieder synchron')
+        await ladeListenStatus(planId)
+      }
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
-    apiFetch('/api/gerichte')
-      .then(r => r.json())
-      .then(setGerichte)
-      .catch(() => setError('Gerichte konnten nicht geladen werden'))
+    apiFetch('/api/gerichte').then(r => r.json()).then(setGerichte).catch(() => setError('Gerichte konnten nicht geladen werden'))
     apiFetch('/api/wochenplan')
       .then(r => r.ok ? r.json() : null)
       .then((data: { carryOverPlan: Wochenplan | null; aktiverPlan: Wochenplan | null } | null) => {
-        if (data) {
-          setCarryOverPlan(data.carryOverPlan)
-          setAktiverPlan(data.aktiverPlan)
-          if (data.aktiverPlan?.id) {
-            const planId = data.aktiverPlan.id
-            apiFetch(`/api/extras?wochenplan_id=${planId}`)
-              .then(r => r.ok ? r.json() : [])
-              .then(async (geladen: ExtrasWochenplanEintrag[]) => {
-                if (geladen.length > 0) { setExtras(geladen); return }
-                if (extrasGenerierenLaeuft.current) return
-                extrasGenerierenLaeuft.current = true
-                try {
-                  const gen = await apiFetch('/api/extras', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wochenplan_id: planId }),
-                  })
-                  setExtras(gen.ok ? await gen.json() : [])
-                } finally {
-                  extrasGenerierenLaeuft.current = false
-                }
+        if (!data) return
+        setCarryOverPlan(data.carryOverPlan)
+        setAktiverPlan(data.aktiverPlan)
+        if (data.aktiverPlan?.id) {
+          const planId = data.aktiverPlan.id
+          ladeListenStatus(planId)
+          versucheSyncRetry(planId)
+          apiFetch(`/api/extras?wochenplan_id=${planId}`).then(r => r.ok ? r.json() : []).then(async (geladen: ExtrasWochenplanEintrag[]) => {
+            if (geladen.length > 0) { setExtras(geladen); return }
+            if (extrasGenerierenLaeuft.current) return
+            extrasGenerierenLaeuft.current = true
+            try {
+              const gen = await apiFetch('/api/extras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wochenplan_id: planId }),
               })
-              .catch((e) => console.warn('Extras konnten nicht geladen werden', e))
-          }
-          apiFetch('/api/picnic/bestellung-status')
-            .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d) setBestellStatus(d) })
-            .catch(() => {/* Bestellstatus ist optional */ })
-
-          if (data.carryOverPlan?.id) {
-            apiFetch(`/api/extras?wochenplan_id=${data.carryOverPlan.id}`)
-              .then(r => r.ok ? r.json() : [])
-              .then(setCarryOverExtras)
-              .catch((e) => console.warn('Carry-Over-Extras konnten nicht geladen werden', e))
-          }
+              setExtras(gen.ok ? await gen.json() : [])
+            } finally { extrasGenerierenLaeuft.current = false }
+          }).catch(e => console.warn('Extras konnten nicht geladen werden', e))
+          apiFetch('/api/picnic/bestellung-status').then(r => r.ok ? r.json() : null).then(d => { if (d) setBestellStatus(d) }).catch(() => {})
+        }
+        if (data.carryOverPlan?.id) {
+          apiFetch(`/api/extras?wochenplan_id=${data.carryOverPlan.id}`).then(r => r.ok ? r.json() : []).then(setCarryOverExtras).catch(() => {})
         }
       })
       .catch(() => setError('Wochenplan konnte nicht geladen werden'))
@@ -104,33 +120,42 @@ export default function WochenplanPage() {
   async function generieren() {
     setLoading(true)
     setError(null)
-    setEinkaufslisteDaten(null)
     try {
       const res = await apiFetch('/api/wochenplan/generate', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error ?? 'Fehler beim Generieren')
       setAktiverPlan(data)
       if (data?.id) {
-        apiFetch(`/api/extras?wochenplan_id=${data.id}`)
-          .then(r => r.ok ? r.json() : [])
-          .then(setExtras)
-          .catch((e) => console.warn('Extras nach Generierung konnten nicht geladen werden', e))
+        ladeListenStatus(data.id)
+        apiFetch(`/api/extras?wochenplan_id=${data.id}`).then(r => r.ok ? r.json() : []).then(setExtras).catch(() => {})
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unbekannter Fehler')
-    } finally {
-      setLoading(false)
+    } finally { setLoading(false) }
+  }
+
+  async function tauschOderWaehle(body: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt' }, planId: string) {
+    const res = await apiFetch('/api/wochenplan', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error('Aktualisierung fehlgeschlagen')
+    const data = await res.json()
+    setAktiverPlan(data)
+    if (data.einkaufslisten_diff) {
+      const msg = buildDiffToast(data.einkaufslisten_diff as ListenDiff)
+      if (msg) showToast(msg)
     }
+    await ladeListenStatus(planId)
   }
 
   async function tauschen(tag: string, mahlzeit: string) {
     if (!aktiverPlan) return
     const aktuell = aktiverPlan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
-
     const sonderKategorie = mahlzeit === 'frühstück'
       ? 'frühstück'
       : SONDERKATEGORIEN[`${tag}-${mahlzeit}`] ?? null
-
     const andere = gerichte.filter(g =>
       g.id !== aktuell?.gericht_id &&
       !g.gesperrt &&
@@ -140,36 +165,18 @@ export default function WochenplanPage() {
     )
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) return
-
     const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const eintraege = slotExistiert
-      ? aktiverPlan.eintraege.map(e =>
-          e.tag === tag && e.mahlzeit === mahlzeit
-            ? { ...e, gericht_id: neu.id, gericht_name: neu.name }
-            : e
-        )
-      : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: neu.id, gericht_name: neu.name }]
-
+      ? aktiverPlan.eintraege.map(e => e.tag === tag && e.mahlzeit === mahlzeit ? { ...e, gericht_id: neu.id, gericht_name: neu.name } : e)
+      : [...aktiverPlan.eintraege, { tag: tag as WochenplanEintrag['tag'], mahlzeit: mahlzeit as WochenplanEintrag['mahlzeit'], gericht_id: neu.id, gericht_name: neu.name }]
     try {
-      const res = await apiFetch('/api/wochenplan', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eintraege, status: aktiverPlan.status })
-      })
-      if (!res.ok) throw new Error('Tauschen fehlgeschlagen')
-      setAktiverPlan(await res.json())
-      setEinkaufslisteDaten(null)
-      setEinkaufMeldung(null)
+      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Tauschen fehlgeschlagen')
+      return
     }
-
     if (aktuell?.gericht_id) {
-      try {
-        await apiFetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' })
-      } catch {
-        console.warn('Tausch-Counter konnte nicht aktualisiert werden:', aktuell.gericht_id)
-      }
+      apiFetch(`/api/gerichte/${aktuell.gericht_id}/tauschen`, { method: 'PATCH' }).catch(() => {})
     }
   }
 
@@ -177,23 +184,10 @@ export default function WochenplanPage() {
     if (!aktiverPlan) return
     const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const eintraege = slotExistiert
-      ? aktiverPlan.eintraege.map(e =>
-          e.tag === tag && e.mahlzeit === mahlzeit
-            ? { ...e, gericht_id: gericht.id, gericht_name: gericht.name }
-            : e
-        )
-      : [...aktiverPlan.eintraege, { tag, mahlzeit, gericht_id: gericht.id, gericht_name: gericht.name }]
-
+      ? aktiverPlan.eintraege.map(e => e.tag === tag && e.mahlzeit === mahlzeit ? { ...e, gericht_id: gericht.id, gericht_name: gericht.name } : e)
+      : [...aktiverPlan.eintraege, { tag: tag as WochenplanEintrag['tag'], mahlzeit: mahlzeit as WochenplanEintrag['mahlzeit'], gericht_id: gericht.id, gericht_name: gericht.name }]
     try {
-      const res = await apiFetch('/api/wochenplan', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eintraege, status: aktiverPlan.status })
-      })
-      if (!res.ok) throw new Error('Auswahl fehlgeschlagen')
-      setAktiverPlan(await res.json())
-      setEinkaufslisteDaten(null)
-      setEinkaufMeldung(null)
+      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Auswahl fehlgeschlagen')
     }
@@ -202,41 +196,24 @@ export default function WochenplanPage() {
   async function genehmigen() {
     if (!aktiverPlan) return
     try {
-      const res = await apiFetch('/api/wochenplan', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' })
-      })
-      if (!res.ok) throw new Error('Genehmigen fehlgeschlagen')
-      setAktiverPlan(await res.json())
+      await tauschOderWaehle({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' }, aktiverPlan.id)
+      showToast('Einkaufsliste bereit')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Genehmigen fehlgeschlagen')
     }
   }
 
-  async function einkaufslisteSenden() {
-    setEinkaufLoading(true)
-    setEinkaufMeldung(null)
-    try {
-      const res = await apiFetch('/api/einkaufsliste/senden', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Fehler')
-      if (data.listen) setEinkaufslisteDaten(data.listen)
-      const picnicArtikel = data.picnic1Count ?? 0
-      const picnicInfo = picnicArtikel > 0 ? ` · Picnic: ${picnicArtikel} Artikel` : ''
-      setEinkaufMeldung(
-        `✅ Bring: ${(data.einkauf1Count ?? 0) + (data.einkauf2Count ?? 0)} Artikel${picnicInfo}`
-      )
-    } catch (e: unknown) {
-      setEinkaufMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
-    } finally {
-      setEinkaufLoading(false)
-    }
-  }
-
   const hatPlan = carryOverPlan !== null || aktiverPlan !== null
   const istFreitag = new Date().getDay() === 5
-  const einkaufAktiv = aktiverPlan?.status === 'genehmigt'
+  const buttonStatusSuffix = (() => {
+    if (!listenStatus) return ''
+    if (bestellStatus?.status === 'bestellt') {
+      const fehlt = (bestellStatus.fehlende_produkte?.length ?? 0) > 0
+      return fehlt ? '· Bestellt (teilweise)' : '· Bestellt'
+    }
+    if (listenStatus.gesendet_am) return '· Gesendet'
+    return '· Entwurf'
+  })()
 
   return (
     <main className="min-h-screen bg-white pb-32">
@@ -258,23 +235,13 @@ export default function WochenplanPage() {
           </button>
         </div>
         <div className="flex items-center justify-between mt-0.5">
-          <p className="text-sm" style={{
-            color: aktiverPlan?.status === 'entwurf'
-              ? 'var(--rausch)'
-              : aktiverPlan?.status === 'genehmigt'
-              ? '#00a651'
-              : 'var(--gray-secondary)'
-          }}>
+          <p className="text-sm" style={{ color: aktiverPlan?.status === 'entwurf' ? 'var(--rausch)' : aktiverPlan?.status === 'genehmigt' ? '#00a651' : 'var(--gray-secondary)' }}>
             {aktiverPlan
               ? aktiverPlan.status === 'genehmigt' ? '✓ Genehmigt' : 'Entwurf — nicht genehmigt'
               : carryOverPlan ? 'Nächste Woche noch nicht geplant' : 'Noch kein Plan für diese Woche'}
           </p>
           {aktiverPlan?.status === 'entwurf' && (
-            <button
-              onClick={genehmigen}
-              className="flex items-center gap-1 text-xs font-bold rounded-full px-3 py-1.5 active:opacity-70 transition-opacity"
-              style={{ background: '#00a651', color: '#ffffff' }}
-            >
+            <button onClick={genehmigen} className="flex items-center gap-1 text-xs font-bold rounded-full px-3 py-1.5 active:opacity-70 transition-opacity" style={{ background: '#00a651', color: '#ffffff' }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
@@ -282,25 +249,7 @@ export default function WochenplanPage() {
             </button>
           )}
         </div>
-        {error && (
-          <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
-            {error}
-          </p>
-        )}
-        {bestellStatus?.status === 'bestellt' && (
-          <div
-            className="mt-3 px-3 py-2 rounded-xl text-sm font-medium"
-            style={{
-              background: (bestellStatus.fehlende_produkte?.length ?? 0) > 0 ? '#fffbeb' : '#f0fdf4',
-              color: (bestellStatus.fehlende_produkte?.length ?? 0) > 0 ? '#92400e' : '#166534',
-            }}
-          >
-            {(bestellStatus.fehlende_produkte?.length ?? 0) === 0
-              ? `✓ Katja hat bestellt — alle ${bestellStatus.gesendete_anzahl ?? ''} Artikel im Warenkorb`
-              : `⚠ Katja hat bestellt — ${bestellStatus.fehlende_produkte!.length} Artikel möglicherweise nicht dabei: ${bestellStatus.fehlende_produkte!.slice(0, 3).join(', ')}${bestellStatus.fehlende_produkte!.length > 3 ? ' …' : ''}`
-            }
-          </div>
-        )}
+        {error && <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>{error}</p>}
       </div>
 
       {hatPlan ? (
@@ -318,31 +267,17 @@ export default function WochenplanPage() {
       ) : (
         <div className="flex flex-col items-center justify-center px-8 py-20 text-center">
           <div className="text-5xl mb-4">🍽️</div>
-          <p className="text-lg font-semibold mb-2" style={{ color: 'var(--near-black)' }}>
-            Noch kein Plan
-          </p>
+          <p className="text-lg font-semibold mb-2" style={{ color: 'var(--near-black)' }}>Noch kein Plan</p>
           <p className="text-sm" style={{ color: 'var(--gray-secondary)' }}>
             {istFreitag ? 'Tippe unten auf "Plan erstellen"' : 'Am Freitag kann Jarvis einen neuen Plan erstellen'}
           </p>
         </div>
       )}
 
-      {/* Thumb-Zone Action Bar */}
-      <div
-        className="fixed left-0 right-0 px-4 pb-2 pt-3 z-50"
-        style={{
-          bottom: 'calc(64px + env(safe-area-inset-bottom, 34px))',
-          background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))',
-        }}
-      >
+      <div className="fixed left-0 right-0 px-4 pb-2 pt-3 z-50" style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 34px))', background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))' }}>
         <div className="flex flex-col gap-2">
           {istFreitag && (
-            <button
-              onClick={generieren}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity"
-              style={{ background: 'var(--rausch)', color: '#ffffff', minHeight: '52px' }}
-            >
+            <button onClick={generieren} disabled={loading} className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity" style={{ background: 'var(--rausch)', color: '#ffffff', minHeight: '52px' }}>
               {loading ? (
                 <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -359,69 +294,38 @@ export default function WochenplanPage() {
             </button>
           )}
 
-          {(hatPlan || istFreitag) && (
-            einkaufslisteDaten ? (
-              <button
-                onClick={() => setEinkaufslisteOffen(true)}
-                className="w-full flex flex-col items-center justify-center gap-0.5 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
-                style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
-              >
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-                  </svg>
-                  Einkaufsliste ansehen
-                </div>
-                {einkaufMeldung && (
-                  <span className="text-xs font-normal opacity-70">{einkaufMeldung.replace(/^✅\s*/, '')}</span>
-                )}
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={einkaufslisteSenden}
-                  disabled={!einkaufAktiv || einkaufLoading}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity"
-                  style={{
-                    background: einkaufAktiv ? 'var(--near-black)' : 'var(--surface)',
-                    color: einkaufAktiv ? '#ffffff' : 'var(--gray-secondary)',
-                    minHeight: '52px',
-                  }}
-                >
-                  {einkaufLoading ? 'Sende...' : (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                      </svg>
-                      Einkaufslisten senden
-                    </>
-                  )}
-                </button>
-                {einkaufMeldung?.startsWith('❌') && (
-                  <p className="text-sm px-3 py-2 rounded-xl text-center" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>
-                    {einkaufMeldung}
-                  </p>
-                )}
-              </>
-            )
+          {aktiverPlan?.status === 'genehmigt' && (
+            <button
+              onClick={() => setEinkaufslisteOffen(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold active:opacity-70 transition-opacity"
+              style={{ background: 'var(--near-black)', color: '#ffffff', minHeight: '52px' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
+              Einkaufsliste {buttonStatusSuffix}
+            </button>
           )}
         </div>
       </div>
 
+      {toast && (
+        <div className="fixed left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-medium z-[70]" style={{ bottom: 'calc(140px + env(safe-area-inset-bottom, 34px))', background: 'var(--near-black)', color: '#ffffff', maxWidth: '90%' }}>
+          {toast}
+        </div>
+      )}
+
       {rezeptGericht?.rezept && (
-        <RezeptSheet
-          gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }}
-          onClose={() => setRezeptGericht(null)}
-        />
+        <RezeptSheet gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }} onClose={() => setRezeptGericht(null)} />
       )}
-      {rezeptExtra && (
-        <ExtrasRezeptSheet extra={rezeptExtra} onClose={() => setRezeptExtra(null)} />
-      )}
-      {einkaufslisteOffen && einkaufslisteDaten && (
+      {rezeptExtra && <ExtrasRezeptSheet extra={rezeptExtra} onClose={() => setRezeptExtra(null)} />}
+      {einkaufslisteOffen && aktiverPlan && (
         <EinkaufslisteSheet
-          daten={einkaufslisteDaten}
-          onClose={() => setEinkaufslisteOffen(false)}
+          wochenplanId={aktiverPlan.id}
+          bestellStatus={bestellStatus}
+          onClose={() => { setEinkaufslisteOffen(false); ladeListenStatus(aktiverPlan.id) }}
+          onSent={() => { ladeListenStatus(aktiverPlan.id) }}
         />
       )}
     </main>
