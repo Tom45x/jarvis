@@ -97,6 +97,25 @@ export async function POST() {
 
   const plan = await speichereWochenplan(alleEintraege, 'entwurf')
 
+  // Alte Einkaufsliste für diesen Plan zurücksetzen (Plan wurde komplett neu gemacht)
+  await supabase.from('einkaufslisten')
+    .update({
+      picnic: [],
+      bring1: [],
+      bring2: [],
+      aus_vorrat: [],
+      gestrichen: [],
+      gesendet_am: null,
+      gesendet_snapshot: null,
+      sync_fehler: null,
+    })
+    .eq('wochenplan_id', plan.id)
+
+  // Alten Picnic-Bestellstatus entfernen (Bestellung passt nicht mehr zum neuen Plan)
+  await supabase.from('picnic_bestellung_status')
+    .delete()
+    .eq('wochenplan_id', plan.id)
+
   // Extras generieren
   try {
     const [katalog, kinderProfile, history] = await Promise.all([
