@@ -85,11 +85,54 @@ export interface EinkaufsArtikel {
   routing: 'picnic' | 'bring'
 }
 
+export interface PicnicListenArtikel {
+  picnicProdukt: string
+  menge: number
+  einheit: string
+  artikelId: string
+}
+
+export interface EinkaufslisteSnapshot {
+  picnic: PicnicListenArtikel[]
+  bring1: EinkaufsItem[]
+  bring2: EinkaufsItem[]
+}
+
+export interface EinkaufslisteSyncFehler {
+  sektion: 'picnic' | 'bring1' | 'bring2'
+  fehler: string
+  timestamp: string
+}
+
 export interface Einkaufsliste {
   id: string
   wochenplan_id: string
-  artikel: EinkaufsArtikel[]
+  picnic: PicnicListenArtikel[]
+  bring1: EinkaufsItem[]
+  bring2: EinkaufsItem[]
+  aus_vorrat: EinkaufsItem[]
+  gestrichen: string[]
+  gesendet_am: string | null
+  gesendet_snapshot: EinkaufslisteSnapshot | null
+  sync_fehler: EinkaufslisteSyncFehler | null
   erstellt_am: string
+}
+
+export interface EinfrierStatus {
+  picnicFrozen: boolean
+  bring1Frozen: boolean
+  bring2Frozen: boolean
+}
+
+export interface SektionDiff {
+  hinzu: Array<EinkaufsItem | PicnicListenArtikel>
+  weg: Array<EinkaufsItem | PicnicListenArtikel>
+}
+
+export interface ListenDiff {
+  picnic?: SektionDiff
+  bring1?: SektionDiff
+  bring2?: SektionDiff
 }
 
 export interface Regelbedarf {
