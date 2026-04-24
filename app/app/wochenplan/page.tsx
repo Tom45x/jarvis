@@ -152,7 +152,7 @@ export default function WochenplanPage() {
   }
 
   async function tauschen(tag: string, mahlzeit: string) {
-    if (!aktiverPlan) return
+    if (!aktiverPlan) { setError('Kein aktiver Plan'); return }
     const aktuell = aktiverPlan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const sonderKategorie = mahlzeit === 'frühstück'
       ? 'frühstück'
@@ -165,7 +165,10 @@ export default function WochenplanPage() {
         : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage' && g.kategorie !== 'filmabend')
     )
     const neu = andere[Math.floor(Math.random() * andere.length)]
-    if (!neu) return
+    if (!neu) {
+      setError(`Kein alternatives Gericht verfügbar für ${tag} ${mahlzeit} (Kategorie: ${sonderKategorie ?? 'regulär'})`)
+      return
+    }
     const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)
     const eintraege = slotExistiert
       ? aktiverPlan.eintraege.map(e => e.tag === tag && e.mahlzeit === mahlzeit ? { ...e, gericht_id: neu.id, gericht_name: neu.name } : e)
