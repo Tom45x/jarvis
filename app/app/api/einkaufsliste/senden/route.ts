@@ -73,7 +73,7 @@ export async function POST() {
         bestellung_erkannt: false,
         bestellung_id: null,
         fehlende_produkte: [],
-        geprueft_am: null,
+        geprueft_am: new Date().toISOString(),
       },
       { onConflict: 'wochenplan_id' }
     )

@@ -39,7 +39,18 @@ export async function GET() {
     // Picnic-API abfragen
     const bestellung = await ladeAktuelleBestellung()
 
-    if (!bestellung) {
+    // gesendet_am aus Einkaufsliste, um Bestellungen vor dem Senden auszuschließen
+    const { data: liste } = await supabase
+      .from('einkaufslisten')
+      .select('gesendet_am')
+      .eq('wochenplan_id', aktiverPlan.id)
+      .maybeSingle()
+    const gesendetAm = liste?.gesendet_am ? new Date(liste.gesendet_am).getTime() : null
+
+    const bestellungZuAlt = bestellung && gesendetAm !== null
+      && new Date(bestellung.erstellt_am).getTime() < gesendetAm
+
+    if (!bestellung || bestellungZuAlt) {
       await supabase.from('picnic_bestellung_status').update({
         geprueft_am: new Date().toISOString(),
       }).eq('wochenplan_id', aktiverPlan.id)
