@@ -135,7 +135,10 @@ export default function WochenplanPage() {
     } finally { setLoading(false) }
   }
 
-  async function tauschOderWaehle(body: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt' }, planId: string) {
+  async function tauschOderWaehle(body: { eintraege: WochenplanEintrag[]; status: 'entwurf' | 'genehmigt' }, planId: string, optimistic?: Wochenplan) {
+    // Optimistic Update: Plan sofort im UI aktualisieren, Backend laeuft im Hintergrund
+    if (optimistic) setAktiverPlan(optimistic)
+
     const res = await apiFetch('/api/wochenplan', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -173,9 +176,12 @@ export default function WochenplanPage() {
     const eintraege = slotExistiert
       ? aktiverPlan.eintraege.map(e => e.tag === tag && e.mahlzeit === mahlzeit ? { ...e, gericht_id: neu.id, gericht_name: neu.name } : e)
       : [...aktiverPlan.eintraege, { tag: tag as WochenplanEintrag['tag'], mahlzeit: mahlzeit as WochenplanEintrag['mahlzeit'], gericht_id: neu.id, gericht_name: neu.name }]
+    const optimistic = { ...aktiverPlan, eintraege }
     try {
-      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id)
+      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id, optimistic)
     } catch (e: unknown) {
+      // Rollback auf alten Plan
+      setAktiverPlan(aktiverPlan)
       setError(e instanceof Error ? e.message : 'Tauschen fehlgeschlagen')
       return
     }
@@ -190,9 +196,11 @@ export default function WochenplanPage() {
     const eintraege = slotExistiert
       ? aktiverPlan.eintraege.map(e => e.tag === tag && e.mahlzeit === mahlzeit ? { ...e, gericht_id: gericht.id, gericht_name: gericht.name } : e)
       : [...aktiverPlan.eintraege, { tag: tag as WochenplanEintrag['tag'], mahlzeit: mahlzeit as WochenplanEintrag['mahlzeit'], gericht_id: gericht.id, gericht_name: gericht.name }]
+    const optimistic = { ...aktiverPlan, eintraege }
     try {
-      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id)
+      await tauschOderWaehle({ eintraege, status: aktiverPlan.status }, aktiverPlan.id, optimistic)
     } catch (e: unknown) {
+      setAktiverPlan(aktiverPlan)
       setError(e instanceof Error ? e.message : 'Auswahl fehlgeschlagen')
     }
   }

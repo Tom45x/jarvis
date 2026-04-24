@@ -64,12 +64,21 @@ export async function berechneListeFuerPlan(eingabe: ListenEingabe): Promise<Ber
   const routing1 = splitNachRouting(einkauf1MitExtras, eingabe.bringKeywords)
 
   const picnicKandidaten = [...routing1.picnic]
+
+  // Picnic-Suchen parallel — sucheArtikel ist ein Lookup (GET), kein Stateful-Write,
+  // daher safe zum parallelisieren. Beschleunigt Tausch-Diff um Faktor 10–30.
+  const kandidatTreffer = await Promise.all(
+    picnicKandidaten.map(async (item) => ({ item, artikel: await sucheArtikel(item.name) }))
+  )
+  const regelbedarfTreffer = await Promise.all(
+    eingabe.regelbedarf.map(async (r) => ({ item: r, artikel: await sucheArtikel(r.name) }))
+  )
+
   const picnicArtikel: PicnicListenArtikel[] = []
   const nichtGefunden: EinkaufsItem[] = []
   let gesamtpreis = 0
 
-  for (const item of picnicKandidaten) {
-    const artikel = await sucheArtikel(item.name)
+  for (const { item, artikel } of kandidatTreffer) {
     if (artikel) {
       picnicArtikel.push({
         picnicProdukt: artikel.name,
@@ -83,13 +92,12 @@ export async function berechneListeFuerPlan(eingabe: ListenEingabe): Promise<Ber
     }
   }
 
-  for (const r of eingabe.regelbedarf) {
-    const artikel = await sucheArtikel(r.name)
+  for (const { item, artikel } of regelbedarfTreffer) {
     if (artikel) {
       picnicArtikel.push({
         picnicProdukt: artikel.name,
-        menge: r.menge,
-        einheit: r.einheit,
+        menge: item.menge,
+        einheit: item.einheit,
         artikelId: artikel.artikelId,
       })
     }
