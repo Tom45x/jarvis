@@ -260,6 +260,14 @@ export default function WochenplanPage() {
           )}
         </div>
         {error && <p className="mt-3 text-sm px-3 py-2 rounded-xl" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>{error}</p>}
+        {toast && (
+          <div className="mt-3 px-3 py-2 rounded-lg text-sm flex items-center gap-2" style={{ background: '#f0fae8', color: '#2d6a1b', border: '1px solid #c8e6b2' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{toast}</span>
+          </div>
+        )}
       </div>
 
       {hatPlan ? (
@@ -319,12 +327,6 @@ export default function WochenplanPage() {
           )}
         </div>
       </div>
-
-      {toast && (
-        <div className="fixed left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-medium z-[70]" style={{ bottom: 'calc(140px + env(safe-area-inset-bottom, 34px))', background: 'var(--near-black)', color: '#ffffff', maxWidth: '90%' }}>
-          {toast}
-        </div>
-      )}
 
       {rezeptGericht?.rezept && (
         <RezeptSheet gericht={rezeptGericht as Gericht & { rezept: NonNullable<Gericht['rezept']> }} onClose={() => setRezeptGericht(null)} />

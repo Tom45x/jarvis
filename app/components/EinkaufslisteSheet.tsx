@@ -119,8 +119,10 @@ export function EinkaufslisteSheet({ wochenplanId, bestellStatus, onClose, onSen
   }, [onClose, laden])
 
   const editable = liste !== null && liste.gesendet_am === null
-  const bestellt = bestellStatus?.status === 'bestellt'
-  const fehlendeSet = new Set(bestellStatus?.fehlende_produkte ?? [])
+  // Bestellstatus nur anwenden, wenn die aktuelle Liste auch wirklich gesendet wurde —
+  // sonst ist das ein Drift vom Picnic-Poll (alte Bestellung, neuer Plan).
+  const bestellt = bestellStatus?.status === 'bestellt' && liste?.gesendet_am !== null && liste !== null
+  const fehlendeSet = new Set(bestellt ? (bestellStatus?.fehlende_produkte ?? []) : [])
 
   async function toggleGestrichen(name: string) {
     if (!liste) return
@@ -205,6 +207,16 @@ export function EinkaufslisteSheet({ wochenplanId, bestellStatus, onClose, onSen
 
           {loading && <p className="text-sm py-8 text-center" style={{ color: 'var(--gray-secondary)' }}>Lädt …</p>}
           {error && <p className="text-sm px-3 py-2 rounded-xl mb-3" style={{ background: '#fff0f3', color: 'var(--rausch)' }}>{error}</p>}
+
+          {!loading && liste === null && (
+            <div className="rounded-xl p-4 mb-3 text-center" style={{ background: '#fffbeb', color: '#92400e' }}>
+              <p className="text-sm font-medium mb-1">Einkaufsliste noch nicht erstellt</p>
+              <p className="text-xs" style={{ color: '#78350f' }}>
+                Die Listenberechnung ist wahrscheinlich fehlgeschlagen (Picnic-Timeout).
+                Bitte im Wochenplan einen Eintrag bewegen oder neu genehmigen, um den Vorgang erneut zu starten.
+              </p>
+            </div>
+          )}
 
           {liste && liste.picnic.length > 0 && (
             <div className="rounded-xl p-3 mb-3" style={{ background: '#f0fae8' }}>
