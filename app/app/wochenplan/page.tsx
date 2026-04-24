@@ -42,6 +42,7 @@ export default function WochenplanPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [listenStatus, setListenStatus] = useState<Einkaufsliste | null>(null)
+  const [listeWirdErstellt, setListeWirdErstellt] = useState(false)
   const [einkaufslisteOffen, setEinkaufslisteOffen] = useState(false)
   const [rezeptGericht, setRezeptGericht] = useState<Gericht | null>(null)
   const [extras, setExtras] = useState<ExtrasWochenplanEintrag[]>([])
@@ -195,17 +196,26 @@ export default function WochenplanPage() {
 
   async function genehmigen() {
     if (!aktiverPlan) return
+    // Optimistic Update: Status sofort auf genehmigt setzen, Liste-Pending markieren
+    const vorherigerPlan = aktiverPlan
+    setAktiverPlan({ ...aktiverPlan, status: 'genehmigt' })
+    setListeWirdErstellt(true)
     try {
       await tauschOderWaehle({ eintraege: aktiverPlan.eintraege, status: 'genehmigt' }, aktiverPlan.id)
       showToast('Einkaufsliste bereit')
     } catch (e: unknown) {
+      // Rollback bei Fehler
+      setAktiverPlan(vorherigerPlan)
       setError(e instanceof Error ? e.message : 'Genehmigen fehlgeschlagen')
+    } finally {
+      setListeWirdErstellt(false)
     }
   }
 
   const hatPlan = carryOverPlan !== null || aktiverPlan !== null
   const istFreitag = new Date().getDay() === 5
   const buttonStatusSuffix = (() => {
+    if (listeWirdErstellt) return '· wird erstellt …'
     if (!listenStatus) return ''
     if (bestellStatus?.status === 'bestellt') {
       const fehlt = (bestellStatus.fehlende_produkte?.length ?? 0) > 0
