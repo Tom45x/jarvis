@@ -214,9 +214,13 @@ export async function PUT(req: NextRequest) {
 
     if (status === 'genehmigt') {
       const liste = await ladeListe(plan.id)
-      if (liste && liste.gesendet_am === null) {
+      if (!liste) {
+        // Liste existiert noch nicht (z.B. vorheriger Genehmigen-Call gescheitert)
+        // -> jetzt nachholen
+        await berechneUndPersistiere(plan, [])
+      } else if (liste.gesendet_am === null) {
         await berechneUndPersistiere(plan, liste.gestrichen)
-      } else if (liste && liste.gesendet_am !== null && liste.gesendet_snapshot) {
+      } else if (liste.gesendet_am !== null && liste.gesendet_snapshot) {
         const einkaufstag2 = parseInt(process.env.EINKAUFSTAG_2 ?? '4', 10)
         const [{ data: gerichte }, einstellungen, regelbedarf, vorrat, extrasZutaten] = await Promise.all([
           supabase.from('gerichte').select('*'),
