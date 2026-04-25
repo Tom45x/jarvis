@@ -40,7 +40,7 @@ describe('POST /api/instagram/import', () => {
     const res = await POST(makeRequest({ url: 'https://www.instagram.com/reel/ABC/', token: 'falsch' }))
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toEqual({ ok: false, error: 'Ungültiger Token' })
+    expect(body).toEqual({ ok: false, error: 'Ungültiger Token', display: '⚠️ Ungültiger Token' })
   })
 
   it('lehnt ungültige URL ab', async () => {
@@ -70,6 +70,7 @@ describe('POST /api/instagram/import', () => {
       existing: true,
       gericht_id: 'g-123',
       gericht_name: 'Ofen Feta',
+      display: '↻ Ofen Feta (schon importiert)',
     })
     expect(mockHoleReelCaption).not.toHaveBeenCalled()
   })
@@ -109,6 +110,7 @@ describe('POST /api/instagram/import', () => {
       existing: false,
       gericht_id: 'new-id',
       gericht_name: 'Test',
+      display: '✓ Test',
     })
   })
 

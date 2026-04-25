@@ -10,7 +10,11 @@ type Misserfolg = { ok: false; error: string }
 type Antwort = Erfolg | Misserfolg
 
 function ok200(body: Antwort): NextResponse {
-  return NextResponse.json(body, { status: 200 })
+  // display-Feld für iOS-Mitteilung automatisch ergänzen
+  const display = body.ok
+    ? (body.existing ? `↻ ${body.gericht_name} (schon importiert)` : `✓ ${body.gericht_name}`)
+    : `⚠️ ${body.error}`
+  return NextResponse.json({ ...body, display }, { status: 200 })
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
