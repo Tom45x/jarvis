@@ -13,6 +13,7 @@ export async function GET() {
 const GUELTIGE_KATEGORIEN = [
   'fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat',
   'sonstiges', 'kinder', 'trainingstage', 'frühstück', 'filmabend',
+  'gesundheitssnack', 'saft', 'instagram',
 ] as const
 
 export async function POST(request: NextRequest) {
