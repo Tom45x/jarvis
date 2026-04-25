@@ -1,7 +1,7 @@
 # Spec: Instagram-Rezept-Import
 
 **Datum:** 2026-04-25
-**Status:** Bereit zur Implementierung
+**Status:** ✅ Implementiert und live (2026-04-26)
 
 ---
 
@@ -110,22 +110,27 @@ Insta-Importe haben Kategorie `'instagram'`, die in keiner Wochenplan-Slot-Logik
 
 **Erfolg:**
 ```ts
-{ ok: true, existing: false, gericht_id: string, gericht_name: string }
+{ ok: true, existing: false, gericht_id: string, gericht_name: string, display: string }
 ```
 
 **Erfolg (bereits importiert):**
 ```ts
-{ ok: true, existing: true, gericht_id: string, gericht_name: string }
+{ ok: true, existing: true, gericht_id: string, gericht_name: string, display: string }
 ```
 
 **Fehler:**
 ```ts
-{ ok: false, error: string }
+{ ok: false, error: string, display: string }
 ```
+
+**Das `display`-Feld** — wird vom Server für die iOS-Mitteilung vorgerendert, der Shortcut zeigt es 1:1 an:
+- Erfolg: `✓ <gericht_name>`
+- Bereits importiert: `↻ <gericht_name> (schon importiert)`
+- Fehler: `⚠️ <error>`
 
 ### Validierungs-Pipeline
 
-1. **Token-Check** — `body.token === process.env.INSTA_IMPORT_TOKEN` → sonst `{ ok: false, error: "Ungültiger Token" }`
+1. **Token-Check** — **timing-safe** via `crypto.timingSafeEqual` gegen `process.env.INSTA_IMPORT_TOKEN` → sonst `{ ok: false, error: "Ungültiger Token" }`
 2. **URL-Pattern** — Regex `^https://(www\.)?instagram\.com/(reel|p)/[A-Za-z0-9_-]+/?` → sonst `{ ok: false, error: "Keine gültige Instagram-URL" }`
 3. **URL normalisieren** — Query-Params (`?igsh=...`, `?utm_source=...`) abschneiden → reine `https://www.instagram.com/reel/<id>/` als Dedup-Key
 4. **Dedup-Check** — `SELECT id, name FROM gerichte WHERE quelle_url = ?` → wenn vorhanden: `{ ok: true, existing: true, ... }`
@@ -137,7 +142,10 @@ Insta-Importe haben Kategorie `'instagram'`, die in keiner Wochenplan-Slot-Logik
 7. **Claude-Call** — siehe Abschnitt "Claude-Prompt"
    - Bei Parse-Fail oder leerem Output → `{ ok: false, error: "Rezept konnte nicht extrahiert werden" }`
 8. **Insert** — `INSERT INTO gerichte (...) RETURNING id, name`
+   - **Race-Condition-Schutz**: bei Postgres-Fehler `23505` (Unique-Constraint-Violation auf `quelle_url`) → das parallel angelegte Gericht via Re-Select holen und mit `existing: true` zurückgeben (statt Fehler).
 9. **Return** — `{ ok: true, existing: false, gericht_id, gericht_name }`
+
+**Außerdem:** Die ganze POST-Funktion ist in einem **outer try/catch** verpackt. Unerwartete Fehler (DB-Outage, Anthropic-Throw, Netzwerk-Hiccup) liefern `{ ok: false, error: "Interner Fehler" }` mit HTTP 200 — niemals 5xx. Das Always-200-Versprechen ist damit selbst bei Crashes garantiert.
 
 ### Helper-Module
 
@@ -151,7 +159,7 @@ Insta-Importe haben Kategorie `'instagram'`, die in keiner Wochenplan-Slot-Logik
 
 ### Logging
 
-Bei jedem Fehler im Pfad: volle Caption (falls schon extrahiert) + URL ins Server-Log via `console.error`. Pattern analog zum kürzlichen `wochenplan/generate` Debug-Logging.
+Bei jedem Fehler im Pfad: URL + **gekürzte Caption** (auf 500 Zeichen) ins Server-Log via `console.error`. Kürzung ist DSGVO-Schutz (Captions können personenbezogene Inhalte enthalten) und vermeidet Log-Spam bei sehr langen Captions.
 
 ### Rate-Limiting
 
@@ -236,30 +244,31 @@ Nach JSON-Parse:
 
 Im Insta-Share-Sheet erscheint "An Jarvis senden". Tap → Shortcut führt im Hintergrund einen POST aus → iOS-Notification mit Erfolg/Fehler. Kein Safari, kein App-Wechsel. Insta bleibt im Vordergrund.
 
-### Aufbau (3 Actions)
+### Aufbau (4 Actions)
+
+Tatsächlich umgesetzte Variante — vereinfacht durch das `display`-Feld der Server-Response, sodass iOS-Shortcuts keine `If`-Logik braucht:
 
 ```
-[Action 1] Receive Input from Share Sheet
-   Typ: URLs
+[Action 1] URLs aus Share-Sheet erhalten
+   Eingabetyp: URLs (Häkchen NUR bei URLs)
+   Wenn keine Eingabe: Fortfahren
 
-[Action 2] Get Contents of URL
-   URL: https://jarvis.app/api/instagram/import
-   Method: POST
-   Headers: Content-Type: application/json
-   Request Body (JSON):
-     {
-       "url": "<Shortcut-Input>",
-       "token": "<INSTA_IMPORT_TOKEN>"
-     }
+[Action 2] Inhalte von URL abrufen
+   URL: <PRODUCTION-URL>/api/instagram/import
+   Methode: POST
+   Haupttext anfordern: JSON
+     - Schlüssel "url" → Wert: Kurzbefehleingabe (Variable)
+     - Schlüssel "token" → Wert: <INSTA_IMPORT_TOKEN>
 
-[Action 3] Show Notification
-   Title: "Jarvis"
-   Body:  if ok=true:  "✓ Importiert: <gericht_name>"
-          if existing: "↻ Schon vorhanden: <gericht_name>"
-          if ok=false: "⚠️ <error>"
+[Action 3] Wert aus Wörterbuch abrufen
+   Schlüssel: display
+   In: Inhalt der URL
+
+[Action 4] Mitteilung anzeigen
+   Text: <Wörterbuchwert aus Action 3>
 ```
 
-(Action 3 nutzt iOS-Shortcuts "If"-Logik auf das `ok`-Feld der Response.)
+Damit zeigt der Banner immer das passende `display`-Feld vom Server (`✓ <name>`, `↻ <name> (schon importiert)` oder `⚠️ <error>`) — keine Conditional-Logik im Shortcut nötig.
 
 ### Setup-Workflow
 
@@ -278,25 +287,31 @@ Im Insta-Share-Sheet erscheint "An Jarvis senden". Tap → Shortcut führt im Hi
 
 ## Fehlerbehandlung (Übersicht)
 
+Notification-Text = `display`-Feld der Server-Response, wird im iOS-Shortcut 1:1 als Mitteilung angezeigt.
+
 | Fehlerquelle | Server-Verhalten | Notification-Text |
 |---|---|---|
 | Token fehlt/falsch | `{ ok: false }` | `⚠️ Ungültiger Token` |
 | URL-Format ungültig | `{ ok: false }` | `⚠️ Keine gültige Instagram-URL` |
 | Insta liefert kein og:description | `{ ok: false }` | `⚠️ Konnte das Reel nicht öffnen — vielleicht privat oder gelöscht?` |
-| Claude-Parse fail | `{ ok: false }` | `⚠️ Rezept konnte nicht extrahiert werden` |
-| Caption hat keine Rezept-Struktur | `{ ok: false }` | `⚠️ Reel enthält kein erkennbares Rezept` |
+| Claude-Throw (API-Outage/Quota) | `{ ok: false }` | `⚠️ Rezept konnte nicht extrahiert werden` |
+| Claude-Parse fail (kaputtes JSON) | `{ ok: false }` | `⚠️ Rezept konnte nicht extrahiert werden` |
 | DB-Insert fail | `{ ok: false }` | `⚠️ Speichern fehlgeschlagen` |
-| Bereits importiert | `{ ok: true, existing: true }` | `↻ Schon vorhanden: <Name>` |
-| Erfolg | `{ ok: true, existing: false }` | `✓ Importiert: <Name>` |
+| Race: paralleler Doppel-Tap | `{ ok: true, existing: true }` | `↻ <Name> (schon importiert)` |
+| Bereits importiert (Dedup) | `{ ok: true, existing: true }` | `↻ <Name> (schon importiert)` |
+| Erfolg | `{ ok: true, existing: false }` | `✓ <Name>` |
+| Unerwarteter Fehler (Outer catch) | `{ ok: false }` | `⚠️ Interner Fehler` |
 
 ---
 
 ## Sicherheit
 
 - **Shared-Secret-Token** schützt den Endpoint vor Drive-By-Spam.
+- Token-Vergleich **timing-safe** via `crypto.timingSafeEqual` — kein Side-Channel über Response-Time-Differenzen.
 - Token nur in (a) Coolify-ENV und (b) iOS-Shortcut auf Katjas/Thomas' iPhones.
 - Bei Verdacht auf Leak: Token rotieren (siehe oben).
 - Token im Body, nicht in URL — vermeidet Log-Leakage.
+- **Caption-Logging gekürzt** auf 500 Zeichen — DSGVO-Schutz, da Captions personenbezogene Inhalte (Namen, Hashtags, Affiliate-Disclaimer) enthalten können.
 
 ---
 
