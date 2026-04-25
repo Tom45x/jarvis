@@ -91,7 +91,7 @@ Wird beim Generieren des Wochenplans aufgerufen (`/api/wochenplan/generate`).
    - Letzte 4 Wochen Auswahl (Abwechslung sicherstellen)
    - Geschmackshinweise aus dem Katalog
 4. **Claude gibt zurück**: 2 Snacks (Di + Do) + 1 Saft (Sa) mit je einer kurzen Begründung (max. 60 Zeichen)
-5. **Optional**: Falls Claude einen sinnvollen neuen Snack/Saft vorschlägt der nicht im Katalog ist → `neuer_vorschlag` im Response-Objekt. Wird vorerst nur geloggt, nicht auto-hinzugefügt.
+5. **Neuer Vorschlag (bedingt)**: Claude schlägt einen neuen Snack/Saft vor, wenn kein Katalog-Eintrag den aktuellen Nährstoff-Gap ausreichend abdeckt (z.B. kein saisonales Item mit genug Omega-3 verfügbar). Der Vorschlag erscheint in der App als Extra-Karte mit einem kleinen `✦ Neu`-Badge — wird aber **nicht automatisch** in den Katalog aufgenommen. Du kannst ihn manuell per Supabase übernehmen.
 
 ---
 
