@@ -1,6 +1,7 @@
 /**
  * @jest-environment node
  */
+import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/instagram/import/route'
 
 const mockHoleReelCaption = jest.fn()
@@ -20,8 +21,8 @@ jest.mock('@/lib/supabase-server', () => ({
   supabase: { from: (...args: unknown[]) => mockSupabaseFrom(...args) },
 }))
 
-function makeRequest(body: unknown): Request {
-  return new Request('http://localhost/api/instagram/import', {
+function makeRequest(body: unknown): NextRequest {
+  return new NextRequest('http://localhost/api/instagram/import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
