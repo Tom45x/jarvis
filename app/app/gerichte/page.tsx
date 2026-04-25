@@ -10,9 +10,9 @@ const EINHEIT_KURZ: Record<string, string> = {
   Stück: 'Stk', EL: 'EL', TL: 'TL', Bund: 'Bd', Packung: 'Pckg',
 }
 
-const SPEZIAL_KAT = ['trainingstage', 'filmabend', 'frühstück'] as const
+const SPEZIAL_KAT = ['trainingstage', 'filmabend', 'frühstück', 'instagram'] as const
 
-type GruppeId = 'gerichte' | 'trainingstage' | 'filmabend' | 'fruehstueck' | 'gesundheitssnack' | 'saft'
+type GruppeId = 'gerichte' | 'trainingstage' | 'filmabend' | 'fruehstueck' | 'gesundheitssnack' | 'saft' | 'instagram'
 
 export default function GerichtePage() {
   const [gerichte, setGerichte] = useState<Gericht[]>([])
@@ -330,17 +330,20 @@ export default function GerichtePage() {
     if (selectedGroup === 'trainingstage') return aktiveGerichte.filter(g => g.kategorie === 'trainingstage')
     if (selectedGroup === 'filmabend') return aktiveGerichte.filter(g => g.kategorie === 'filmabend')
     if (selectedGroup === 'fruehstueck') return aktiveGerichte.filter(g => g.kategorie === 'frühstück')
+    if (selectedGroup === 'instagram') return aktiveGerichte.filter(g => g.kategorie === 'instagram')
     return []
   })()
 
   const defaultKategorieForGroup = selectedGroup === 'trainingstage' ? 'trainingstage'
     : selectedGroup === 'filmabend' ? 'filmabend'
     : selectedGroup === 'fruehstueck' ? 'frühstück'
+    : selectedGroup === 'instagram' ? 'instagram'
     : 'sonstiges'
 
   const kategorienForGroup = selectedGroup === 'trainingstage' ? ['trainingstage']
     : selectedGroup === 'filmabend' ? ['filmabend']
     : selectedGroup === 'fruehstueck' ? ['frühstück']
+    : selectedGroup === 'instagram' ? ['instagram']
     : ['fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat', 'sonstiges', 'kinder']
 
   const gruppen = [
@@ -392,6 +395,14 @@ export default function GerichtePage() {
       anzahl: extrasKatalog.filter(e => e.typ === 'saft').length,
       einheit: 'Säfte',
     },
+    {
+      id: 'instagram' as GruppeId,
+      label: 'Instagram',
+      icon: '📷',
+      farbe: '#fdf2f8',
+      anzahl: aktiveGerichte.filter(g => g.kategorie === 'instagram').length,
+      einheit: 'Gerichte',
+    },
   ]
 
   const aktiveGruppe = gruppen.find(g => g.id === selectedGroup)
@@ -411,6 +422,7 @@ export default function GerichtePage() {
       id === 'trainingstage' ? 'trainingstage'
       : id === 'filmabend' ? 'filmabend'
       : id === 'fruehstueck' ? 'frühstück'
+      : id === 'instagram' ? 'instagram'
       : 'sonstiges'
     )
   }
