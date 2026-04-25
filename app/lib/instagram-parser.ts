@@ -113,7 +113,7 @@ export async function parseRezeptMitClaude(caption: string): Promise<ParsedGeric
     : '30 Min'
 
   return {
-    name: typeof parsed.name === 'string' ? parsed.name.slice(0, 100) : 'Insta-Rezept',
+    name: typeof parsed.name === 'string' ? parsed.name.slice(0, 50) : 'Insta-Rezept',
     aufwand: aufwandWert,
     gesund: parsed.gesund === true,
     zutaten,

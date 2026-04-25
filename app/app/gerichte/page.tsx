@@ -718,8 +718,8 @@ export default function GerichtePage() {
             </div>
           )}
 
-          {/* Neues Gericht hinzufügen */}
-          {!neuesGerichtOffen && (
+          {/* Neues Gericht hinzufügen — bei Insta deaktiviert (Gerichte kommen nur via Import) */}
+          {!neuesGerichtOffen && selectedGroup !== 'instagram' && (
             <div className="mx-4 mb-4">
               <button
                 onClick={() => { setNeuesGerichtOffen(true); setNeuesGerichtKategorie(defaultKategorieForGroup) }}
@@ -728,6 +728,11 @@ export default function GerichtePage() {
               >
                 ＋ Neues Gericht hinzufügen
               </button>
+            </div>
+          )}
+          {selectedGroup === 'instagram' && !neuesGerichtOffen && (
+            <div className="mx-4 mb-4 text-xs text-center" style={{ color: 'var(--gray-secondary)' }}>
+              Insta-Gerichte werden über den iOS-Shortcut „An Jarvis senden" importiert.
             </div>
           )}
 
