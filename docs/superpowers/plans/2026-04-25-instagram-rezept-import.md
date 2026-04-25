@@ -1,5 +1,7 @@
 # Instagram-Rezept-Import Implementation Plan
 
+> **Status:** ✅ Komplett umgesetzt am 2026-04-25/26. Plan ist historisches Dokument — der **aktuelle Stand** ist die [Spec](../specs/2026-04-25-instagram-rezept-import-design.md). Post-Implementation-Deltas siehe Abschnitt am Ende.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Katja teilt Reels aus Insta direkt in die Jarvis-DB; iOS-Shortcut macht POST → Server scraped Caption → Claude parst → Gericht in DB → Notification zurück.
@@ -1079,3 +1081,43 @@ In Jarvis-App unter Gerichte → Filter "instagram" sollte das neue Gericht steh
 - [x] iOS-Shortcut auf Thomas' iPhone funktioniert end-to-end *(Task 7 Step 5)*
 - [x] iCloud-Link an Katja, Shortcut installiert, Test-Import erfolgreich *(Task 7 Step 6-7)*
 - [x] Importiertes Gericht ist unter Kategorie "instagram" sichtbar *(Task 7 Step 7)*
+
+---
+
+## Post-Implementation-Deltas
+
+Während/nach der Umsetzung sind drei Erweiterungen dazugekommen, die ursprünglich nicht im Plan standen. Sie sind im Code und in der Spec dokumentiert. Hier die Zusammenfassung:
+
+### Delta 1: `display`-Feld in der Server-Response (Commit `d4aeb61`)
+
+**Auslöser:** Der ursprüngliche iOS-Shortcut hatte zwei `Wert aus Wörterbuch`-Actions (für `gericht_name` und `error`) und kombinierte beide im Mitteilung-Text — Magic-Variable-Konflikte in iOS-Shortcuts machten das fehleranfällig.
+
+**Lösung:** Server fügt jeder Response ein **`display`-String** an (`✓ <name>`, `↻ <name> (schon importiert)`, `⚠️ <error>`). Shortcut zeigt den 1:1 als Mitteilung. Ergebnis: nur **eine** Wörterbuch-Action im Shortcut, robuste UX, keine Verzweigungslogik.
+
+### Delta 2: Instagram-Bereich auf der Gerichte-Übersicht (Commit `1751914`)
+
+**Auslöser:** Auf der `/gerichte`-Seite gibt es eine Gruppen-Übersicht (Gerichte / Trainingsgerichte / Filmabend / Frühstück / Snacks / Säfte). Importierte Insta-Gerichte hatten keinen eigenen Tile — sie wären nur über Filter sichtbar.
+
+**Lösung:** Neuer **Instagram-Tile** (📷-Icon, `#fdf2f8`-Hintergrund) auf der Gruppen-Übersicht. `'instagram'` zu `SPEZIAL_KAT` ergänzt, damit Insta-Gerichte nicht in der Default-Gerichte-View auftauchen. In der Insta-Gruppe ist der "+ Neues Gericht hinzufügen"-Button ausgeblendet, dafür Hinweis: *"Insta-Gerichte werden über den iOS-Shortcut 'An Jarvis senden' importiert."*
+
+### Delta 3: Hardening nach Code-Review (Commits `82c494c`, `cc38c93`)
+
+Ein post-implementation Code Review hat 4 sicherheits-/stabilitätsrelevante Schwächen gefunden:
+
+| Issue | Fix |
+|---|---|
+| Token-Vergleich war Side-Channel-anfällig | `crypto.timingSafeEqual` |
+| Caption-Logging schrieb volle Caption ins Log (DSGVO/Spam) | Auf 500 Zeichen gekürzt |
+| Race-Condition bei Doppel-Tap → User sieht "Speichern fehlgeschlagen" | Postgres-Fehlercode `23505` wird abgefangen, parallel angelegtes Gericht via Re-Select als `existing: true` zurückgegeben |
+| Anthropic-API-Throw + DB-Throw konnten Always-200-Pattern brechen | Outer try/catch um die ganze POST-Funktion + inner try/catch um den Claude-Call |
+
+Außerdem im selben Aufwasch:
+- Migration mit Rollback-Snippet als Kommentar dokumentiert
+- `name`-Cap auf 50 Zeichen (statt vorher 100) — matcht das Prompt-Limit
+- Konsistenz: `Request` → `NextRequest` analog zu anderen API-Routen im Repo
+
+---
+
+## Bekannte offene TODOs (nach Implementation)
+
+- **Robustheits-Tests mit verschiedenen Insta-Reels** — bisher nur `joeskochwelt` durchgetestet. Vor weiterer Roll-out-Erweiterung mit Katja besprechen, welche Creators sie regelmäßig teilt, dann 3-5 Reel-URLs durch den Endpoint jagen und Claude-Parsing-Qualität bewerten.
