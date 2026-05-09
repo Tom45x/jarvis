@@ -224,7 +224,10 @@ export default function WochenplanPage() {
   }
 
   const hatPlan = carryOverPlan !== null || aktiverPlan !== null
-  const istFreitag = new Date().getDay() === 5
+  const heutigerTag = new Date().getDay() // 0=So, 5=Fr, 6=Sa
+  const generateLabel = heutigerTag === 5 || heutigerTag === 6 || heutigerTag === 0
+    ? 'Plan für nächste Woche erstellen'
+    : 'Plan für diese Woche erstellen'
   const buttonStatusSuffix = (() => {
     if (listeWirdErstellt) return '· wird erstellt …'
     if (!listenStatus) return ''
@@ -298,14 +301,14 @@ export default function WochenplanPage() {
           <div className="text-5xl mb-4">🍽️</div>
           <p className="text-lg font-semibold mb-2" style={{ color: 'var(--near-black)' }}>Noch kein Plan</p>
           <p className="text-sm" style={{ color: 'var(--gray-secondary)' }}>
-            {istFreitag ? 'Tippe unten auf "Plan erstellen"' : 'Am Freitag kann Jarvis einen neuen Plan erstellen'}
+            Tippe unten auf &quot;Plan erstellen&quot;
           </p>
         </div>
       )}
 
       <div className="fixed left-0 right-0 px-4 pb-2 pt-3 z-50" style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 34px))', background: 'linear-gradient(to top, rgba(255,255,255,1) 70%, rgba(255,255,255,0))' }}>
         <div className="flex flex-col gap-2">
-          {istFreitag && (
+          {!aktiverPlan && (
             <button onClick={generieren} disabled={loading} className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-50 active:opacity-70 transition-opacity" style={{ background: 'var(--rausch)', color: '#ffffff', minHeight: '52px' }}>
               {loading ? (
                 <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -317,7 +320,7 @@ export default function WochenplanPage() {
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
-                  Plan für nächste Woche erstellen
+                  {generateLabel}
                 </>
               )}
             </button>
