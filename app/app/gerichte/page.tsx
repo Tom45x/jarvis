@@ -344,7 +344,7 @@ export default function GerichtePage() {
     : selectedGroup === 'filmabend' ? ['filmabend']
     : selectedGroup === 'fruehstueck' ? ['frühstück']
     : selectedGroup === 'instagram' ? ['instagram']
-    : ['fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat', 'sonstiges', 'kinder']
+    : ['fleisch', 'nudeln', 'suppe', 'auflauf', 'fisch', 'salat', 'sonstiges', 'kinder', 'airfryer']
 
   const gruppen = [
     {

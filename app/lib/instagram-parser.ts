@@ -1,8 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { logClaudeNutzung } from '@/lib/claude-tracking'
 import type { Zutat } from '@/types'
+import { type AufwandWert, validiereZutaten, validiereAufwand } from '@/lib/rezept-shared'
 
-export type AufwandWert = '15 Min' | '30 Min' | '45 Min' | '60+ Min'
+export type { AufwandWert }
 
 export interface ParsedGericht {
   name: string
@@ -14,9 +15,6 @@ export interface ParsedGericht {
     zubereitung: string[]
   }
 }
-
-const GUELTIGE_AUFWAND: AufwandWert[] = ['15 Min', '30 Min', '45 Min', '60+ Min']
-const GUELTIGE_EINHEITEN = ['g', 'ml', 'Stück', 'EL', 'TL', 'Bund', 'Packung', 'kg', 'l']
 
 const SYSTEM_PROMPT = `Du bekommst eine Instagram-Reel-Caption auf Deutsch. Extrahiere daraus ein strukturiertes Gericht für die Familienküche.
 
@@ -97,20 +95,8 @@ export async function parseRezeptMitClaude(caption: string): Promise<ParsedGeric
 
   if (zutatenRaw.length === 0 && rezeptZubereitung.length === 0) return null
 
-  const zutaten: Zutat[] = zutatenRaw
-    .filter((z: unknown): z is Zutat => {
-      if (!z || typeof z !== 'object') return false
-      const zz = z as Record<string, unknown>
-      return typeof zz.name === 'string'
-        && typeof zz.menge === 'number'
-        && typeof zz.einheit === 'string'
-        && GUELTIGE_EINHEITEN.includes(zz.einheit)
-        && typeof zz.haltbarkeit_tage === 'number'
-    })
-
-  const aufwandWert = typeof parsed.aufwand === 'string' && GUELTIGE_AUFWAND.includes(parsed.aufwand as AufwandWert)
-    ? parsed.aufwand as AufwandWert
-    : '30 Min'
+  const zutaten: Zutat[] = validiereZutaten(zutatenRaw)
+  const aufwandWert = validiereAufwand(parsed.aufwand)
 
   return {
     name: typeof parsed.name === 'string' ? parsed.name.slice(0, 50) : 'Insta-Rezept',

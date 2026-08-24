@@ -9,6 +9,7 @@ export type Kategorie =
   | 'salat'
   | 'sonstiges'
   | 'kinder'
+  | 'airfryer'
   | 'trainingstage'
   | 'frühstück'
   | 'filmabend'
@@ -30,7 +31,7 @@ export interface Gericht {
   gesund: boolean
   kategorie: Kategorie
   beliebtheit: Record<string, number>
-  quelle: 'manuell' | 'themealdb' | 'ki-vorschlag' | 'instagram'
+  quelle: 'manuell' | 'themealdb' | 'ki-vorschlag' | 'instagram' | 'chefkoch'
   quelle_url?: string     // Original-URL (z.B. Instagram-Reel) — Dedup-Key bei Insta-Import
   aufwand?: string        // '15 Min' | '30 Min' | '45 Min' | '60+ Min'
   tausch_count?: number   // wie oft das Gericht im Wochenplan getauscht wurde
