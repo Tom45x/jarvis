@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Gericht, Mahlzeit } from '@/types'
-import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 
 const TAG_LABEL: Record<string, string> = {
   montag: 'Montag', dienstag: 'Dienstag', mittwoch: 'Mittwoch',
@@ -28,15 +27,11 @@ export function GerichtPickerSheet({ gerichte, tag, mahlzeit, aktuelleGerichtId,
   const touchStartY = useRef<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const sonderKategorie = mahlzeit === 'frühstück'
-    ? 'frühstück'
-    : SONDERKATEGORIEN[`${tag}-${mahlzeit}`] ?? null
-
   const gefiltert = gerichte.filter(g => {
     if (g.gesperrt) return false
-    const passeKategorie = sonderKategorie
-      ? g.kategorie === sonderKategorie
-      : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage' && g.kategorie !== 'filmabend'
+    const passeKategorie = mahlzeit === 'frühstück'
+      ? g.kategorie === 'frühstück'
+      : g.kategorie !== 'frühstück'
     const passSuche = suche.trim() === '' || g.name.toLowerCase().includes(suche.toLowerCase())
     return passeKategorie && passSuche
   }).sort((a, b) => (b.bewertung ?? 3) - (a.bewertung ?? 3))

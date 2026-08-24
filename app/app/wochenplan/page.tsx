@@ -7,7 +7,6 @@ import { RezeptSheet } from '@/components/RezeptSheet'
 import { ExtrasRezeptSheet } from '@/components/ExtrasRezeptSheet'
 import { EinkaufslisteSheet } from '@/components/EinkaufslisteSheet'
 import { apiFetch } from '@/lib/api-fetch'
-import { SONDERKATEGORIEN } from '@/lib/sonderkategorien'
 import type {
   Wochenplan,
   Gericht,
@@ -157,19 +156,14 @@ export default function WochenplanPage() {
   async function tauschen(tag: string, mahlzeit: string) {
     if (!aktiverPlan) { setError('Kein aktiver Plan'); return }
     const aktuell = aktiverPlan.eintraege.find(e => e.tag === tag && e.mahlzeit === mahlzeit)
-    const sonderKategorie = mahlzeit === 'frühstück'
-      ? 'frühstück'
-      : SONDERKATEGORIEN[`${tag}-${mahlzeit}`] ?? null
     const andere = gerichte.filter(g =>
       g.id !== aktuell?.gericht_id &&
       !g.gesperrt &&
-      (sonderKategorie
-        ? g.kategorie === sonderKategorie
-        : g.kategorie !== 'frühstück' && g.kategorie !== 'trainingstage' && g.kategorie !== 'filmabend')
+      (mahlzeit === 'frühstück' ? g.kategorie === 'frühstück' : g.kategorie !== 'frühstück')
     )
     const neu = andere[Math.floor(Math.random() * andere.length)]
     if (!neu) {
-      setError(`Kein alternatives Gericht verfügbar für ${tag} ${mahlzeit} (Kategorie: ${sonderKategorie ?? 'regulär'})`)
+      setError(`Kein alternatives Gericht verfügbar für ${tag} ${mahlzeit}`)
       return
     }
     const slotExistiert = aktiverPlan.eintraege.some(e => e.tag === tag && e.mahlzeit === mahlzeit)

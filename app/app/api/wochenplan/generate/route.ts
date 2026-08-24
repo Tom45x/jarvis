@@ -12,11 +12,6 @@ import {
 let isGenerating = false
 
 const WOCHENTAGE_FRUEHSTUECK = ['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag'] as const
-const TRAININGSTAGE = ['montag', 'dienstag', 'donnerstag'] as const
-
-function zufaellig<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
 
 function zufaelligOhneWiederholung<T>(arr: T[], anzahl: number): T[] {
   const gemischt = [...arr].sort(() => Math.random() - 0.5)
@@ -40,9 +35,7 @@ export async function POST() {
 
   const alleGerichte = gerichte as Gericht[]
   const toast = alleGerichte.find(g => g.name === 'Toast mit Aufschnitt')
-  const trainingsGerichte = alleGerichte.filter(g => g.kategorie === 'trainingstage')
   const fruehstueckGerichte = alleGerichte.filter(g => g.kategorie === 'frühstück' && g.name !== 'Toast mit Aufschnitt')
-  const filmabendGerichte = alleGerichte.filter(g => g.kategorie === 'filmabend')
 
   const ergebnis = await generiereWochenplan(profile as FamilieMitglied[], alleGerichte)
   const claudeEintraege = erstelleWochenplanEintraege(ergebnis.mahlzeiten, alleGerichte)
@@ -57,14 +50,6 @@ export async function POST() {
       }))
     : []
 
-  // Mo/Di/Do Abend: Trainingstage-Gerichte (mit Wiederholung wenn nicht genug vorhanden)
-  const trainingsEintraege: WochenplanEintrag[] = trainingsGerichte.length > 0
-    ? TRAININGSTAGE.map((tag, i) => {
-        const g = trainingsGerichte[i % trainingsGerichte.length]
-        return { tag, mahlzeit: 'abend' as const, gericht_id: g.id, gericht_name: g.name }
-      })
-    : []
-
   // Sa + So Frühstück: aus Frühstücks-Kategorie (keine Wiederholung)
   const wochenendFruehstueck: WochenplanEintrag[] = fruehstueckGerichte.length > 0
     ? zufaelligOhneWiederholung(fruehstueckGerichte, 2).map((g, i) => ({
@@ -75,23 +60,10 @@ export async function POST() {
       }))
     : []
 
-  // Freitagabend: Filmabend-Gericht (zufällig)
-  const filmabendGericht = filmabendGerichte.length > 0 ? zufaellig(filmabendGerichte) : null
-  const filmabendEintrag: WochenplanEintrag[] = filmabendGericht
-    ? [{
-        tag: 'freitag',
-        mahlzeit: 'abend' as const,
-        gericht_id: filmabendGericht.id,
-        gericht_name: filmabendGericht.name,
-      }]
-    : []
-
   // Alle zusammenführen — programmatische Einträge haben Vorrang
   const alleEintraege = [
     ...fruehstueckMoFr,
-    ...trainingsEintraege,
     ...wochenendFruehstueck,
-    ...filmabendEintrag,
     ...claudeEintraege,
   ]
 
