@@ -30,15 +30,15 @@
 - Create: `scripts/migrate-claude-nutzung.ts`
 
 Kontext: DATABASE_URL muss aus der Coolify-Umgebung geholt werden. Die Coolify-API liefert Env-Vars über `GET /api/v1/applications/{uuid}/envs`. Token und UUID sind aus dem Deployment-Memory bekannt:
-- API-Token: `1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322`
-- App-UUID: `shpiw0907aj8qielobtzhxt8`
-- Coolify-Host: `http://140.82.38.192:8000`
+- API-Token: `<REDACTED-TOKEN>`
+- App-UUID: `<REDACTED-APP-UUID>`
+- Coolify-Host: `http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000`
 
 - [ ] **Step 1: DATABASE_URL aus Coolify laden**
 
 ```bash
-curl -s -H "Authorization: Bearer 1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322" \
-  "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielobtzhxt8/envs" \
+curl -s -H "Authorization: Bearer <REDACTED-TOKEN>" \
+  "http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000/api/v1/applications/<REDACTED-APP-UUID>/envs" \
   | grep -o '"DATABASE_URL[^}]*'
 ```
 
@@ -345,8 +345,8 @@ git commit -m "feat: Claude API Tracking in allen 4 Calls integriert"
 ```bash
 git push origin master
 
-curl -s -X POST "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielobtzhxt8/restart" \
-  -H "Authorization: Bearer 1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322" \
+curl -s -X POST "http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000/api/v1/applications/<REDACTED-APP-UUID>/restart" \
+  -H "Authorization: Bearer <REDACTED-TOKEN>" \
   -H "Content-Type: application/json"
 ```
 
@@ -354,7 +354,7 @@ Erwartet: `{"message":"Restart request queued.",...}`
 
 - [ ] **Step 2: Deployment abwarten und verifizieren**
 
-Nach ~2 Minuten: App unter `http://shpiw0907aj8qielobtzhxt8.140.82.38.192.sslip.io` aufrufen und prüfen ob sie lädt.
+Nach ~2 Minuten: App unter `http://<REDACTED-APP-UUID>.<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>.sslip.io` aufrufen und prüfen ob sie lädt.
 
 Da `CLAUDE_DEV_MODE=true` gesetzt ist, werden in Produktion noch keine echten Claude-Calls ausgeführt. Das Tracking greift ab dem Moment, wenn DEV_MODE entfernt wird.
 

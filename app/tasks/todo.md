@@ -1,40 +1,58 @@
 # Jarvis — Todo
 
+## Infrastruktur — aktueller Stand (2026-09-07)
+Die App läuft auf Coolify/Vultr unter einer `*.sslip.io`-Adresse, die sich bei
+einer Server-Migration ändert (ist bereits einmal passiert, siehe unten) —
+**hier die jeweils aktuelle Adresse eintragen, nicht fest im Code/Docs verankern**:
+
+- **Aktuelle App-URL:** `https://jarvis.152.70.8.112.sslip.io`
+- **Coolify-Dashboard:** `http://152.70.8.112:8000`
+- **App-UUID (Coolify):** `m11cfsm5btqexjiji82rc0vg`
+- Redeploy per API: `GET /api/v1/deploy?uuid=<App-UUID>` (Bearer-Token aus Coolify → Keys & Tokens, nicht hier im Klartext ablegen)
+
+**Lesson vom 2026-09-07:** Der alte Server (`140.82.38.192`) war schlicht tot
+(Migration auf neue IP, alte Zugangsdaten dadurch ungültig) — keine
+Netzwerk-Blackhole, kein Firewall-Problem. Bei "Server nicht erreichbar" zuerst
+prüfen, ob die Adresse überhaupt noch aktuell ist, bevor man tiefer im Netzwerk
+forscht. Separat davon: 4 Monate lang waren lokale Commits nie gepusht worden
+(`git push` gehörte nicht zur Routine) — dadurch gingen mehrere fertige Fixes
+nie live, obwohl der Code stimmte. Nach jedem Fix: `git push` + `git status`
+gegen `origin` verifizieren.
+
 ## Blockiert — Chefkoch-Import fertig, wartet auf Produktiv-Setup
 Code ist fertig, getestet und committed (Commits `18fbf2d`, `3f54286` auf `master`,
 2026-08-24). Es fehlt nur noch die Produktiv-Konfiguration:
 
 - [ ] **`CHEFKOCH_IMPORT_TOKEN` in Coolify setzen** — Wert liegt lokal in
-      `.env.local` (letzte Zeile, `CHEFKOCH_IMPORT_TOKEN=...`).
-      Coolify-API-Zugangsdaten (Bearer-Token, App-UUID, Host) stehen in
-      `docs/superpowers/plans/2026-04-16-claude-tracking.md` — bewusst nicht
-      hier nochmal im Klartext wiederholt. Env-Var per
+      `.env.local` (letzte Zeile, `CHEFKOCH_IMPORT_TOKEN=...`). Muss auf der
+      **neuen** Coolify-Instanz (siehe Infrastruktur-Abschnitt oben) gesetzt
+      werden — die alte Instanz/IP existiert nicht mehr. Env-Var per
       `POST /api/v1/applications/{uuid}/envs` mit Body
       `{"key":"CHEFKOCH_IMPORT_TOKEN","value":"<Wert aus .env.local>"}` setzen.
-- [ ] **Redeploy anstoßen**, damit Coolify die neue Env-Var lädt:
-      `POST /api/v1/applications/{uuid}/restart`
+- [ ] **Redeploy anstoßen** (siehe Infrastruktur-Abschnitt oben für den Befehl)
 - [ ] **iOS-Shortcut „An Jarvis senden (Chefkoch)"** bauen — Kopie des bestehenden
-      Insta-Shortcuts, Ziel-URL `https://<domain>/api/chefkoch/import`, Token wie oben.
-
-**Warum das noch nicht erledigt ist:** Am 2026-08-24 war `140.82.38.192` (Vultr,
-Frankfurt, AS20473) von Thomas' Telekom-Anschluss (Moers) aus komplett
-unerreichbar — Traceroute bricht direkt nach der Übergabe an GTT Communications
-(`ae1.cr7-fra2.ip4.gtt.net`) ohne jede Antwort ab, klassisches Bild einer
-Transit-Überlastung/Blackhole auf der Strecke Telekom↔GTT↔Vultr, kein
-Firewall-/Config-Problem auf unserer Seite. Der Server selbst lief normal
-(vom Handy aus erreichbar). Workaround: über Mobilfunk-Hotspot oder VPN
-nochmal versuchen. Für `curl` gegen diesen Host ist in
-`.claude/settings.local.json` bereits eine Permission-Regel
-(`Bash(curl:*140.82.38.192:8000*)`) hinterlegt.
+      Insta-Shortcuts, Ziel-URL `https://<aktuelle-domain>/api/chefkoch/import`, Token wie oben.
 
 ## Nächstes Feature
 - [ ] **Bring-Update bei Tausch** — Zutaten in den Bring-Listen automatisch aktualisieren wenn ein Gericht getauscht wird
 
 ## Offen (Prio ↓)
-- [ ] **Saftvorschlag + Gesundheitssnack** (niedrigste Prio) — passende Saft- und Snackvorschläge generieren und in den Wochenplan integrieren
 - [ ] Katja & Marie Profile — Lieblingsgerichte, Abneigungen
 
 ## Erledigt
+- [x] **Duplikat-Gerichtsname → verständliche Fehlermeldung** — Anlegen/Generieren
+      eines Gerichts mit bereits existierendem Namen zeigte nur den rohen
+      Postgres-Fehler oder ein generisches "Anlegen fehlgeschlagen" (zwei
+      Stellen lasen die Server-Antwort gar nicht aus). Jetzt: klare Meldung
+      server- und clientseitig, live auf Produktion verifiziert (2026-09-07)
+- [x] **Trainingstage-Fix live verifiziert** — der Commit vom 24.08. war zwar
+      im Repo, aber nie gepusht (`origin/master` hing seit dem 09.05. fest) und
+      damit nie deployed. Nachgeholt, Redeploy ausgelöst, Fix live bestätigt
+      (2026-09-07)
+- [x] **Saftvorschlag + Gesundheitssnack** — vollständig implementiert
+      (`lib/extras.ts`, `components/ExtraCard.tsx`, `api/extras/*`), in
+      Wochenplan-Generierung und -Anzeige verdrahtet. War in dieser Liste
+      fälschlich noch als offen geführt
 - [x] **Airfryer-Kategorie + Chefkoch-Rezept-Import** — neue Kategorie "airfryer";
       Import-Endpunkt `app/api/chefkoch/import` liest schema.org/Recipe-JSON-LD
       direkt aus der Chefkoch-Seite (kein Claude nötig für Name/Zutaten-Rohtext/

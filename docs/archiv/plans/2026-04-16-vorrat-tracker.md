@@ -336,8 +336,8 @@ run().catch(e => { console.error(e); process.exit(1) })
 - [ ] **Step 2: DATABASE_URL aus Coolify laden**
 
 ```bash
-curl -s -H "Authorization: Bearer 1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322" \
-  "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielobtzhxt8/envs" \
+curl -s -H "Authorization: Bearer <REDACTED-TOKEN>" \
+  "http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000/api/v1/applications/<REDACTED-APP-UUID>/envs" \
   | python3 -c "import sys,json; envs=json.load(sys.stdin); [print(e['value']) for e in envs if e['key']=='DATABASE_URL']"
 ```
 
@@ -1137,14 +1137,14 @@ git push origin master
 ```
 
 ```bash
-curl -s -X POST "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielobtzhxt8/stop" \
-  -H "Authorization: Bearer 1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322" \
+curl -s -X POST "http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000/api/v1/applications/<REDACTED-APP-UUID>/stop" \
+  -H "Authorization: Bearer <REDACTED-TOKEN>" \
   -H "Content-Type: application/json"
 ```
 
 ```bash
-curl -s -X POST "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielobtzhxt8/start" \
-  -H "Authorization: Bearer 1|ifb2KsFvEc2olgSEuYYhDHltgnXgEPsYZnJgVkYk02033322" \
+curl -s -X POST "http://<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>:8000/api/v1/applications/<REDACTED-APP-UUID>/start" \
+  -H "Authorization: Bearer <REDACTED-TOKEN>" \
   -H "Content-Type: application/json"
 ```
 
@@ -1153,13 +1153,13 @@ curl -s -X POST "http://140.82.38.192:8000/api/v1/applications/shpiw0907aj8qielo
 Warten bis App antwortet:
 
 ```bash
-until curl -s "http://shpiw0907aj8qielobtzhxt8.140.82.38.192.sslip.io/api/wochenplan" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'aktiverPlan' in d else 1)" 2>/dev/null; do sleep 5; done && echo "App bereit"
+until curl -s "http://<REDACTED-APP-UUID>.<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>.sslip.io/api/wochenplan" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'aktiverPlan' in d else 1)" 2>/dev/null; do sleep 5; done && echo "App bereit"
 ```
 
 Dann Endpoint testen:
 
 ```bash
-curl -s -X POST "http://shpiw0907aj8qielobtzhxt8.140.82.38.192.sslip.io/api/einkaufsliste/senden" \
+curl -s -X POST "http://<REDACTED-APP-UUID>.<REDACTED-ALTER-HOST-siehe-app/tasks/todo.md>.sslip.io/api/einkaufsliste/senden" \
   -H "Content-Type: application/json" | python3 -c "import sys,json; d=json.load(sys.stdin); print('picnic:', len(d['listen']['picnic']), '| bring1:', len(d['listen']['bring1']), '| ausVorrat:', len(d['listen']['ausVorrat']))"
 ```
 
