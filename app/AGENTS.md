@@ -41,3 +41,10 @@ Niemals API-Tokens, Bearer-Keys oder Passwörter im Klartext in `docs/`, `tasks/
 oder Code committen — auch nicht in Planungsdokumenten "nur für den internen
 Gebrauch". Secrets gehören ausschließlich in `.env.local` (gitignored) bzw. die
 Coolify-Umgebungsvariablen.
+
+## Session-Ende
+
+Es gibt eine `/session-ende`-Skill (`.claude/commands/session-ende.md`), die am
+Ende jeder Session sichert (commit+push+verify), `tasks/todo.md` aktualisiert,
+Deployment bei Bedarf prüft und Memory/Doku ergänzt. Wird proaktiv erkannt
+(Verabschiedung, "fertig für heute" o.ä.), muss nicht explizit aufgerufen werden.

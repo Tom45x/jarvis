@@ -38,8 +38,22 @@ Code ist fertig, getestet und committed (Commits `18fbf2d`, `3f54286` auf `maste
 
 ## Offen (Prio ↓)
 - [ ] Katja & Marie Profile — Lieblingsgerichte, Abneigungen
+- [ ] In Coolify (`http://152.70.8.112:8000` → Keys & Tokens) den ungenutzten
+      zweiten alten API-Token löschen (root- oder read-only-Token, Wert nicht
+      mehr bekannt) — Thomas macht das selbst bei Gelegenheit
 
 ## Erledigt
+- [x] **Projekt aufgeräumt & Onboarding erweitert (2026-09-07)** — zwei
+      parallele `todo.md`-Dateien auf eine (diese hier) konsolidiert, alte
+      Bauplan-Doku aus zwei Ordnern nach `docs/archiv/` zusammengeführt (15
+      Pläne, alle bereits umgesetzt), dabei ein im Klartext liegendes Coolify-
+      Token in 3 Dateien redigiert. `app/AGENTS.md` um Projektüberblick,
+      Deployment-Workflow und Sicherheitshinweis erweitert. Claude-Memory für
+      dieses Projekt erstmals befüllt (Überblick, Deployment, 3 Lessons,
+      Infra-Referenzen — vorher komplett leer)
+- [x] **`/session-ende`-Skill eingerichtet** — `.claude/commands/session-ende.md`,
+      wird proaktiv erkannt (Verabschiedung, "fertig für heute" o.ä.) und
+      sichert/dokumentiert/räumt am Sessionende automatisch auf
 - [x] **Duplikat-Gerichtsname → verständliche Fehlermeldung** — Anlegen/Generieren
       eines Gerichts mit bereits existierendem Namen zeigte nur den rohen
       Postgres-Fehler oder ein generisches "Anlegen fehlgeschlagen" (zwei
