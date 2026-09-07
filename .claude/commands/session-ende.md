@@ -1,5 +1,5 @@
 ---
-description: Jarvis-Session sauber abschließen — sichern, aufräumen, Doku/Memory aktualisieren, nächste Session vorbereiten
+description: Use proactively — ohne expliziten Aufruf — sobald der Nutzer erkennbar die Session beenden möchte (Verabschiedung, "das wars für heute", "ich mach jetzt Schluss", "bis morgen"/"bis später", "ich logge mich aus" o.ä.), auch wenn er nur "/session-ende" tippt. Schließt die Jarvis-Session sauber ab: sichern, aufräumen, Doku/Memory aktualisieren, nächste Session vorbereiten.
 ---
 
 Führe die folgende Abschluss-Routine für dieses Projekt (Jarvis) vollständig und automatisch durch, ohne bei einzelnen Schritten nachzufragen (außer bei echten Unklarheiten). Arbeite die Schritte der Reihe nach ab und fasse am Ende kompakt zusammen, was getan wurde.
