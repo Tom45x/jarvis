@@ -166,8 +166,9 @@ export default function GerichtePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hinweis: vorschlagHinweis }),
       })
-      if (!res.ok) throw new Error('Fehler beim Generieren')
-      setVorschlaege(await res.json())
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error ?? 'Fehler beim Generieren')
+      setVorschlaege(data)
     } catch (e: unknown) {
       setMeldung(`❌ ${e instanceof Error ? e.message : 'Fehler'}`)
     } finally {
@@ -176,6 +177,10 @@ export default function GerichtePage() {
   }
 
   async function vorschlagHinzufuegen(vorschlag: typeof vorschlaege[0]) {
+    if (nameExistiertBereits(vorschlag.name)) {
+      setMeldung(`❌ „${vorschlag.name}" gibt es bereits`)
+      return
+    }
     setFuegeHinzu(vorschlag.name)
     try {
       const res = await apiFetch('/api/gerichte', {
@@ -189,8 +194,8 @@ export default function GerichtePage() {
           quelle: 'ki-vorschlag',
         }),
       })
-      if (!res.ok) throw new Error('Anlegen fehlgeschlagen')
       const neuesGericht = await res.json()
+      if (!res.ok) throw new Error(neuesGericht?.error ?? 'Anlegen fehlgeschlagen')
       await apiFetch('/api/zutaten/generieren', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -240,7 +245,15 @@ export default function GerichtePage() {
     setNeuesGerichtLaedt(false)
   }
 
+  function nameExistiertBereits(name: string) {
+    return gerichte.some(g => g.name.trim().toLowerCase() === name.trim().toLowerCase())
+  }
+
   async function neuesGerichtSpeichern() {
+    if (nameExistiertBereits(neuesGerichtName)) {
+      setMeldung(`❌ „${neuesGerichtName.trim()}" gibt es bereits`)
+      return
+    }
     setNeuesGerichtLaedt(true)
     try {
       const res = await apiFetch('/api/gerichte', {
@@ -276,6 +289,10 @@ export default function GerichtePage() {
   }
 
   async function neuesGerichtGenerieren() {
+    if (nameExistiertBereits(neuesGerichtName)) {
+      setMeldung(`❌ „${neuesGerichtName.trim()}" gibt es bereits`)
+      return
+    }
     setNeuesGerichtLaedt(true)
     try {
       const res = await apiFetch('/api/gerichte', {
