@@ -4,7 +4,7 @@
 **Größe:** 147cm | **Gewicht:** 35kg
 
 ## Hintergrund
-Fußballer seit dem 5. Lebensjahr — zuerst VFB Homberg, jetzt U11 Torwart bei Borussia Mönchengladbach. Geht auf das Filder Benden Gymnasium in Moers (5. Klasse).
+Fußballer seit dem 5. Lebensjahr — zuerst VFB Homberg, jetzt U12 Torwart bei Borussia Mönchengladbach. Geht auf das Filder Benden Gymnasium in Moers (5. Klasse).
 
 ## Trainer-Team (Borussia Mönchengladbach)
 - Dario Pichierri — Dario.Pichierri@borussia.de
