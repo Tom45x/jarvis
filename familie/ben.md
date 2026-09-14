@@ -6,6 +6,12 @@
 ## Hintergrund
 Fußballer seit dem 5. Lebensjahr — zuerst VFB Homberg, jetzt U11 Torwart bei Borussia Mönchengladbach. Geht auf das Filder Benden Gymnasium in Moers (5. Klasse).
 
+## Trainer-Team (Borussia Mönchengladbach)
+- Dario Pichierri — Dario.Pichierri@borussia.de
+- Ludger Blaswich — Ludger.Blaswich@Borussia.de
+- Finn Anders — finnanders18@gmail.com
+- Jonathan "Johnny" Haase — Johnny.haase03@gmail.com
+
 ## Lieblingsgerichte
 - Gebratene Chicken Wings mit selbstgemachten Pommes
 - Döner (ohne alles, nur mit Dönersauce)
