@@ -9,6 +9,11 @@ einer Server-Migration ändert (ist bereits einmal passiert, siehe unten) —
 - **Coolify-Dashboard:** `http://152.70.8.112:8000`
 - **App-UUID (Coolify):** `m11cfsm5btqexjiji82rc0vg`
 - Redeploy per API: `GET /api/v1/deploy?uuid=<App-UUID>` (Bearer-Token aus Coolify → Keys & Tokens, nicht hier im Klartext ablegen)
+- **Auto-Deploy (seit 2026-09-28):** GitHub-Webhook im Repo (Push auf `master`)
+  → `http://152.70.8.112:8000/webhooks/source/github/events/manual`, Secret =
+  „GitHub Webhook Secret“ der App in Coolify. Vorher gab es keinen Webhook, ein
+  Push hat also nie deployt. **Bei Server-Migration Webhook-URL in GitHub
+  (Settings → Webhooks) mit anpassen.**
 
 **Lesson vom 2026-09-07:** Der alte Server (`140.82.38.192`) war schlicht tot
 (Migration auf neue IP, alte Zugangsdaten dadurch ungültig) — keine
