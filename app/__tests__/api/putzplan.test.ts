@@ -47,6 +47,7 @@ describe('GET /api/putzplan', () => {
           { id: 'w', titel: 'WC', beschreibung: null, rhythmus: 'woche', wochentag: 1, sortierung: 1 },
           { id: 'm', titel: 'Betten', beschreibung: null, rhythmus: 'monat', wochentag: 5, sortierung: 2 },
           { id: 'q', titel: 'Fenster', beschreibung: null, rhythmus: 'quartal', wochentag: null, sortierung: 3 },
+          { id: 'j', titel: 'Keller', beschreibung: null, rhythmus: 'jahr', wochentag: null, sortierung: 4 },
         ],
         error: null,
       },
@@ -55,6 +56,7 @@ describe('GET /api/putzplan', () => {
           { aufgabe_id: 'w', periode: '2026-W40', erledigt_am: '2026-09-28T08:00:00Z' },
           // Monatsschlüssel an einer Wochenaufgabe zählt nicht
           { aufgabe_id: 'q', periode: '2026-09', erledigt_am: '2026-09-01T08:00:00Z' },
+          { aufgabe_id: 'j', periode: '2026', erledigt_am: '2026-03-01T08:00:00Z' },
         ],
         error: null,
       },
@@ -69,11 +71,12 @@ describe('GET /api/putzplan', () => {
       ['w', true],
       ['m', false],
       ['q', false],
+      ['j', true],
     ])
     expect(body.aufgaben[0].erledigt_am).toBe('2026-09-28T08:00:00Z')
 
     const periodenFilter = aufrufe.find(a => a.tabelle === 'putz_erledigungen' && a.methode === 'in')
-    expect(periodenFilter?.args).toEqual(['periode', ['2026-W40', '2026-09', '2026-Q3']])
+    expect(periodenFilter?.args).toEqual(['periode', ['2026-W40', '2026-09', '2026-Q3', '2026']])
   })
 
   it('gibt 500 bei Datenbankfehler', async () => {

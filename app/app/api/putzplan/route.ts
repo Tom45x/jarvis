@@ -12,7 +12,7 @@ export async function GET() {
     supabase
       .from('putz_erledigungen')
       .select('aufgabe_id, periode, erledigt_am')
-      .in('periode', [perioden.woche, perioden.monat, perioden.quartal]),
+      .in('periode', Object.values(perioden)),
   ])
 
   const error = aufgabenRes.error ?? erledigtRes.error

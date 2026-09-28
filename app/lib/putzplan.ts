@@ -43,6 +43,7 @@ export function periodenSchluessel(jetzt: Date = new Date()): Record<PutzRhythmu
     woche: isoWoche(d),
     monat: `${d.jahr}-${String(d.monat).padStart(2, '0')}`,
     quartal: `${d.jahr}-Q${Math.ceil(d.monat / 3)}`,
+    jahr: `${d.jahr}`,
   }
 }
 

@@ -145,14 +145,14 @@ export interface Regelbedarf {
   einheit: string
 }
 
-export type PutzRhythmus = 'woche' | 'monat' | 'quartal'
+export type PutzRhythmus = 'woche' | 'monat' | 'quartal' | 'jahr'
 
 export interface PutzAufgabe {
   id: string
   titel: string
   beschreibung: string | null
   rhythmus: PutzRhythmus
-  wochentag: number | null // 1=Mo … 7=So, null bei quartal
+  wochentag: number | null // 1=Mo … 7=So, null bei quartal/jahr
   sortierung: number
   erledigt: boolean
   erledigt_am: string | null

@@ -42,10 +42,10 @@ Code ist fertig, getestet und committed (Commits `18fbf2d`, `3f54286` auf `maste
 - [ ] **Bring-Update bei Tausch** — Zutaten in den Bring-Listen automatisch aktualisieren wenn ein Gericht getauscht wird
 
 ## Offen (Prio ↓)
-- [ ] **Putzplan-Aufgaben mit Katja gegenprüfen** — aus handschriftlichem Scan
-      transkribiert; unsicher v.a. Di „Wohnbereich: Oberflächen abstauben“ und
-      Do „Küche: Fronten“ (steht wöchentlich *und* monatlich auf dem Zettel).
-      Korrektur per SQL in `putz_aufgaben` (siehe Erledigt-Eintrag)
+- [ ] **Putzplan mit Katja gegenprüfen** — aus 3 handschriftlichen Scans
+      transkribiert (inkl. Reinschrift). Offen: „Küche: Fronten“ steht
+      wöchentlich *und* monatlich auf dem Zettel — gewollt? Korrektur per SQL
+      in `putz_aufgaben` (siehe Erledigt-Eintrag)
 - [ ] `__tests__/pages/gerichte-page.test.tsx` — 16 Tests schlagen fehl (auch
       ohne Putzplan-Änderungen, Stand 2026-09-28): Test erwartet Button
       „＋ Neues Gericht hinzufügen“ direkt, Seite zeigt inzwischen zuerst die
@@ -57,13 +57,14 @@ Code ist fertig, getestet und committed (Commits `18fbf2d`, `3f54286` auf `maste
 
 ## Erledigt
 - [x] **Putzplan (2026-09-28)** — neuer Tab `/putzplan` für Katja: abhakbare
-      Aufgaben pro Wochentag (Mo–Fr, wöchentlich + monatlich) plus Quartalsliste.
-      Haken setzen sich ohne Cron zurück: Erledigung wird mit Periodenschlüssel
-      (`2026-W40` / `2026-09` / `2026-Q3`, Berliner Zeit) in `putz_erledigungen`
-      gespeichert. **Aufgaben pflegen nur per SQL** (Tabelle `putz_aufgaben`:
-      `titel`, `beschreibung`, `rhythmus` woche|monat|quartal, `wochentag` 1=Mo,
-      `sortierung`) — Katja kann in der App nichts anlegen/ändern (bewusst so
-      gewünscht). Migration: `supabase/migration_putzplan.sql`
+      Aufgaben pro Wochentag (Mo–Fr, wöchentlich + monatlich) plus Quartals- und
+      Jahresliste. Haken setzen sich ohne Cron zurück: Erledigung wird mit
+      Periodenschlüssel (`2026-W40` / `2026-09` / `2026-Q3` / `2026`, Berliner
+      Zeit) in `putz_erledigungen` gespeichert. **Aufgaben pflegen nur per SQL**
+      (Tabelle `putz_aufgaben`: `titel`, `beschreibung`, `rhythmus`
+      woche|monat|quartal|jahr, `wochentag` 1=Mo, `sortierung`) — Katja kann in
+      der App nichts anlegen/ändern (bewusst so gewünscht). Migrationen:
+      `supabase/migration_putzplan.sql`, `supabase/migration_putzplan_jahr.sql`
 - [x] **Projekt aufgeräumt & Onboarding erweitert (2026-09-07)** — zwei
       parallele `todo.md`-Dateien auf eine (diese hier) konsolidiert, alte
       Bauplan-Doku aus zwei Ordnern nach `docs/archiv/` zusammengeführt (15

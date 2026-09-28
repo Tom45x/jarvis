@@ -18,6 +18,7 @@ describe('periodenSchluessel', () => {
       woche: '2026-W40',
       monat: '2026-09',
       quartal: '2026-Q3',
+      jahr: '2026',
     })
   })
 
@@ -37,6 +38,7 @@ describe('periodenSchluessel', () => {
     const p = periodenSchluessel(new Date('2026-12-31T23:30:00Z'))
     expect(p.monat).toBe('2027-01')
     expect(p.quartal).toBe('2027-Q1')
+    expect(p.jahr).toBe('2027')
   })
 
   it('setzt Quartalsgrenzen korrekt', () => {
@@ -52,5 +54,6 @@ describe('periodeFuer', () => {
     expect(periodeFuer('woche', jetzt)).toBe('2026-W40')
     expect(periodeFuer('monat', jetzt)).toBe('2026-09')
     expect(periodeFuer('quartal', jetzt)).toBe('2026-Q3')
+    expect(periodeFuer('jahr', jetzt)).toBe('2026')
   })
 })

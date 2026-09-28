@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS putz_aufgaben (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   titel        TEXT NOT NULL,
   beschreibung TEXT,
-  rhythmus     TEXT NOT NULL CHECK (rhythmus IN ('woche', 'monat', 'quartal')),
+  rhythmus     TEXT NOT NULL CHECK (rhythmus IN ('woche', 'monat', 'quartal')),  -- 'jahr' kommt in migration_putzplan_jahr.sql
   -- Skala wie in einstellungen: 1=Montag … 7=Sonntag; NULL bei quartal
   wochentag    INT CHECK (wochentag BETWEEN 1 AND 7),
   sortierung   INT NOT NULL DEFAULT 0

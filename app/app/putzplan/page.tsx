@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api-fetch'
 import type { PutzAufgabe, Putzplan } from '@/types'
 
-type Tab = number | 'quartal' // 1=Mo … 5=Fr
+type Tab = number | 'quartal' | 'jahr' // 1=Mo … 5=Fr
 
 const TAGE = [
   { tag: 1, kurz: 'Mo' },
@@ -17,9 +17,9 @@ const TAGE = [
 const QUARTALSENDE = ['März', 'Juni', 'September', 'Dezember']
 
 function aufgabenFuer(aufgaben: PutzAufgabe[], tab: Tab): PutzAufgabe[] {
-  return tab === 'quartal'
-    ? aufgaben.filter(a => a.rhythmus === 'quartal')
-    : aufgaben.filter(a => a.rhythmus !== 'quartal' && a.wochentag === tab)
+  return typeof tab === 'number'
+    ? aufgaben.filter(a => (a.rhythmus === 'woche' || a.rhythmus === 'monat') && a.wochentag === tab)
+    : aufgaben.filter(a => a.rhythmus === tab)
 }
 
 function erledigtDatum(iso: string): string {
@@ -75,6 +75,8 @@ export default function PutzplanPage() {
   const sektionen: { titel: string; hinweis?: string; liste: PutzAufgabe[] }[] =
     tab === 'quartal'
       ? [{ titel: 'Dieses Quartal', hinweis: `bis Ende ${QUARTALSENDE[quartalsNr - 1]}`, liste: sichtbar }]
+      : tab === 'jahr'
+      ? [{ titel: 'Dieses Jahr', hinweis: 'bis Ende Dezember', liste: sichtbar }]
       : [
           { titel: 'Diese Woche', liste: sichtbar.filter(a => a.rhythmus === 'woche') },
           { titel: 'Diesen Monat', liste: sichtbar.filter(a => a.rhythmus === 'monat') },
@@ -91,14 +93,18 @@ export default function PutzplanPage() {
 
       {/* Tage */}
       <div className="flex gap-1.5 px-4 pt-1 pb-4">
-        {[...TAGE.map(t => ({ id: t.tag as Tab, label: t.kurz })), { id: 'quartal' as Tab, label: 'Quartal' }].map(t => {
+        {[
+          ...TAGE.map(t => ({ id: t.tag as Tab, label: t.kurz })),
+          { id: 'quartal' as Tab, label: 'Quartal' },
+          { id: 'jahr' as Tab, label: 'Jahr' },
+        ].map(t => {
           const aktiv = tab === t.id
           const anzahl = offen(t.id)
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`relative h-10 rounded-full text-sm font-semibold ${t.id === 'quartal' ? 'px-3' : 'flex-1'}`}
+              className={`relative h-10 rounded-full text-sm font-semibold ${typeof t.id === 'number' ? 'flex-1' : 'px-3'}`}
               style={{
                 background: aktiv ? 'var(--near-black)' : 'var(--surface)',
                 color: aktiv ? '#ffffff' : 'var(--near-black)',
