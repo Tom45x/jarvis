@@ -9,7 +9,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Familien-Haushalts-App für Wochenplanung: Wochenplan (Gerichte pro Tag/Mahlzeit),
 Gerichte-Verwaltung (manuell oder KI-generiert inkl. Zutaten/Rezept), Einkaufsliste
 (Bring + Picnic), Extras (Gesundheitssnacks, Saftvorschläge), Instagram-/Chefkoch-
-Rezept-Import per iOS-Shortcut.
+Rezept-Import per iOS-Shortcut, Putzplan (`/putzplan`, abhakbare Aufgaben
+wöchentlich/monatlich/Quartal/Jahr; Aufgaben werden nur per SQL gepflegt, siehe
+`tasks/todo.md`).
 
 **Tech-Stack:** Next.js App Router (Turbopack) · Supabase (Projekt "Jarvis Haushalt",
 ID `ipsryfhdaugciyzctted`) · Anthropic Claude für alle KI-Features (Wochenplan-
@@ -27,7 +29,12 @@ App läuft über Coolify auf einem Vultr-Server, erreichbar unter einer
 (ist bereits einmal passiert) — aktuelle Adresse und Coolify-App-UUID stehen in
 `tasks/todo.md` unter "Infrastruktur", nicht hier fest verankern.
 
-Redeploy: Coolify-API-Token (Keys & Tokens im Dashboard erzeugen, nie im Klartext
+**Auto-Deploy:** Ein Push auf `master` löst über einen GitHub-Webhook automatisch
+ein Deploy aus (eingerichtet 2026-09-28, dauert ca. 10–12 min). Nach einem Push
+also normalerweise kein Token nötig. Nach einer Server-Migration muss die
+Webhook-URL in GitHub mit angepasst werden.
+
+Manueller Redeploy (Fallback): Coolify-API-Token (Keys & Tokens im Dashboard erzeugen, nie im Klartext
 committen) + `GET /api/v1/deploy?uuid=<App-UUID>`. Deployment-Status danach über
 `GET /api/v1/deployments/<deployment_uuid>` pollen (`status` wird `finished`).
 

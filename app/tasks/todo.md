@@ -51,11 +51,18 @@ Code ist fertig, getestet und committed (Commits `18fbf2d`, `3f54286` auf `maste
       „＋ Neues Gericht hinzufügen“ direkt, Seite zeigt inzwischen zuerst die
       Gruppen-Übersicht. Tests an aktuelle UI anpassen
 - [ ] Katja & Marie Profile — Lieblingsgerichte, Abneigungen
-- [ ] In Coolify (`http://152.70.8.112:8000` → Keys & Tokens) den ungenutzten
-      zweiten alten API-Token löschen (root- oder read-only-Token, Wert nicht
-      mehr bekannt) — Thomas macht das selbst bei Gelegenheit
+- [ ] **Coolify-Token vom 2026-09-28 widerrufen** (`http://152.70.8.112:8000`
+      → Keys & Tokens → API Tokens). Die Zeile ist aus `.env.local` entfernt,
+      der Token war am Sessionende aber laut API-Test noch gültig. Für Deploys
+      nicht mehr nötig, weil Auto-Deploy per Webhook läuft. Dabei prüfen, ob
+      der ungenutzte alte Token (root oder read-only) auch weg ist
 
 ## Erledigt
+- [x] **Auto-Deploy eingerichtet (2026-09-28)** — Jarvis war in Coolify als
+      „Public GitHub“ ohne App angebunden und das Repo hatte keinen Webhook,
+      ein Push hat also nie deployt. GitHub-Webhook (Push → Coolify) angelegt
+      und mit zwei Pushes verifiziert (`8219410`, `c675200`, beide
+      `is_webhook: true`, `finished`). Details im Abschnitt Infrastruktur
 - [x] **Putzplan (2026-09-28)** — neuer Tab `/putzplan` für Katja: abhakbare
       Aufgaben pro Wochentag (Mo–Fr, wöchentlich + monatlich) plus Quartals- und
       Jahresliste. Haken setzen sich ohne Cron zurück: Erledigung wird mit
