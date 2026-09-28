@@ -145,6 +145,25 @@ export interface Regelbedarf {
   einheit: string
 }
 
+export type PutzRhythmus = 'woche' | 'monat' | 'quartal'
+
+export interface PutzAufgabe {
+  id: string
+  titel: string
+  beschreibung: string | null
+  rhythmus: PutzRhythmus
+  wochentag: number | null // 1=Mo … 7=So, null bei quartal
+  sortierung: number
+  erledigt: boolean
+  erledigt_am: string | null
+}
+
+export interface Putzplan {
+  aufgaben: PutzAufgabe[]
+  heute: number // Wochentag in Berlin, 1=Mo … 7=So
+  quartal: string // z.B. '2026-Q3'
+}
+
 export interface PicnicArtikel {
   artikelId: string
   name: string

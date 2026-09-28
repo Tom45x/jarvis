@@ -30,6 +30,20 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: '/putzplan',
+    label: 'Putzplan',
+    icon: (active: boolean) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 8 8 4" />
+        <polyline points="3 14 5 16 8 12" />
+        <line x1="12" y1="6" x2="21" y2="6" />
+        <line x1="12" y1="14" x2="21" y2="14" />
+        <line x1="12" y1="20" x2="21" y2="20" />
+        <line x1="4" y1="20" x2="7" y2="20" />
+      </svg>
+    ),
+  },
+  {
     href: '/einstellungen',
     label: 'Einstellungen',
     icon: (active: boolean) => (
